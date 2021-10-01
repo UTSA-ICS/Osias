@@ -42,6 +42,7 @@ VM_Profile = {
 SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby"]
 PYTHON_VERSION = {"ussuri": "3.6", "victoria": "3.8", "wallaby": "3.8"}
 ANSIBLE_MAX_VERSION = {"ussuri": "2.10", "victoria": "2.10", "wallaby": "3.0"}
+CEPH_VERSION = {"ussuri": "pacific", "victoria": "pacific", "wallaby": "pacific"}
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
     "victoria": "focal hwe_kernel=hwe-20.04",

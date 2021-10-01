@@ -220,13 +220,10 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     if isinstance(ceph_enabled, str):
         if ast.literal_eval(ceph_enabled):
             CEPH = "true"
-            CEPH_RELEASE = vm_profile["CEPH_RELEASE"]
         else:
             CEPH = "false"
-            CEPH_RELEASE = None
     else:
         CEPH = "false"
-        CEPH_RELEASE = None
     server_list = []
     servers_public_ip = []
     public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
@@ -268,7 +265,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     POOL_END_IP = "{POOL_END_IP}"
     DNS_IP = "{vm_profile['DNS_IP']}"
     CEPH = {CEPH}
-    CEPH_RELEASE = "{CEPH_RELEASE}"
     OPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
     {DOCKER}
     """
@@ -348,13 +344,17 @@ def main():
                     + "VIP address is the horizon website,\n"
                     + "Pool start/end correlate to the floating IP's that VM's will use."
                 )
-        OPENSTACK_RELEASE = config.get_variables(variable="OPENSTACK_RELEASE")
-        CEPH_RELEASE = config.get_variables(variable="CEPH_RELEASE")
-        PYTHON_VERSION = config.get_variables(variable="PYTHON_VERSION")
-        TEMPEST_VERSION = config.get_variables(variable="TEMPEST_VERSION")
-        REFSTACK_TEST_VERSION = config.get_variables(variable="REFSTACK_TEST_VERSION")
-        MAAS_VM_DISTRO = config.get_variables(variable="MAAS_VM_DISTRO")
-        ANSIBLE_MAX_VERSION = config.get_variables(variable="ANSIBLE_MAX_VERSION")
+        OPENSTACK_RELEASE = config.get_variables(variable="OPENSTACK_RELEASE").lower()
+        if OPENSTACK_RELEASE not in osias_variables.SUPPORTED_OPENSTACK_RELEASE:
+            raise Exception(
+                f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
+            )
+        PYTHON_VERSION = osias_variables.PYTHON_VERSION[OPENSTACK_RELEASE]
+        TEMPEST_VERSION = osias_variables.TEMPEST_VERSION[OPENSTACK_RELEASE]
+        REFSTACK_TEST_VERSION = osias_variables.REFSTACK_TEST_VERSION[OPENSTACK_RELEASE]
+        ANSIBLE_MAX_VERSION = osias_variables.ANSIBLE_MAX_VERSION[OPENSTACK_RELEASE]
+        MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
+        CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
 
         cmd = "".join((args.operation, ".sh"))
 

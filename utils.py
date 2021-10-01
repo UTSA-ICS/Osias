@@ -10,30 +10,6 @@ import osias_variables
 class parser:
     def __init__(self, config):
         self.data = toml.loads(config)
-        self.set_openstack_release_parms(
-            self.get_variables(variable="OPENSTACK_RELEASE")
-        )
-
-    def set_openstack_release_parms(self, openstack_release):
-        if openstack_release.lower() not in osias_variables.SUPPORTED_OPENSTACK_RELEASE:
-            raise Exception(
-                f"Openstack version <{openstack_release} not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
-            )
-        self.data["variables"]["0"]["PYTHON_VERSION"] = osias_variables.PYTHON_VERSION[
-            openstack_release.lower()
-        ]
-        self.data["variables"]["0"][
-            "TEMPEST_VERSION"
-        ] = osias_variables.TEMPEST_VERSION[openstack_release.lower()]
-        self.data["variables"]["0"][
-            "REFSTACK_TEST_VERSION"
-        ] = osias_variables.REFSTACK_TEST_VERSION[openstack_release.lower()]
-        self.data["variables"]["0"][
-            "ANSIBLE_MAX_VERSION"
-        ] = osias_variables.ANSIBLE_MAX_VERSION[openstack_release.lower()]
-        self.data["variables"]["0"]["MAAS_VM_DISTRO"] = osias_variables.MAAS_VM_DISTRO[
-            openstack_release.lower()
-        ]
 
     def get_server_ips(self, node_type, ip_type):
         data = self.data.get(node_type)

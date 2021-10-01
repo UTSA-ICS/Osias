@@ -16,14 +16,13 @@ Osias offers a from scratch deployment mechanism utilizing [MAAS](https://maas.i
 ## Versions
 * MAAS version: 2.8.2 - 2.9.0
 * Mitogen: 0.2.10
-* CephADM: Octopus, Pacific
 
 
-|          |  Kolla | Python |       OS       |  Ansible  |
-|----------|--------|--------|----------------|-----------|
-| ussuri   |  11.x  |  3.6   |  Ubuntu 18.04  |   <2.10   |
-| victoria |  12.x  |  3.8   |  Ubuntu 18.04  |   <2.10   |
-| wallaby  |  13.x  |  3.8   |  Ubuntu 18.04  |   <3.0    |
+|          |  Kolla | Python |       OS       |  Ansible  |  Ceph  |
+|----------|--------|--------|----------------|-----------|--------|
+| ussuri   |  11.x  |  3.6   |  Ubuntu 18.04  |   <2.10   | Pacific|
+| victoria |  12.x  |  3.8   |  Ubuntu 20.04  |   <2.10   | Pacific|
+| wallaby  |  13.x  |  3.8   |  Ubuntu 20.04  |   <3.0    | Pacific|
 
 ## MaaS
 
@@ -193,7 +192,6 @@ Our multinode file is formatted very similar to that of Kolla, where all of thes
     DOCKER_REGISTRY = "<DOCKER IP>"
     DOCKER_REGISTRY_USERNAME = "<DOCKER REGISTRY USERNAME>"
     CEPH = "{True|False}"
-    CEPH_RELEASE = "{octopus|pacific|None}"
 ```
 
 
@@ -208,7 +206,7 @@ Our multinode file is formatted very similar to that of Kolla, where all of thes
 We use a variable called VM_PROFILE which helps create the multinode file above but for testing.  Below is the format needed:
 
 ```
-{"Data_CIDR": "{DATA CIDR IF USED}", "DNS_IP": "{DNS IP}", "Number_of_VM_Servers": 3, "OPENSTACK_RELEASE": "{OPENSTACK_RELEASE}", "CEPH": "{True|False}", "CEPH_RELEASE": "{octopus|pacific|None}", "DOCKER_REGISTRY_IP": "<DOCKER IP>", "DOCKER_REGISTRY_USERNAME": "<DOCKER REGISTRY USERNAME>", "VM_CIDR" = "<POOL OF IP's served as the cidr >"}
+{"Data_CIDR": "{DATA CIDR IF USED}", "DNS_IP": "{DNS IP}", "Number_of_VM_Servers": 3, "OPENSTACK_RELEASE": "{OPENSTACK_RELEASE}", "CEPH": "{True|False}", "DOCKER_REGISTRY_IP": "<DOCKER IP>", "DOCKER_REGISTRY_USERNAME": "<DOCKER REGISTRY USERNAME>", "VM_CIDR" = "<POOL OF IP's served as the cidr >"}
 ```
 
 

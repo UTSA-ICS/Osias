@@ -14,12 +14,6 @@ chmod +x cephadm
 
 sudo ./cephadm add-repo --release "$CEPH_RELEASE"
 
-if [[ "$CEPH_RELEASE" == "octopus" ]]; then
-   # Update broken ceph trusted key in octopus
-   wget -q -O- 'https://download.ceph.com/keys/release.asc' | sudo apt-key add -
-   sudo mv /etc/apt/trusted.gpg /etc/apt/trusted.gpg.d/ceph.release.gpg
-fi
-
 # Update to fetch the package index for ceph added above
 sudo apt-get update
 
