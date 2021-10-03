@@ -100,9 +100,12 @@ discoverability = True
 lock_path = /tmp
 
 [compute]
-min_compute_nodes = $MIN_COMPUTE_NODES
-min_microversion = $NOVA_MIN_MICROVERSION
-max_microversion = $NOVA_MAX_MICROVERSION
+#min_compute_nodes = $MIN_COMPUTE_NODES
+#min_microversion = $NOVA_MIN_MICROVERSION
+#max_microversion = $NOVA_MAX_MICROVERSION
+min_compute_nodes = 3
+min_microversion = 2.1
+max_microversion = 2.87
 flavor_ref = 100
 flavor_ref_alt = 101
 image_ref = $CIRROSID
@@ -153,7 +156,7 @@ network_for_ssh = $PUBLICNETWORKNAME
 security_group = True
 security_group_rules = True
 image_ssh_password = gocubsgo
-image_alt_ssh_password = rebuildPassw0rd
+# image_alt_ssh_password = rebuildPassw0rd
 # ssh_timeout = 60
 
 #[volume]
