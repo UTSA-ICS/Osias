@@ -100,12 +100,12 @@ discoverability = True
 lock_path = /tmp
 
 [compute]
-#min_compute_nodes = $MIN_COMPUTE_NODES
-#min_microversion = $NOVA_MIN_MICROVERSION
-#max_microversion = $NOVA_MAX_MICROVERSION
-min_compute_nodes = 3
-min_microversion = 2.1
-max_microversion = 2.87
+min_compute_nodes = $MIN_COMPUTE_NODES
+min_microversion = $NOVA_MIN_MICROVERSION
+max_microversion = $NOVA_MAX_MICROVERSION
+#min_compute_nodes = 3
+#min_microversion = 2.1
+#max_microversion = 2.87
 flavor_ref = 100
 flavor_ref_alt = 101
 image_ref = $CIRROSID
