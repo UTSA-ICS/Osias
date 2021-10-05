@@ -2,6 +2,12 @@
 
 set -euo pipefail
 
+if [ $# -ge 1 ] && [ -n "$1" ]; then
+  DOCKER_REGISTRY_PASSWORD=$1
+else
+  echo "No Docker Password Supplied"
+fi
+
 cd /opt/kolla
 source venv/bin/activate
 
