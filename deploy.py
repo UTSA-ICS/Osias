@@ -450,7 +450,7 @@ def main():
             "pre_deploy_openstack",
             "test_stress",
         ]:
-            utils.run_cmd_on_server(cmd, servers_public_ip[0])
+            utils.run_script_on_server(cmd, servers_public_ip[0])
         elif args.operation == "deploy_openstack":
             utils.run_script_on_server(
                 "deploy_openstack.sh",
