@@ -448,19 +448,17 @@ def main():
             )
         elif args.operation in [
             "pre_deploy_openstack",
-            "deploy_openstack",
             "test_stress",
         ]:
-            if args.operation == "deploy_openstack":
-                if OPENSTACK_RELEASE == "ussuri":
-                    booptstrap_servers = """
-                        cd /opt/kolla
-                        source venv/bin/activate
-                        # Bootstrap server is necessary to fix some docker links,
-                        # otherwise certain refstack tests will fail.
-                        kolla-ansible -i multinode bootstrap-servers"""
-                    utils.run_cmd_on_server(booptstrap_servers, servers_public_ip[0])
-            utils.run_script_on_server(cmd, servers_public_ip[0])
+            utils.run_cmd_on_server(cmd, servers_public_ip[0])
+        elif args.operation == "deploy_openstack":
+            utils.run_script_on_server(
+                "deploy_openstack.sh",
+                servers_public_ip[0],
+                args=[
+                    OPENSTACK_RELEASE,
+                ],
+            )
         elif args.operation == "delete_virtual_machines":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 delete_virtual_machines(

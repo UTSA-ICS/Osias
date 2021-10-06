@@ -5,6 +5,15 @@ set -euxo pipefail
 cd /opt/kolla
 source venv/bin/activate
 
+OPENSTACK_RELEASE="$1"
+if [[ "$OPENSTACK_RELEASE" == "ussuri" ]]; then
+    # Bootstrap server is necessary to fix some docker links,
+    # otherwise certain refstack tests will fail.
+    # This seems like a bug in ussuri as it is not needed
+    # in the subsequent victoria release.
+    kolla-ansible -i multinode bootstrap-servers
+fi
+
 kolla-ansible -i multinode deploy
 kolla-ansible -i multinode post-deploy
 deactivate nondestructive
