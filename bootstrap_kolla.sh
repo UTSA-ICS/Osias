@@ -11,7 +11,7 @@ sudo apt-get update
 sudo apt-get -qqy install python3-dev libffi-dev gcc libssl-dev python3-pip python3-venv
 
 # basedir and venv
-sudo mkdir /opt/kolla
+sudo mkdir -p /opt/kolla
 sudo chown "$USER":"$USER" /opt/kolla
 cd /opt/kolla
 python3 -m venv venv
@@ -23,7 +23,7 @@ sed -i s/ANSIBLE_MAX_VERSION/"${ANSIBLE_MAX_VERSION}"/ "$HOME"/requirements.txt
 python3 -m pip install -r "$HOME"/requirements.txt
 
 # General Ansible config
-sudo mkdir /etc/ansible
+sudo mkdir -p /etc/ansible
 sudo chown "$USER":"$USER" /etc/ansible
 cat > /etc/ansible/ansible.cfg <<__EOF__
 [defaults]
@@ -46,7 +46,7 @@ ansible_python_interpreter=/usr/bin/python3
 __EOF__
 
 # Configure kolla
-sudo mkdir /etc/kolla
+sudo mkdir -p /etc/kolla
 sudo chown "$USER":"$USER" /etc/kolla
 cp -r /opt/kolla/venv/share/kolla-ansible/etc_examples/kolla/* /etc/kolla || true
 cp /opt/kolla/venv/share/kolla-ansible/ansible/inventory/* . || true

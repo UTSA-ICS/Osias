@@ -14,7 +14,7 @@ python3 -m pip install -r requirements.txt
 python3 -m pip install -r test-requirements.txt
 python setup.py install
 
-mkdir -p  "$HOME"/tempest-stress/etc
+mkdir -p "$HOME"/tempest-stress/etc
 cp "$HOME"/accounts.yaml "$HOME"/tempest-stress/etc/accounts.yaml
 cp "$HOME"/tempest.conf "$HOME"/tempest-stress/etc/tempest.conf
 

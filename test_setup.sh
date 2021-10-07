@@ -52,30 +52,6 @@ debug = False
 use_stderr = False
 log_file = $HOME/Tempest.log
 
-[dashboard]
-# Set to True if using self-signed SSL certificates. (boolean value)
-disable_ssl_certificate_validation = True
-
-
-[identity]
-catalog_type = identity
-disable_ssl_certificate_validation = False
-ca_certificates_file = $HOME/root.crt
-uri = $URILINKV2
-uri_v3 = $URILINKV3
-auth_version = v3
-region = $REGION
-v3_endpoint_type = publicURL
-
-[identity-feature-enabled]
-api_v2 = False
-api_v3 = True
-#api_extensions = s3tokens,OS-EP-FILTER,OS-TRUST,OS-REVOKE,OS-ENDPOINT-POLICY,OS-INHERIT,OS-PKI,OS-OAUTH1,OS-SIMPLE-CERT,OS-FEDERATION,OS-EC2
-
-#[scenario]
-#img_dir = etc
-#img_file = cirros-0.4.0-x86_64-disk.img
-
 [auth]
 # tempest_roles = admin
 use_dynamic_credentials = True
@@ -86,18 +62,6 @@ admin_username = admin
 admin_project_name = admin
 admin_password = $ADMIN_PASS
 admin_domain_name = Default
-
-[object-storage]
-region = $REGION
-operator_role = Member
-reseller_admin_role = ResellerAdmin
-endpoint_type = internal
-
-[object-storage-feature-enabled]
-discoverability = True
-
-[oslo-concurrency]
-lock_path = /tmp
 
 [compute]
 min_compute_nodes = $MIN_COMPUTE_NODES
@@ -125,9 +89,30 @@ suspend = True
 cold_migration = True
 vnc_console = True
 
-#[network-feature-enabled]
-#ipv6_subnet_attributes = false
-#api_extensions = address-scope,router-admin-state-down-before-update,agent,agent-resources-synced,allowed-address-pairs,auto-allocated-topology,availability_zone,availability_zone_filter,default-subnetpools,dhcp_agent_scheduler,dvr,empty-string-filtering,external-net,extra_dhcp_opt,extraroute,extraroute-atomic,filter-validation,fip-port-details,flavors,floatingip-pools,ip-substring-filtering,router,ext-gw-mode,l3-ha,l3-flavors,l3-port-ip-change-not-allowed,l3_agent_scheduler,metering,multi-provider,net-mtu,net-mtu-writable,network_availability_zone,network-ip-availability,pagination,port-mac-address-regenerate,binding,binding-extended,port-security,project-id,provider,quotas,quota_details,rbac-policies,rbac-security-groups,revision-if-match,standard-attr-revisions,router_availability_zone,port-security-groups-filtering,security-group,service-type,sorting,standard-attr-description,subnet_onboard,subnet-service-types,subnet_allocation,subnetpool-prefix-ops,standard-attr-tag,standard-attr-timestamp
+[dashboard]
+# Set to True if using self-signed SSL certificates. (boolean value)
+disable_ssl_certificate_validation = True
+
+[heat_plugin]
+minimal_instance_type = 100
+instance_type = 101
+minimal_image_ref = $CIRROSID
+image_ref = $CIRROSID
+
+[identity]
+catalog_type = identity
+disable_ssl_certificate_validation = False
+ca_certificates_file = $HOME/root.crt
+uri = $URILINKV2
+uri_v3 = $URILINKV3
+auth_version = v3
+region = $REGION
+v3_endpoint_type = publicURL
+
+[identity-feature-enabled]
+api_v2 = False
+api_v3 = True
+#api_extensions = s3tokens,OS-EP-FILTER,OS-TRUST,OS-REVOKE,OS-ENDPOINT-POLICY,OS-INHERIT,OS-PKI,OS-OAUTH1,OS-SIMPLE-CERT,OS-FEDERATION,OS-EC2
 
 [image]
 image_path = $REFSTACK_TEST_IMAGE
@@ -137,11 +122,33 @@ http_image = $REFSTACK_TEST_IMAGE
 #api_v1 = False
 #api_v2 = True
 
-#[volume-feature-enabled]
-#api_v2 = True
-#backup = True
-#api_v3 = True
-#api_extensions = OS-SCH-HNT,os-vol-image-meta,os-volume-type-access,os-quota-sets,os-vol-mig-status-attr,os-quota-class-sets,os-volume-unmanage,scheduler-stats,os-extended-snapshot-attributes,os-volume-transfer,os-snapshot-manage,os-snapshot-unmanage,os-volume-manage,backups,consistencygroups,encryption,os-types-extra-specs,os-snapshot-actions,os-vol-host-attr,os-extended-services,cgsnapshots,os-hosts,os-vol-tenant-attr,os-volume-encryption-metadata,os-admin-actions,os-volume-actions,os-used-limits,os-services,os-types-manage,os-availability-zone,qos-specs,capabilities,OS-SCH-HNT,os-vol-image-meta,os-volume-type-access,os-quota-sets,os-vol-mig-status-attr,os-quota-class-sets,os-volume-unmanage,scheduler-stats,os-extended-snapshot-attributes,os-volume-transfer,os-snapshot-manage,os-snapshot-unmanage,os-volume-manage,backups,consistencygroups,encryption,os-types-extra-specs,os-snapshot-actions,os-vol-host-attr,os-extended-services,cgsnapshots,os-hosts,os-vol-tenant-attr,os-volume-encryption-metadata,os-admin-actions,os-volume-actions,os-used-limits,os-services,os-types-manage,os-availability-zone,qos-specs,capabilities
+[network]
+public_network_id = $PUBLICNETWORKID
+floating_network_name = $PUBLICNETWORKNAME
+
+#[network-feature-enabled]
+#ipv6_subnet_attributes = false
+#api_extensions = address-scope,router-admin-state-down-before-update,agent,agent-resources-synced,allowed-address-pairs,auto-allocated-topology,availability_zone,availability_zone_filter,default-subnetpools,dhcp_agent_scheduler,dvr,empty-string-filtering,external-net,extra_dhcp_opt,extraroute,extraroute-atomic,filter-validation,fip-port-details,flavors,floatingip-pools,ip-substring-filtering,router,ext-gw-mode,l3-ha,l3-flavors,l3-port-ip-change-not-allowed,l3_agent_scheduler,metering,multi-provider,net-mtu,net-mtu-writable,network_availability_zone,network-ip-availability,pagination,port-mac-address-regenerate,binding,binding-extended,port-security,project-id,provider,quotas,quota_details,rbac-policies,rbac-security-groups,revision-if-match,standard-attr-revisions,router_availability_zone,port-security-groups-filtering,security-group,service-type,sorting,standard-attr-description,subnet_onboard,subnet-service-types,subnet_allocation,subnetpool-prefix-ops,standard-attr-tag,standard-attr-timestamp
+
+[object-storage]
+region = $REGION
+operator_role = Member
+reseller_admin_role = ResellerAdmin
+endpoint_type = internal
+
+[object-storage-feature-enabled]
+discoverability = True
+
+[oslo-concurrency]
+lock_path = /tmp
+
+#[placement]
+#min_microversion = $PLACEMENT_MIN_MICROVERSION
+#max_microversion = $PLACEMENT_MAX_MICROVERSION
+
+#[scenario]
+#img_dir = etc
+#img_file = cirros-0.4.0-x86_64-disk.img
 
 [validation]
 image_ssh_user = cirros
@@ -163,19 +170,11 @@ image_alt_ssh_password = rebuildPassw0rd
 #max_microversion = $STORAGE_MAX_MICROVERSION
 #volume_size = 1
 
-[network]
-public_network_id = $PUBLICNETWORKID
-floating_network_name = $PUBLICNETWORKNAME
-
-#[placement]
-#min_microversion = $PLACEMENT_MIN_MICROVERSION
-#max_microversion = $PLACEMENT_MAX_MICROVERSION
-
-[heat_plugin]
-minimal_instance_type = 100
-instance_type = 101
-minimal_image_ref = $CIRROSID
-image_ref = $CIRROSID
+#[volume-feature-enabled]
+#api_v2 = True
+#backup = True
+#api_v3 = True
+#api_extensions = OS-SCH-HNT,os-vol-image-meta,os-volume-type-access,os-quota-sets,os-vol-mig-status-attr,os-quota-class-sets,os-volume-unmanage,scheduler-stats,os-extended-snapshot-attributes,os-volume-transfer,os-snapshot-manage,os-snapshot-unmanage,os-volume-manage,backups,consistencygroups,encryption,os-types-extra-specs,os-snapshot-actions,os-vol-host-attr,os-extended-services,cgsnapshots,os-hosts,os-vol-tenant-attr,os-volume-encryption-metadata,os-admin-actions,os-volume-actions,os-used-limits,os-services,os-types-manage,os-availability-zone,qos-specs,capabilities,OS-SCH-HNT,os-vol-image-meta,os-volume-type-access,os-quota-sets,os-vol-mig-status-attr,os-quota-class-sets,os-volume-unmanage,scheduler-stats,os-extended-snapshot-attributes,os-volume-transfer,os-snapshot-manage,os-snapshot-unmanage,os-volume-manage,backups,consistencygroups,encryption,os-types-extra-specs,os-snapshot-actions,os-vol-host-attr,os-extended-services,cgsnapshots,os-hosts,os-vol-tenant-attr,os-volume-encryption-metadata,os-admin-actions,os-volume-actions,os-used-limits,os-services,os-types-manage,os-availability-zone,qos-specs,capabilities
 
 [service_available]
 horizon = True
