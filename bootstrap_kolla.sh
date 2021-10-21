@@ -2,9 +2,8 @@
 
 set -euxo pipefail
 
-PYTHON_VERSION=$1
-OPENSTACK_RELEASE=$2
-ANSIBLE_MAX_VERSION=$3
+OPENSTACK_RELEASE=$1
+ANSIBLE_MAX_VERSION=$2
 
 # Dependencies
 sudo apt-get update
@@ -31,18 +30,6 @@ host_key_checking=False
 pipelining=True
 forks=100
 interpreter_python=/usr/bin/python3
-__EOF__
-
-# Kolla specific Ansible configs
-cat > /opt/kolla/ansible.cfg <<__EOF__
-[defaults]
-strategy_plugins = /opt/kolla/venv/lib/python${PYTHON_VERSION}/site-packages/ansible_mitogen/plugins/strategy
-strategy = mitogen_linear
-host_key_checking=False
-pipelining=True
-forks=100
-interpreter_python=/usr/bin/python3
-ansible_python_interpreter=/usr/bin/python3
 __EOF__
 
 # Configure kolla

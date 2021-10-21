@@ -143,6 +143,13 @@ keepalived_virtual_router_id: "{SUFFIX}"
 
 {docker}
 
+#neutron_plugin_agent: "ovn"
+#neutron_ovn_distributed_fip: "yes"
+#neutron_ovn_dhcp_agent: "yes"
+
+# https://docs.openstack.org/kolla-ansible/latest/reference/networking/provider-networks.html
+#enable_neutron_provider_networks: yes
+
 # Recommended Global Options:
 enable_mariabackup: "yes"
 {ha_options}

@@ -1,3 +1,2 @@
 ansible<ANSIBLE_MAX_VERSION
-https://github.com/dw/mitogen/archive/v0.2.10rc1.zip
 https://tarballs.opendev.org/openstack/kolla-ansible/kolla-ansible-stable-OPENSTACK_RELEASE.tar.gz
