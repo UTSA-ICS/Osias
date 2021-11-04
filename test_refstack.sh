@@ -69,7 +69,7 @@ fi
 #failure: tearDownClass (tempest.api.compute.servers.test_multiple_create.MultipleCreateTestJSON) [ multipart
 FILENAME="$HOME"/refstack-client/.tempest/.stestr/0
 
-NUM_FAILURES=$(grep "failure:" "$FILENAME" |wc -l)
+NUM_FAILURES=$(grep -c "failure:" "$FILENAME")
 echo "Number of failure are -->> [$NUM_FAILURES]"
 if [[ $NUM_FAILURES -eq 1 ]]; then
     FAILURE=$(grep "failure:" "$FILENAME")
