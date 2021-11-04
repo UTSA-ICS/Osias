@@ -40,6 +40,7 @@ generate_cidr_for_virtual_machines:
     - shell
   script:
     - cd test
+    - exit 1
     - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
     - echo "$VM_DEPLOYMENT_CIDR" > vm_deployment_cidr
     - echo "Using CIDR [$VM_DEPLOYMENT_CIDR]"
