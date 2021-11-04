@@ -36,6 +36,7 @@ deploy_pipeline:
     stage: deploy_pipeline
     trigger:
         include: deploy-pipeline.yml
+        strategy: depend
     parallel:
         matrix:
           - VM_PROFILE: "$VM_PROFILE_CURRENT_RELEASE"
