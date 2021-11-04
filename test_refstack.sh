@@ -69,34 +69,31 @@ fi
 #failure: tearDownClass (tempest.api.compute.servers.test_multiple_create.MultipleCreateTestJSON) [ multipart
 FILENAME="$HOME"/refstack-client/.tempest/.stestr/0
 
-NUM_FAILURES=$(grep -c "failure:" "$FILENAME")
+NUM_FAILURES=$(grep -c "failure:" "$FILENAME" || true)
 echo "Number of failure are -->> [$NUM_FAILURES]"
-EXIT_CODE=1
 if [[ $NUM_FAILURES -eq 1 ]]; then
     FAILURE=$(grep "failure:" "$FILENAME")
     if [[ "$FAILURE" =~ .*(tearDownClass).* ]] && [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
         echo "###########################################"
         echo "Expected unresolved failure - Force exit 0!"
         echo "###########################################"
-        EXIT_CODE=0
+        exit 0
     else
         echo "###########################################"
         echo "Unexpected error occurred!"
         echo "ERROR!!!!"
         echo "###########################################"
-        EXIT_CODE=1
+        exit 1
     fi
 elif [[ $NUM_FAILURES -eq 0 ]]; then
     echo "###########################################"
     echo "All Tests Passed!"
     echo "###########################################"
-    EXIT_CODE=0
+    exit 0
 else
     echo "###########################################"
     echo "More than 1 Testcase failed"
     echo "ERROR!!!!"
     echo "###########################################"
-    EXIT_CODE=1
+    exit 1
 fi
-
-exit "$EXIT_CODE"
