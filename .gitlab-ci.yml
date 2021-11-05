@@ -67,3 +67,4 @@ single_release:
     rules:
         - if: '$VM_PROFILE == "" || $VM_PROFILE == null'
           when: never
+        - when: on_success
