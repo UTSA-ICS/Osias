@@ -52,8 +52,11 @@ multiple_releases:
         - if: '$VM_PROFILE != "" || $VM_PROFILE != null'
           when: never
         - if: '($VM_PROFILE_CURRENT_RELEASE != "" || $VM_PROFILE_CURRENT_RELEASE != null)'
+          when: always
         - if: '($VM_PROFILE_NEXT_RELEASE != "" || $VM_PROFILE_NEXT_RELEASE != null)'
+          when: always
         - if: '($VM_PROFILE_PREVIOUS_RELEASE != "" || $VM_PROFILE_PREVIOUS_RELEASE != null)'
+          when: always
         
 single_release:
     stage: deploy_pipeline
