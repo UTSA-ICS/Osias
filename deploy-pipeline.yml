@@ -39,7 +39,7 @@ generate_cidr_for_virtual_machines:
   tags:
     - shell
   script:
-    - cd test'
+    - cd test
     - echo "The VM PROFILE is:--->"
     - echo "$VM_PROFILE"
     - exit 1
