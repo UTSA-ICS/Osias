@@ -8,6 +8,7 @@ jobs:
   Ubuntu-18-Deploy-OpenStack:
     runs-on: ubuntu-18.04
     strategy:
+      fail-fast: false
       matrix:
         OPENSTACK_RELEASE: ["ussuri"]
     env:
@@ -30,6 +31,7 @@ jobs:
   Ubuntu-20-Deploy-OpenStack:
     runs-on: ubuntu-20.04
     strategy:
+      fail-fast: false
       matrix:
         OPENSTACK_RELEASE: ["victoria", "wallaby"]
     steps:
