@@ -225,7 +225,6 @@ test:refstack:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     # Copy over the test output files
     - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/refstack-client/.tempest/.stestr/0*"
-  allow_failure: true
   artifacts:
     paths:
       - ./0
