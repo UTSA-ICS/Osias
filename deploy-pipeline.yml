@@ -39,7 +39,9 @@ generate_cidr_for_virtual_machines:
   tags:
     - shell
   script:
-    - cd test
+    - cd test'
+    - echo "The VM PROFILE is:--->"
+    - echo "$VM_PROFILE"
     - exit 1
     - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
     - echo "$VM_DEPLOYMENT_CIDR" > vm_deployment_cidr
