@@ -64,8 +64,6 @@ create_virtual_machines:
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)'
-    - if: '($MULTINODE == "" || $MULTINODE == null)'
-    - if: '($MULTINODE == "" || $MULTINODE == null)'
   artifacts:
     paths:
       - MULTINODE.env
@@ -83,9 +81,6 @@ reprovision_servers:
     - if: '$REPROVISION_SERVERS == "false"'
       when: never
     - if: '($MULTINODE != "" || $MULTINODE != null)'
-    - if: '($MULTINODE != "" || $MULTINODE != null)'
-    - if: '($MULTINODE != "" || $MULTINODE != null)'
-
 
 bootstrap_networking:
   stage: bootstrap_networking
