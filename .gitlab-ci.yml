@@ -51,7 +51,7 @@ multiple_releases:
     rules:
         - if: '$VM_PROFILE != "" || $VM_PROFILE != null'
           when: never
-        - when: on_success
+        - when: always
 
 #        - if: '($VM_PROFILE_CURRENT_RELEASE != "" || $VM_PROFILE_CURRENT_RELEASE != null)'
 #        - if: '($VM_PROFILE_NEXT_RELEASE != "" || $VM_PROFILE_NEXT_RELEASE != null)'
