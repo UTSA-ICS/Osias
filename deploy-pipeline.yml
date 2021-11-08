@@ -5,7 +5,6 @@ default:
   interruptible: true
 
 stages:
-  - static_analysis
   - generate_cidr
   - reprovision_servers
   - bootstrap_networking
