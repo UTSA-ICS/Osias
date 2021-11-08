@@ -1,0 +1,242 @@
+default:
+  # Official language image. Look for the different tagged releases at:
+  # https://hub.docker.com/r/library/python/tags/
+  image: python:3.7-buster
+  interruptible: true
+
+stages:
+  - static_analysis
+  - generate_cidr
+  - reprovision_servers
+  - bootstrap_networking
+  - cleanup
+  - reboot_servers
+  - bootstrap_openstack
+  - pre_deploy
+  - deploy
+  - post_deploy
+  - test_setup
+  - test_refstack
+  - test_stress
+  - release_cidr
+
+.base_setup:
+  tags:
+    - docker-runner
+  before_script:
+  # Setup and add SSH_PRIVATE_KEY to ssh agent
+  - 'which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+  - pip3 install toml timeout_decorator
+  - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
+  - echo "$MULTINODE"
+
+generate_cidr_for_virtual_machines:
+  stage: generate_cidr
+  tags:
+    - shell
+  script:
+    - cd test
+    - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
+    - echo "$VM_DEPLOYMENT_CIDR" > vm_deployment_cidr
+    - echo "Using CIDR [$VM_DEPLOYMENT_CIDR]"
+    - python3 -c "import json;import os;vm_profile=json.loads(os.getenv('VM_PROFILE'));vm_profile['vm_deployment_cidr']=os.getenv('VM_DEPLOYMENT_CIDR');vm_profile_file = open('vm_profile', 'w');vm_profile_file.write(json.dumps(vm_profile));vm_profile_file.close()"
+  artifacts:
+    paths:
+      - test/vm_deployment_cidr
+      - test/vm_profile
+    when: always
+  rules:
+    - if: '$MULTINODE == "" || $MULTINODE == null'
+
+create_virtual_machines:
+  stage: reprovision_servers
+  extends:
+   - .base_setup
+  image: utsaics/maas:2.8
+  dependencies:
+    - generate_cidr_for_virtual_machines
+  script:
+    - export VM_PROFILE=$(cat test/vm_profile)
+    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
+  artifacts:
+    paths:
+      - MULTINODE.env
+
+reprovision_servers:
+  stage: reprovision_servers
+  extends:
+    - .base_setup
+  image: utsaics/maas:2.8
+  script:
+    - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '$MULTINODE == "" || $MULTINODE == null'
+      when: never
+    - if: '$REPROVISION_SERVERS == "false"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE != "" || $MULTINODE != null)'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
+    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
+
+
+bootstrap_networking:
+  stage: bootstrap_networking
+  extends:
+    - .base_setup
+  script:
+    # Configure the networking and bridge for openstack.
+    - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+
+cleanup:
+  stage: cleanup
+  extends:
+    - .base_setup
+  script:
+    # Prepare a clean environment - cleanup servers to be used for deploy
+    # Ensure there is no ceph and openstack deployment on the servers
+    - python3 -u deploy.py cleanup --config "$MULTINODE"
+  rules:
+    - if: '$REPROVISION_SERVERS == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+reboot_servers:
+  stage: reboot_servers
+  extends:
+    - .base_setup
+  script:
+    # Restart the nodes
+    # Verify that the servers are up and online.
+    - python3 -u deploy.py reboot_servers --config "$MULTINODE"
+  rules:
+    - if: '$REPROVISION_SERVERS == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+bootstrap:openstack:
+  stage: bootstrap_openstack
+  extends:
+    - .base_setup
+  script:
+    # Run bootstrap across the servers for installing the pre-reqs for openstack
+    - |
+       if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
+         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+       else
+         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
+       fi
+
+ceph:deploy:
+  stage: pre_deploy
+  extends:
+    - .base_setup
+  script:
+    # This stage will only run if RAID is NOT enabled.
+    # Run bootstrap across the servers for installing the pre-reqs for CEPH
+    - python3 -u deploy.py bootstrap_ceph --config "$MULTINODE"
+    # Deploy ceph on target servers using cephadm
+    # Configure kolla options for ceph
+    - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
+
+openstack:pull:
+  stage: pre_deploy
+  extends:
+    - .base_setup
+  retry: 2
+  script:
+    # Pull openstack kolla images
+    - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
+
+deploy:openstack:
+  stage: deploy
+  extends:
+    - .base_setup
+  script:
+    # Deploy openstack on target servers using kolla
+    # 1. Run Kolla pre-setup
+    # 2. Run Kolla deploy
+    - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+
+post_deploy:openstack:
+  stage: post_deploy
+  extends:
+    - .base_setup
+  script:
+    # Setup the openstack cloud with public network, images, flavors etc.
+    - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
+
+test:setup:
+  stage: test_setup
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py test_setup --config "$MULTINODE"
+
+test:refstack:
+  stage: test_refstack
+  extends:
+    - .base_setup
+  script:
+    # Run refstack tests to ensure that the openstack deploy on target servers is functional
+    - python3 -u deploy.py test_refstack --config "$MULTINODE"
+  after_script:
+    - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
+    # Setup and add SSH_PRIVATE_KEY to ssh agent
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    # Copy over the test output files
+    - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/refstack-client/.tempest/.stestr/0*"
+  artifacts:
+    paths:
+      - ./0
+      - ./0.json
+    when: always
+
+test:stress:
+  stage: test_stress
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py test_stress --config "$MULTINODE"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "master"'
+      allow_failure: true
+
+delete_virtual_machines:
+  stage: release_cidr
+  image: utsaics/maas:2.8
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+   - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
+     when: always
+
+release_cidr_for_virtual_machines:
+  stage: release_cidr
+  tags:
+    - shell
+  dependencies:
+    - generate_cidr_for_virtual_machines
+  script:
+    - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
+    - cd test
+    - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
+    - echo "RELEASED $VM_DEPLOYMENT_CIDR"
+  rules:
+   - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+     when: always
+
