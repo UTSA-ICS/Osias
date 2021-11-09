@@ -52,7 +52,7 @@ multiple_releases:
           when: never
         - if: '($VM_PROFILE_PREVIOUS_RELEASE == "" || $VM_PROFILE_PREVIOUS_RELEASE == null)'
           when: never
-        - if: '$VM_PROFILE == "" || $VM_PROFILE == null'
+        - if: '$VM_PROFILE == "" || $VM_PROFILE == null || !$VM_PROFILE'
         
 single_release:
     stage: deploy_pipeline
@@ -64,6 +64,6 @@ single_release:
         REPROVISION_SERVERS: "$REPROVISION_SERVERS"
         DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
     rules:
-        - if: '$VM_PROFILE == "" || $VM_PROFILE == null'
+        - if: '$VM_PROFILE == "" || $VM_PROFILE == null || !$VM_PROFILE'
           when: never
         - when: on_success
