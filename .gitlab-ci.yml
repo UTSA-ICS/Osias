@@ -34,6 +34,7 @@ python_black:
     script:
         - python3 -m black --check --diff --color .
 
+# For 3 release pipelines.
 multiple_releases:
     stage: deploy_pipeline
     trigger:
