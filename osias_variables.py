@@ -59,11 +59,11 @@ REFSTACK_TEST_IMAGE = (
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.06",
-    "victoria": "2020.11",
+    "victoria": "2020.06",
     "wallaby": "2020.11",
 }
 # Initial tempest version are: {"ussuri": "24.0.0", "victoria": "26.0.0", "wallaby": "27.0.0"}
-TEMPEST_VERSION = {"ussuri": "27.0.0", "victoria": "29.0.0", "wallaby": "29.0.0"}
+TEMPEST_VERSION = {"ussuri": "27.0.0", "victoria": "28.0.0", "wallaby": "28.0.0"}
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
     "victoria": "2.80",
