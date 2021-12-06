@@ -6,7 +6,8 @@ on:
   pull_request:
   workflow_dispatch:
   schedule:
-    - cron:  '30 * * * *'
+    # schedule for 3:00am CST which is 9:00am UTC
+    - cron:  '0 9 * * *'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
