@@ -26,6 +26,7 @@ openstack router add subnet myrouter mysubnet
 
 git clone https://opendev.org/osf/refstack-client.git
 cd refstack-client || exit
+git checkout 0851f4fdec
 ./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}"
 
 cp "$HOME"/accounts.yaml "$HOME"/refstack-client/etc/accounts.yaml
