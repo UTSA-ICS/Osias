@@ -47,6 +47,7 @@ shellcheck:
     - docker-runner
   script:
     - |
+      exit 1
       find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
       xargs -0 -r -n1 shellcheck -e SC1091 -e SC2024 --color
 
@@ -56,9 +57,9 @@ python_black:
       name: cytopia/black
       entrypoint: ["/bin/ash", "-c"]
     tags:
-    - docker-runner
+      - docker-runner
     script:
-        - python3 -m black --check --diff --color .
+      - python3 -m black --check --diff --color .
 
 generate_cidr_for_virtual_machines:
   stage: generate_cidr
@@ -82,7 +83,7 @@ generate_cidr_for_virtual_machines:
 create_virtual_machines:
   stage: reprovision_servers
   extends:
-   - .base_setup
+    - .base_setup
   image: utsaics/maas:2.8
   dependencies:
     - generate_cidr_for_virtual_machines
@@ -249,8 +250,8 @@ delete_virtual_machines:
   script:
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
-   - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
-     when: always
+    - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
+      when: on_success
 
 release_cidr_for_virtual_machines:
   stage: release_cidr
@@ -264,5 +265,33 @@ release_cidr_for_virtual_machines:
     - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
     - echo "RELEASED $VM_DEPLOYMENT_CIDR"
   rules:
-   - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-     when: always
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_success
+
+delete_virtual_machines:
+  stage: release_cidr
+  image: utsaics/maas:2.8
+  extends:
+    - .base_setup
+  script:
+    - for i in `seq 60 -1 1` ; do echo -ne "\r$i " ; sleep 1 ; done
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
+      when: on_failure
+
+release_cidr_for_virtual_machines:
+  stage: release_cidr
+  tags:
+    - shell
+  dependencies:
+    - generate_cidr_for_virtual_machines
+  script:
+    - for i in `seq 60 -1 1` ; do echo -ne "\r$i " ; sleep 1 ; done
+    - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
+    - cd test
+    - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
+    - echo "RELEASED $VM_DEPLOYMENT_CIDR"
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_failure
