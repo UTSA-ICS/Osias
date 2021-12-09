@@ -279,7 +279,8 @@ delete_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
       when: on_failure
-  when: manual
+    - when: manual
+
 
 release_cidr_for_virtual_machines:
   stage: release_cidr
@@ -296,4 +297,4 @@ release_cidr_for_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: on_failure
-  when: manual
+    - when: manual
