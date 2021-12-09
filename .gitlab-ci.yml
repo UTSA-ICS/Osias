@@ -248,7 +248,7 @@ sleep_on_failure:
   tags:
     - shell
   script:
-    - for i in `seq 30 -1 1` ; do echo -n "$i " ; sleep 1 ; done
+    - for i in `seq $SLEEP_FAILURE_TIME -1 1` ; do echo -n "$i " ; sleep 1 ; done
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: on_failure
