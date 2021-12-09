@@ -23,6 +23,7 @@ stages:
   - test_setup
   - test_refstack
   - test_stress
+  - sleep_on_failure
   - release_cidr
 
 .base_setup:
@@ -242,18 +243,15 @@ test:stress:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-delete_virtual_machines:
+.delete_virtual_machines:
   stage: release_cidr
   image: utsaics/maas:2.8
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
-      when: on_success
 
-release_cidr_for_virtual_machines:
+.release_cidr_for_virtual_machines:
   stage: release_cidr
   tags:
     - shell
@@ -264,35 +262,51 @@ release_cidr_for_virtual_machines:
     - cd test
     - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
     - echo "RELEASED $VM_DEPLOYMENT_CIDR"
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: on_success
-
-delete_virtual_machines:
-  stage: release_cidr
-  image: utsaics/maas:2.8
-  extends:
-    - .base_setup
-  script:
-    - for i in `seq 60 -1 1` ; do echo -n "$i " ; sleep 1 ; done
-    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-  rules:
-    - when: manual
-
-
-release_cidr_for_virtual_machines:
-  stage: release_cidr
+  
+sleep_on_failure:
+  stage: sleep_on_failure
   tags:
     - shell
-  dependencies:
-    - generate_cidr_for_virtual_machines
   script:
     - for i in `seq 60 -1 1` ; do echo -n "$i " ; sleep 1 ; done
-    - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
-    - cd test
-    - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
-    - echo "RELEASED $VM_DEPLOYMENT_CIDR"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: on_failure
-    - when: manual
+
+delete_VMs_on_failure:
+  extends:
+    - .delete_virtual_machines
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_failure
+
+release_cidr_on_failure:
+  extends:
+    - .release_cidr_for_virtual_machines
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_failure
+
+manual:delete_virtual_machines:
+  extends:
+    - .delete_virtual_machines
+  when: manual
+
+manual:release_cidr_for_virtual_machines:
+  extends:
+    - .release_cidr_for_virtual_machines
+  when: manual
+
+delete_virtual_machines:
+  extends:
+    - .delete_virtual_machines
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_success
+
+release_cidr_for_virtual_machines:
+  extends:
+    - .release_cidr_for_virtual_machines
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_success
