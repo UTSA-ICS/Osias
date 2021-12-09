@@ -287,7 +287,7 @@ release_cidr_for_virtual_machines:
   dependencies:
     - generate_cidr_for_virtual_machines
   script:
-    - pip install termtime
+    - pip3 install termtime
     - termtime countdown 60
     - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
     - cd test
