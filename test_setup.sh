@@ -76,7 +76,7 @@ fixed_network_name = mynet
 # build_timeout = 60
 
 [compute-feature-enabled]
-validation.run_validation = True
+validation.run_validation = False
 live_migration = True
 live_migrate_paused_instances = True
 preserve_ports = True
@@ -88,6 +88,7 @@ shelve = True
 suspend = True
 cold_migration = True
 vnc_console = True
+personality = True
 
 [dashboard]
 # Set to True if using self-signed SSL certificates. (boolean value)

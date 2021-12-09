@@ -98,7 +98,7 @@ nova_backend_ceph: "no"
     # Default value of the network interface
     network_interface = "eno1"
     # Default value of tls backend
-    tls_enabled = "yes"
+    tls_enabled = "no"
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
