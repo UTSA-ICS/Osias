@@ -268,31 +268,19 @@ sleep_on_failure:
   tags:
     - shell
   script:
-    - for i in `seq 60 -1 1` ; do echo -n "$i " ; sleep 1 ; done
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: on_failure
-
-delete_VMs_on_failure:
-  extends:
-    - .delete_virtual_machines
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: on_failure
-
-release_cidr_on_failure:
-  extends:
-    - .release_cidr_for_virtual_machines
+    - for i in `seq 15 -1 1` ; do echo -n "$i " ; sleep 1 ; done
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: on_failure
 
 manual:delete_virtual_machines:
+  stage: sleep_on_failure
   extends:
     - .delete_virtual_machines
   when: manual
 
 manual:release_cidr_for_virtual_machines:
+  stage: sleep_on_failure
   extends:
     - .release_cidr_for_virtual_machines
   when: manual
@@ -302,11 +290,11 @@ delete_virtual_machines:
     - .delete_virtual_machines
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: on_success
+      when: always
 
 release_cidr_for_virtual_machines:
   extends:
     - .release_cidr_for_virtual_machines
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: on_success
+      when: always
