@@ -277,8 +277,6 @@ delete_virtual_machines:
     - for i in `seq 60 -1 1` ; do echo -n "$i " ; sleep 1 ; done
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
-      when: on_failure
     - when: manual
 
 
