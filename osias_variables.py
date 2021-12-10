@@ -65,9 +65,9 @@ REFSTACK_TEST_VERSION = {
 # Initial tempest version are: {"ussuri": "24.0.0", "victoria": "26.0.0", "wallaby": "27.0.0"}
 TEMPEST_VERSION = {"ussuri": "29.2.0", "victoria": "29.2.0", "wallaby": "29.2.0"}
 NOVA_MIN_MICROVERSION = {
-    "ussuri": "None",
-    "victoria": "None",
-    "wallaby": "None",
+    "ussuri": "2.1",
+    "victoria": "2.1",
+    "wallaby": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
