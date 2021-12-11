@@ -55,7 +55,7 @@ MAAS_VM_DISTRO = {
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.06",
@@ -75,9 +75,9 @@ NOVA_MAX_MICROVERSION = {
     "wallaby": "2.88",
 }
 STORAGE_MIN_MICROVERSION = {
-    "ussuri": "3.59",
-    "victoria": "3.60",
-    "wallaby": "3.62",
+    "ussuri": "3.0",
+    "victoria": "3.0",
+    "wallaby": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -85,9 +85,9 @@ STORAGE_MAX_MICROVERSION = {
     "wallaby": "3.64",
 }
 PLACEMENT_MIN_MICROVERSION = {
-    "ussuri": "1.32",
-    "victoria": "1.32",
-    "wallaby": "1.32",
+    "ussuri": "1.0",
+    "victoria": "1.0",
+    "wallaby": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
