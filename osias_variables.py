@@ -71,7 +71,7 @@ MAAS_VM_DISTRO = {
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.imgg"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.06",
@@ -87,10 +87,10 @@ TEMPEST_VERSION = {
     "xena": "29.1.0",
 }
 NOVA_MIN_MICROVERSION = {
-    "ussuri": "None",
-    "victoria": "None",
-    "wallaby": "None",
-    "xena": "None",
+    "ussuri": "2.1",
+    "victoria": "2.1",
+    "wallaby": "2.1",
+    "xena": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
@@ -99,10 +99,10 @@ NOVA_MAX_MICROVERSION = {
     "xena": "2.90",
 }
 STORAGE_MIN_MICROVERSION = {
-    "ussuri": "3.59",
-    "victoria": "3.60",
-    "wallaby": "3.62",
-    "xena": "3.64",
+    "ussuri": "3.00",
+    "victoria": "3.00",
+    "wallaby": "3.00",
+    "xena": "3.00",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -111,10 +111,10 @@ STORAGE_MAX_MICROVERSION = {
     "xena": "3.66",
 }
 PLACEMENT_MIN_MICROVERSION = {
-    "ussuri": "1.32",
-    "victoria": "1.32",
-    "wallaby": "1.32",
-    "xena": "1.32",
+    "ussuri": "1.0",
+    "victoria": "1.0",
+    "wallaby": "1.0",
+    "xena": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
