@@ -71,7 +71,7 @@ MAAS_VM_DISTRO = {
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.imgg"
+    "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.06",
