@@ -99,10 +99,10 @@ NOVA_MAX_MICROVERSION = {
     "xena": "2.90",
 }
 STORAGE_MIN_MICROVERSION = {
-    "ussuri": "3.00",
-    "victoria": "3.00",
-    "wallaby": "3.00",
-    "xena": "3.00",
+    "ussuri": "3.0",
+    "victoria": "3.0",
+    "wallaby": "3.0",
+    "xena": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
