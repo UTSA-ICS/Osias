@@ -45,6 +45,8 @@ enable_neutron_agent_ha: "no"
     else:
         ha_options = """
 enable_neutron_agent_ha: "yes"
+# Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
+enable_masakari: "yes"
 """
     if docker_registry:
         docker = f"""
@@ -66,6 +68,7 @@ docker_registry_username: "{docker_registry_username}"
 glance_backend_ceph: "yes"
 glance_backend_file: "no"
 #glance_backend_swift: "no"
+glance_enable_rolling_upgrade: "yes"
 
 enable_cinder: "yes"
 #enable_cinder_backend_lvm: "no"
@@ -83,6 +86,9 @@ nova_backend_ceph: "yes"
 glance_backend_ceph: "no"
 glance_backend_file: "yes"
 #glance_backend_swift: "no"
+enable_glance_image_cache: "yes"
+glance_cache_max_size: "10737418240" # 10GB by default
+glance_enable_rolling_upgrade: "yes"
 
 enable_cinder: "no"
 #enable_cinder_backend_lvm: "no"
@@ -118,6 +124,7 @@ nova_backend_ceph: "no"
             tls_enabled = "no"
             ha_options += """
 enable_haproxy: "no"
+enable_keepalived: "no"
     """
 
     globals_file = f"""
@@ -136,7 +143,7 @@ kolla_enable_tls_external: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 kolla_verify_tls_backend:  "{tls_enabled}"
 kolla_enable_tls_backend: "{tls_enabled}"
-openstack_cacert: "/etc/ssl/certs/ca-certificates.crt"
+openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 keepalived_virtual_router_id: "{SUFFIX}"
 
 {storage}
