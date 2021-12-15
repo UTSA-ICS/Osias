@@ -134,9 +134,9 @@ neutron_external_interface: "veno1"
 kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
-kolla_verify_tls_backend: "no"
+kolla_verify_tls_backend:  "{tls_enabled}"
 kolla_enable_tls_backend: "{tls_enabled}"
-openstack_cacert: /etc/pki/tls/certs/ca-bundle.crt
+openstack_cacert: "/etc/ssl/certs/ca-certificates.crt"
 keepalived_virtual_router_id: "{SUFFIX}"
 
 {storage}
