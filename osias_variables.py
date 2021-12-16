@@ -81,10 +81,10 @@ REFSTACK_TEST_VERSION = {
     "xena": "2021.11",
 }
 TEMPEST_VERSION = {
-    "ussuri": "29.1.0",
-    "victoria": "29.1.0",
-    "wallaby": "29.1.0",
-    "xena": "29.1.0",
+    "ussuri": "29.2.0",
+    "victoria": "29.2.0",
+    "wallaby": "29.2.0",
+    "xena": "29.2.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -94,7 +94,7 @@ NOVA_MIN_MICROVERSION = {
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
-    "victoria": "2.88",
+    "victoria": "2.87",
     "wallaby": "2.88",
     "xena": "2.90",
 }
