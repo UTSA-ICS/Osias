@@ -21,7 +21,6 @@ fi
 POOL_GATEWAY="${PUBLICIP%.*}.253"
 
 sudo chown "$USER":"$USER" /etc/kolla/admin-openrc.sh
-echo "export OS_CACERT=/etc/kolla/certificates/ca/root.crt" >> /etc/kolla/admin-openrc.sh
 source /etc/kolla/admin-openrc.sh
 
 openstack flavor create --id 1 --vcpus 1 --ram 2048 --disk 20 gp1.small

@@ -16,7 +16,7 @@ fi
 
 kolla-ansible -i multinode deploy
 kolla-ansible -i multinode post-deploy
-# echo "export OS_CACERT=/etc/pki/tls/certs/ca-bundle.crt">> /etc/kolla/admin-openrc.sh
+echo "export OS_CACERT=/etc/kolla/certificates/ca/root.crt" >> /etc/kolla/admin-openrc.sh
 deactivate nondestructive
 
 # Install the openstack client
