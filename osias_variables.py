@@ -94,7 +94,7 @@ NOVA_MIN_MICROVERSION = {
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
-    "victoria": "2.87",
+    "victoria": "2.88",
     "wallaby": "2.88",
     "xena": "2.90",
 }
