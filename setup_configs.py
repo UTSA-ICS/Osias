@@ -128,6 +128,11 @@ enable_haproxy: "no"
 enable_keepalived: "no"
     """
 
+    if partial_fqdn:
+        FQDN = f"test{SUFFIX}{partial_fqdn}"
+    else:
+        FQDN = ""
+
     globals_file = f"""
 # Globals file is completely commented out besides these variables.
 cat >>/etc/kolla/globals.yml <<__EOF__
@@ -145,7 +150,7 @@ kolla_enable_tls_external: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 kolla_enable_tls_backend: "no"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
-kolla_external_fqdn: "test{SUFFIX}{partial_fqdn}"
+kolla_external_fqdn: "{FQDN}"
 
 keepalived_virtual_router_id: "{SUFFIX}"
 

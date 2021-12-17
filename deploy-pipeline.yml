@@ -147,7 +147,7 @@ bootstrap:openstack:
        if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
          python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
        else
-         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
+         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD" --PARTIAL_FQDN "$PARTIAL_FQDN"
        fi
 
 ceph:deploy:
