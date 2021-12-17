@@ -129,7 +129,7 @@ enable_keepalived: "no"
     """
 
     if partial_fqdn:
-        FQDN = f"test{SUFFIX}{partial_fqdn}"
+        FQDN = f'kolla_external_fqdn: "test{SUFFIX}{partial_fqdn}"'
     else:
         FQDN = ""
 
@@ -150,7 +150,7 @@ kolla_enable_tls_external: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 kolla_enable_tls_backend: "no"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
-kolla_external_fqdn: "{FQDN}"
+{FQDN}
 
 keepalived_virtual_router_id: "{SUFFIX}"
 
