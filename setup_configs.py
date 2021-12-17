@@ -17,6 +17,7 @@ def setup_kolla_configs(
     vm_cidr,
     ceph,
     vip_address,
+    partial_fqdn,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     if vm_cidr:
@@ -144,6 +145,7 @@ kolla_enable_tls_external: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 kolla_enable_tls_backend: "no"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
+kolla_external_fqdn: "test{SUFFIX}{partial_fqdn}"
 
 keepalived_virtual_router_id: "{SUFFIX}"
 

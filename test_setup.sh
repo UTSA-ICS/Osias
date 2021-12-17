@@ -161,7 +161,7 @@ security_group = True
 security_group_rules = True
 image_ssh_password = gocubsgo
 image_alt_ssh_password = rebuildPassw0rd
-# ssh_timeout = 60
+ssh_timeout = 180
 
 [volume]
 #build_timeout = 60
