@@ -150,6 +150,7 @@ kolla_external_vip_address: "{kolla_external_vip_address}"
 kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
 kolla_enable_tls_backend: "{tls_enabled}"
+rabbitmq_enable_tls: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 kolla_admin_openrc_cacert: "/etc/ssl/certs/ca-certificates.crt"
@@ -161,7 +162,6 @@ kolla_admin_openrc_cacert: "/etc/ssl/certs/ca-certificates.crt"
 # Recommended Global Options:
 enable_mariabackup: "yes"
 {ha_options}
-glance_enable_rolling_upgrade: "yes"
 
 # Desired Global Options:
 #enable_aodh: "yes"

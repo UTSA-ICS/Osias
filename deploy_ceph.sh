@@ -6,6 +6,11 @@ sudo ceph orch host ls
 sudo ceph orch device ls --refresh
 sudo ceph orch apply osd --all-available-devices
 
+# Enabling OSD memory autotuning for hyperconverged clusters where the cluster hardware is not exclusively used by Ceph
+# https://docs.ceph.com/en/latest/cephadm/install/#enabling-osd-memory-autotuning
+sudo ceph config set mgr mgr/cephadm/autotune_memory_target_ratio 0.2
+sudo ceph config set osd osd_memory_target_autotune true
+
 # Create pool for Cinder
 sudo ceph osd pool create volumes
 sudo rbd pool init volumes
