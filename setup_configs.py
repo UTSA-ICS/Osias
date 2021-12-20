@@ -139,20 +139,20 @@ cat >>/etc/kolla/globals.yml <<__EOF__
 # Basic Options
 kolla_base_distro: "centos"
 kolla_install_type: "source"
-kolla_internal_vip_address: "{kolla_internal_vip_address}"
-kolla_external_vip_address: "{kolla_external_vip_address}"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"
-
-kolla_enable_tls_internal: "no"
-kolla_enable_tls_external: "{tls_enabled}"
-kolla_copy_ca_into_containers: "yes"
-kolla_enable_tls_backend: "no"
-openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
+keepalived_virtual_router_id: "{SUFFIX}"
+kolla_internal_vip_address: "{kolla_internal_vip_address}"
+kolla_external_vip_address: "{kolla_external_vip_address}"
 {FQDN}
 
-keepalived_virtual_router_id: "{SUFFIX}"
+kolla_enable_tls_internal: "{tls_enabled}"
+kolla_enable_tls_external: "{tls_enabled}"
+kolla_enable_tls_backend: "{tls_enabled}"
+kolla_copy_ca_into_containers: "yes"
+openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
+kolla_admin_openrc_cacert: "/etc/ssl/certs/ca-certificates.crt"
 
 {storage}
 

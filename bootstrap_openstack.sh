@@ -18,6 +18,9 @@ if [[ -v DOCKER_REGISTRY_PASSWORD ]]; then
 fi
 
 kolla-ansible -i multinode certificates
+# Copy certificates so Kolla will copy them over and trust them.
+sudo cp /etc/kolla/certificates/ca/root.crt /usr/local/share/ca-certificates/kolla-root.crt
+sudo update-ca-certificates
 
 # This bootstrap is necessary to prep for openstack deployment.
 kolla-ansible -i multinode bootstrap-servers
