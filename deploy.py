@@ -83,12 +83,6 @@ def parse_args():
         help="Dictionary of values containing the following which over-write the defaults listed in osias_variables.py",
     )
     parser.add_argument(
-        "--PARTIAL_FQDN",
-        type=str,
-        required=False,
-        help="Partial FQDN (ie. '.test.com') required for TLS testing, the complete FQDN will be joined with test<VIP last octet>: 'test123.test.com'",
-    )
-    parser.add_argument(
         "operation",
         type=str,
         choices=[
@@ -151,7 +145,6 @@ def bootstrap_openstack(
     ansible_version,
     ceph,
     vip_address,
-    partial_fqdn,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -172,7 +165,6 @@ def bootstrap_openstack(
         vm_cidr,
         ceph,
         vip_address,
-        partial_fqdn,
     )
     utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
@@ -404,7 +396,6 @@ def main():
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
                 VIP_ADDRESS,
-                args.PARTIAL_FQDN,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:

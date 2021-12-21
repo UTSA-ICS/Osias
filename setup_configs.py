@@ -17,7 +17,6 @@ def setup_kolla_configs(
     vm_cidr,
     ceph,
     vip_address,
-    partial_fqdn,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     if vm_cidr:
@@ -109,23 +108,19 @@ enable_keepalived: "yes"
         and len(storage_nodes) == 1
         and len(compute_nodes) == 1
     ):
+        tls_enabled = "no"
+        ha_options = """
+enable_haproxy: "no"
+enable_keepalived: "no"
+    """
         if (
             controller_nodes == network_nodes
             and controller_nodes == storage_nodes
             and controller_nodes == compute_nodes
             and kolla_internal_vip_address == kolla_external_vip_address
         ):
+            # This is only github deployment only due to matching vip addresses.
             network_interface = "br0"
-            tls_enabled = "no"
-            ha_options = """
-enable_haproxy: "no"
-enable_keepalived: "no"
-    """
-
-    if partial_fqdn:
-        FQDN = f'kolla_external_fqdn: "test{SUFFIX}{partial_fqdn}"'
-    else:
-        FQDN = ""
 
     globals_file = f"""
 # Globals file is completely commented out besides these variables.
@@ -139,7 +134,6 @@ neutron_external_interface: "veno1"
 keepalived_virtual_router_id: "{SUFFIX}"
 kolla_internal_vip_address: "{kolla_internal_vip_address}"
 kolla_external_vip_address: "{kolla_external_vip_address}"
-{FQDN}
 
 kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
@@ -147,7 +141,6 @@ kolla_enable_tls_backend: "{tls_enabled}"
 rabbitmq_enable_tls: "{tls_enabled}"
 kolla_copy_ca_into_containers: "yes"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
-kolla_admin_openrc_cacert: "/etc/ssl/certs/ca-certificates.crt"
 
 {storage}
 
