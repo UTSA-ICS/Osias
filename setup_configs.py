@@ -38,17 +38,6 @@ def setup_kolla_configs(
         kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
         SUFFIX = VIP_ADDRESS_SUFFIX
 
-    if len(controller_nodes) == 1:
-        # HA not available
-        ha_options = """
-enable_neutron_agent_ha: "no"
-"""
-    else:
-        ha_options = """
-enable_neutron_agent_ha: "yes"
-# Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
-enable_masakari: "yes"
-"""
     if docker_registry:
         docker = f"""
 # Docker Options
@@ -106,6 +95,11 @@ nova_backend_ceph: "no"
     network_interface = "eno1"
     # Default value of tls backend
     tls_enabled = "yes"
+    # Default value of High Availability options:
+    ha_options = """
+enable_haproxy: "yes"
+enable_keepalived: "yes"
+"""
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
@@ -123,7 +117,7 @@ nova_backend_ceph: "no"
         ):
             network_interface = "br0"
             tls_enabled = "no"
-            ha_options += """
+            ha_options = """
 enable_haproxy: "no"
 enable_keepalived: "no"
     """
@@ -164,25 +158,13 @@ enable_mariabackup: "yes"
 {ha_options}
 
 # Desired Global Options:
-#enable_aodh: "yes"
-#enable_prometheus: "yes"
-#enable_ceilometer: "yes"
-#enable_panko: "yes"
 #enable_neutron_metering: "yes"
 #enable_neutron_dvr: "yes"
 #enable_neutron_qos: "yes"
-
-#enable_telegraf: "yes"
-#enable_watcher: "yes"
-
-#enable_gnocchi: "yes
-#ceph_gnocchi_pool_name: "metrics"
-#gnocchi_incoming_storage: "{{{{ 'redis' if enable_redis | bool else '' }}}}"
-
+#enable_neutron_agent_ha: "no"
+# Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
+#enable_masakari: "yes"
 #enable_central_logging: "yes"
-#enable_grafana: "yes"
-
-#enable_skydive: "yes"
 __EOF__
 """
 
