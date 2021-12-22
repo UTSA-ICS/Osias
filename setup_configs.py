@@ -147,7 +147,7 @@ openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 {docker}
 
 # Recommended Global Options:
-enable_mariabackup: "yes"
+enable_mariabackup: "no"
 {ha_options}
 
 # Desired Global Options:
