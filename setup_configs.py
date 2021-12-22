@@ -97,7 +97,6 @@ nova_backend_ceph: "no"
     # Default value of High Availability options:
     ha_options = """
 enable_haproxy: "yes"
-enable_keepalived: "yes"
 """
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
@@ -109,18 +108,20 @@ enable_keepalived: "yes"
         and len(compute_nodes) == 1
     ):
         tls_enabled = "no"
-        ha_options = """
-enable_haproxy: "no"
-# enable_keepalived: "no"
-    """
         if (
             controller_nodes == network_nodes
             and controller_nodes == storage_nodes
             and controller_nodes == compute_nodes
             and kolla_internal_vip_address == kolla_external_vip_address
         ):
-            # This is only github deployment only due to matching vip addresses.
+            # This is a gitlab deployment, only 1 nic, 1 IP.
+            # Due to 1 IP, internal and external VIP's match.
             network_interface = "br0"
+            ha_options = """
+# If vip's don't match, disabling haproxy will fail deployment
+enable_haproxy: "no"  
+    """
+
 
     globals_file = f"""
 # Globals file is completely commented out besides these variables.
@@ -140,7 +141,7 @@ kolla_enable_tls_external: "{tls_enabled}"
 kolla_enable_tls_backend: "{tls_enabled}"
 rabbitmq_enable_tls: "{tls_enabled}"
 kolla_copy_ca_into_containers: "{tls_enabled}"
-openstack_cacert: "{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_external == 'yes' else '' }}"
+openstack_cacert: "{{{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_external == 'yes' else '' }}}}"
 
 {storage}
 
