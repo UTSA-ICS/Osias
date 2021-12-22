@@ -122,7 +122,6 @@ enable_haproxy: "yes"
 enable_haproxy: "no"  
     """
 
-
     globals_file = f"""
 # Globals file is completely commented out besides these variables.
 cat >>/etc/kolla/globals.yml <<__EOF__
