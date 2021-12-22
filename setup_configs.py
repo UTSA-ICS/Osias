@@ -111,7 +111,7 @@ enable_keepalived: "yes"
         tls_enabled = "no"
         ha_options = """
 enable_haproxy: "no"
-enable_keepalived: "no"
+# enable_keepalived: "no"
     """
         if (
             controller_nodes == network_nodes
