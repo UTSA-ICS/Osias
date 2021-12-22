@@ -139,8 +139,8 @@ kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
 kolla_enable_tls_backend: "{tls_enabled}"
 rabbitmq_enable_tls: "{tls_enabled}"
-kolla_copy_ca_into_containers: "yes"
-openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
+kolla_copy_ca_into_containers: "{tls_enabled}"
+openstack_cacert: "{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_external == 'yes' else '' }}"
 
 {storage}
 
