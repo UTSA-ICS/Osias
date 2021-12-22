@@ -98,7 +98,6 @@ nova_backend_ceph: "no"
     # Default value of High Availability options:
     ha_options = """
 enable_haproxy: "yes"
-enable_keepalived: "yes"
 """
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
@@ -109,17 +108,19 @@ enable_keepalived: "yes"
         and len(storage_nodes) == 1
         and len(compute_nodes) == 1
     ):
+        tls_enabled = "no"
         if (
             controller_nodes == network_nodes
             and controller_nodes == storage_nodes
             and controller_nodes == compute_nodes
             and kolla_internal_vip_address == kolla_external_vip_address
         ):
+            # This is a gitlab deployment, only 1 nic, 1 IP.
+            # Due to 1 IP, internal and external VIP's match.
             network_interface = "br0"
-            tls_enabled = "no"
             ha_options = """
-enable_haproxy: "no"
-enable_keepalived: "no"
+# If vip's don't match, disabling haproxy will fail deployment
+enable_haproxy: "no"  
     """
 
     if partial_fqdn:
@@ -141,11 +142,11 @@ kolla_internal_vip_address: "{kolla_internal_vip_address}"
 kolla_external_vip_address: "{kolla_external_vip_address}"
 {FQDN}
 
-kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
-kolla_enable_tls_backend: "{tls_enabled}"
-rabbitmq_enable_tls: "{tls_enabled}"
-kolla_copy_ca_into_containers: "yes"
+kolla_enable_tls_internal: "no"
+kolla_enable_tls_backend: "no"
+rabbitmq_enable_tls: "no"
+kolla_copy_ca_into_containers: "no"
 openstack_cacert: "/etc/pki/tls/certs/ca-bundle.crt"
 kolla_admin_openrc_cacert: "/etc/ssl/certs/ca-certificates.crt"
 
