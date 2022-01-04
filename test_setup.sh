@@ -33,7 +33,6 @@ URILINKV2="$(openstack endpoint list --service identity --interface public -c UR
 URILINKV3="$(openstack endpoint list --service identity --interface public -c URL -f value)/v3"
 REGION="$(openstack region list -c Region -f value)"
 MIN_COMPUTE_NODES="$(openstack compute service list -f value -c Host --service nova-compute | wc -l)"
-IMAGE_FILE_NAME="$(echo $REFSTACK_TEST_IMAGE | awk -F/ '{print $NF}')"
 
 SERVICE_LIST="$(openstack service list)"
 
@@ -149,7 +148,7 @@ max_microversion = $PLACEMENT_MAX_MICROVERSION
 
 #[scenario]
 #img_dir = etc
-#img_file = $IMAGE_FILE_NAME
+#img_file = cirros-0.5.2-x86_64-disk.img
 
 [validation]
 image_ssh_user = cirros
