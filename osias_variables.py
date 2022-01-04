@@ -83,7 +83,7 @@ REFSTACK_TEST_VERSION = {
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
     "victoria": "29.2.0",
-    "wallaby": "29.2.0",
+    "wallaby": "29.1.0",
     "xena": "29.2.0",
 }
 NOVA_MIN_MICROVERSION = {
