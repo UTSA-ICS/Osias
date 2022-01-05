@@ -82,7 +82,7 @@ REFSTACK_TEST_VERSION = {
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
-    "victoria": "a32c763c82a100ec0f8a9776420649b4568f8202",
+    "victoria": "29.2.0",
     "wallaby": "29.1.0",
     "xena": "29.2.0",
 }
