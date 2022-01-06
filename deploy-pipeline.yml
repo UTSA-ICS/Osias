@@ -91,7 +91,7 @@ reprovision_servers:
       when: never
     - if: '$REPROVISION_SERVERS == "false"'
       when: never
-    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
