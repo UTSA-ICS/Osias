@@ -54,6 +54,7 @@ single_release:
         include: deploy-pipeline.yml
         strategy: depend
     variables:
+        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
         MULTINODE: "$MULTINODE"
         VM_PROFILE: "$VM_PROFILE"
         REPROVISION_SERVERS: "$REPROVISION_SERVERS"
