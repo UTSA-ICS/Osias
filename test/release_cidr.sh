@@ -11,7 +11,7 @@ if [ -z "$1" ]
     exit 1
 fi
 
-if [[ $CIDR == *[1234567890.\/]* ]];then
+if [[ $CIDR == *[1234567890./]* ]];then
   echo ""
   sed -i "\|$CIDR|d" $USED_CIDRS_FILE
   echo "$CIDR" >> $AVAILABLE_CIDRS_FILE
