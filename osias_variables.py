@@ -39,14 +39,30 @@ VM_Profile = {
     "vm_deployment_cidr": "",
 }
 
-SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby"]
-PYTHON_VERSION = {"ussuri": "3.6", "victoria": "3.8", "wallaby": "3.8"}
-ANSIBLE_MAX_VERSION = {"ussuri": "2.10", "victoria": "2.10", "wallaby": "3.0"}
-CEPH_VERSION = {"ussuri": "pacific", "victoria": "pacific", "wallaby": "pacific"}
+SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena"]
+PYTHON_VERSION = {
+    "ussuri": "3.6",
+    "victoria": "3.8",
+    "wallaby": "3.8",
+    "xena": "3.8",
+}
+ANSIBLE_MAX_VERSION = {
+    "ussuri": "2.10",
+    "victoria": "2.10",
+    "wallaby": "3.0",
+    "xena": "5.0",
+}
+CEPH_VERSION = {
+    "ussuri": "pacific",
+    "victoria": "pacific",
+    "wallaby": "pacific",
+    "xena": "pacific",
+}
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
     "victoria": "focal hwe_kernel=hwe-20.04",
     "wallaby": "focal hwe_kernel=hwe-20.04",
+    "xena": "focal hwe_kernel=hwe-20.04",
 }
 
 # REFSTACK VARIABLES
@@ -54,43 +70,55 @@ MAAS_VM_DISTRO = {
 # https://docs.openstack.org/cinder/latest/contributor/api_microversion_history.html
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
+# https://refstack.openstack.org/#/guidelines
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
-    "ussuri": "2020.06",
-    "victoria": "2020.11",
-    "wallaby": "2020.11",
+    "ussuri": "2020.11",
+    "victoria": "2021.11",
+    "wallaby": "2021.11",
+    "xena": "2021.11",
 }
-# Initial tempest version are: {"ussuri": "24.0.0", "victoria": "26.0.0", "wallaby": "27.0.0"}
-TEMPEST_VERSION = {"ussuri": "27.0.0", "victoria": "29.0.0", "wallaby": "29.0.0"}
+TEMPEST_VERSION = {
+    "ussuri": "29.2.0",
+    "victoria": "29.2.0",
+    "wallaby": "29.1.0",
+    "xena": "29.2.0",
+}
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
-    "victoria": "2.80",
-    "wallaby": "2.80",
+    "victoria": "2.1",
+    "wallaby": "2.1",
+    "xena": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
     "victoria": "2.87",
     "wallaby": "2.88",
+    "xena": "2.90",
 }
 STORAGE_MIN_MICROVERSION = {
-    "ussuri": "3.59",
-    "victoria": "3.60",
-    "wallaby": "3.62",
+    "ussuri": "3.0",
+    "victoria": "3.0",
+    "wallaby": "3.0",
+    "xena": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
     "victoria": "3.62",
     "wallaby": "3.64",
+    "xena": "3.66",
 }
 PLACEMENT_MIN_MICROVERSION = {
-    "ussuri": "1.32",
-    "victoria": "1.32",
-    "wallaby": "1.32",
+    "ussuri": "1.0",
+    "victoria": "1.0",
+    "wallaby": "1.0",
+    "xena": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
     "victoria": "1.36",
     "wallaby": "1.36",
+    "xena": "1.38",
 }

@@ -24,7 +24,7 @@ openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --
 openstack router create --enable --project "${TENANT}" myrouter
 openstack router add subnet myrouter mysubnet
 
-git clone https://opendev.org/osf/refstack-client.git
+git clone https://opendev.org/openinfra/refstack-client.git
 cd refstack-client || exit
 ./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}"
 
