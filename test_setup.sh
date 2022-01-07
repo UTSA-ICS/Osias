@@ -33,6 +33,7 @@ URILINKV2="$(openstack endpoint list --service identity --interface public -c UR
 URILINKV3="$(openstack endpoint list --service identity --interface public -c URL -f value)/v3"
 REGION="$(openstack region list -c Region -f value)"
 MIN_COMPUTE_NODES="$(openstack compute service list -f value -c Host --service nova-compute | wc -l)"
+IMAGE_FILE_NAME="${REFSTACK_TEST_IMAGE##*/}"
 
 SERVICE_LIST="$(openstack service list)"
 
@@ -142,13 +143,13 @@ discoverability = True
 [oslo-concurrency]
 lock_path = /tmp
 
-#[placement]
-#min_microversion = $PLACEMENT_MIN_MICROVERSION
-#max_microversion = $PLACEMENT_MAX_MICROVERSION
+[placement]
+min_microversion = $PLACEMENT_MIN_MICROVERSION
+max_microversion = $PLACEMENT_MAX_MICROVERSION
 
 #[scenario]
 #img_dir = etc
-#img_file = cirros-0.4.0-x86_64-disk.img
+#img_file = $IMAGE_FILE_NAME
 
 [validation]
 image_ssh_user = cirros
@@ -161,14 +162,14 @@ security_group = True
 security_group_rules = True
 image_ssh_password = gocubsgo
 image_alt_ssh_password = rebuildPassw0rd
-# ssh_timeout = 60
+ssh_timeout = 180
 
-#[volume]
+[volume]
 #build_timeout = 60
 #backend_names = block
-#min_microversion = $STORAGE_MIN_MICROVERSION
-#max_microversion = $STORAGE_MAX_MICROVERSION
-#volume_size = 1
+min_microversion = $STORAGE_MIN_MICROVERSION
+max_microversion = $STORAGE_MAX_MICROVERSION
+volume_size = 1
 
 #[volume-feature-enabled]
 #api_v2 = True

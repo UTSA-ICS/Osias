@@ -151,7 +151,7 @@ def bootstrap_openstack(
     utils.run_script_on_server(
         "bootstrap_kolla.sh",
         servers_public_ip[0],
-        args=[python_version, openstack_release, ansible_version],
+        args=[openstack_release, ansible_version],
     )
     setup_configs.setup_kolla_configs(
         controller_nodes,

@@ -37,15 +37,6 @@ def setup_kolla_configs(
         kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
         SUFFIX = VIP_ADDRESS_SUFFIX
 
-    if len(controller_nodes) == 1:
-        # HA not available
-        ha_options = """
-enable_neutron_agent_ha: "no"
-"""
-    else:
-        ha_options = """
-enable_neutron_agent_ha: "yes"
-"""
     if docker_registry:
         docker = f"""
 # Docker Options
@@ -66,6 +57,7 @@ docker_registry_username: "{docker_registry_username}"
 glance_backend_ceph: "yes"
 glance_backend_file: "no"
 #glance_backend_swift: "no"
+glance_enable_rolling_upgrade: "yes"
 
 enable_cinder: "yes"
 #enable_cinder_backend_lvm: "no"
@@ -83,6 +75,9 @@ nova_backend_ceph: "yes"
 glance_backend_ceph: "no"
 glance_backend_file: "yes"
 #glance_backend_swift: "no"
+enable_glance_image_cache: "yes"
+glance_cache_max_size: "10737418240" # 10GB by default
+glance_enable_rolling_upgrade: "yes"
 
 enable_cinder: "no"
 #enable_cinder_backend_lvm: "no"
@@ -99,6 +94,10 @@ nova_backend_ceph: "no"
     network_interface = "eno1"
     # Default value of tls backend
     tls_enabled = "yes"
+    # Default value of High Availability options:
+    ha_options = """
+enable_haproxy: "yes"
+"""
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
@@ -108,16 +107,19 @@ nova_backend_ceph: "no"
         and len(storage_nodes) == 1
         and len(compute_nodes) == 1
     ):
+        tls_enabled = "no"
         if (
             controller_nodes == network_nodes
             and controller_nodes == storage_nodes
             and controller_nodes == compute_nodes
             and kolla_internal_vip_address == kolla_external_vip_address
         ):
+            # This is a gitlab deployment, only 1 nic, 1 IP.
+            # Due to 1 IP, internal and external VIP's match.
             network_interface = "br0"
-            tls_enabled = "no"
-            ha_options += """
-enable_haproxy: "no"
+            ha_options = """
+# If vip's don't match, disabling haproxy will fail deployment
+enable_haproxy: "no"  
     """
 
     globals_file = f"""
@@ -126,48 +128,36 @@ cat >>/etc/kolla/globals.yml <<__EOF__
 # Basic Options
 kolla_base_distro: "centos"
 kolla_install_type: "source"
-kolla_internal_vip_address: "{kolla_internal_vip_address}"
-kolla_external_vip_address: "{kolla_external_vip_address}"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"
+keepalived_virtual_router_id: "{SUFFIX}"
+kolla_internal_vip_address: "{kolla_internal_vip_address}"
+kolla_external_vip_address: "{kolla_external_vip_address}"
+
 kolla_enable_tls_internal: "{tls_enabled}"
 kolla_enable_tls_external: "{tls_enabled}"
-kolla_copy_ca_into_containers: "yes"
-kolla_verify_tls_backend: "no"
 kolla_enable_tls_backend: "{tls_enabled}"
-openstack_cacert: /etc/pki/tls/certs/ca-bundle.crt
-keepalived_virtual_router_id: "{SUFFIX}"
+rabbitmq_enable_tls: "{tls_enabled}"
+kolla_copy_ca_into_containers: "{tls_enabled}"
+openstack_cacert: "{{{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_external == 'yes' else '' }}}}"
 
 {storage}
 
 {docker}
 
 # Recommended Global Options:
-enable_mariabackup: "yes"
+enable_mariabackup: "no"
 {ha_options}
-glance_enable_rolling_upgrade: "yes"
 
 # Desired Global Options:
-#enable_aodh: "yes"
-#enable_prometheus: "yes"
-#enable_ceilometer: "yes"
-#enable_panko: "yes"
 #enable_neutron_metering: "yes"
 #enable_neutron_dvr: "yes"
 #enable_neutron_qos: "yes"
-
-#enable_telegraf: "yes"
-#enable_watcher: "yes"
-
-#enable_gnocchi: "yes
-#ceph_gnocchi_pool_name: "metrics"
-#gnocchi_incoming_storage: "{{{{ 'redis' if enable_redis | bool else '' }}}}"
-
+#enable_neutron_agent_ha: "no"
+# Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
+#enable_masakari: "yes"
 #enable_central_logging: "yes"
-#enable_grafana: "yes"
-
-#enable_skydive: "yes"
 __EOF__
 """
 
