@@ -41,7 +41,7 @@ stages:
   - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
   - echo "$MULTINODE"
 
-generate_cidr_for_virtual_machines:
+.generate_cidr_for_virtual_machines:
   stage: generate_cidr
   tags:
     - shell
@@ -97,7 +97,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
 
-bootstrap_networking:
+.bootstrap_networking:
   stage: bootstrap_networking
   extends:
     - .base_setup
@@ -105,7 +105,7 @@ bootstrap_networking:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
-cleanup:
+.cleanup:
   stage: cleanup
   extends:
     - .base_setup
@@ -121,7 +121,7 @@ cleanup:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-reboot_servers:
+.reboot_servers:
   stage: reboot_servers
   extends:
     - .base_setup
@@ -137,7 +137,7 @@ reboot_servers:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-bootstrap:openstack:
+.bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
     - .base_setup
@@ -150,7 +150,7 @@ bootstrap:openstack:
          python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
        fi
 
-ceph:deploy:
+.ceph:deploy:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -171,7 +171,7 @@ openstack:pull:
     # Pull openstack kolla images
     - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
 
-deploy:openstack:
+.deploy:openstack:
   stage: deploy
   extends:
     - .base_setup
@@ -181,7 +181,7 @@ deploy:openstack:
     # 2. Run Kolla deploy
     - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
-post_deploy:openstack:
+.post_deploy:openstack:
   stage: post_deploy
   extends:
     - .base_setup
@@ -189,14 +189,14 @@ post_deploy:openstack:
     # Setup the openstack cloud with public network, images, flavors etc.
     - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
-test:setup:
+.test:setup:
   stage: test_setup
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
-test:refstack:
+.test:refstack:
   stage: test_refstack
   extends:
     - .base_setup
@@ -216,7 +216,7 @@ test:refstack:
       - ./0.json
     when: always
 
-test:stress:
+.test:stress:
   stage: test_stress
   extends:
     - .base_setup
@@ -247,7 +247,7 @@ delete_virtual_machines:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
 
-release_cidr_for_virtual_machines:
+.release_cidr_for_virtual_machines:
   stage: release_cidr
   tags:
     - shell

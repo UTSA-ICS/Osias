@@ -2,7 +2,6 @@
 
 import argparse
 import ast
-from ipaddress import IPv4Network
 
 import maas_base
 import maas_virtual
@@ -226,7 +225,9 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         CEPH = "false"
     server_list = []
     servers_public_ip = []
-    public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
+    used_ips = maas_base.get_all_used_ips(vm_profile["vm_deployment_cidr"])
+    pool_id, public_IP_pool = maas_base.get_ip_pool(used_ips, vm_profile["ips_needed"])
+    # public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
     public_ips = {}
     # Keeps the limit of VM's created from 1-7 VM's.
     num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
@@ -248,11 +249,9 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     )
     temp_dict = utils.merge_nested_dictionaries(public_ips, internal_ips)
     final_dict = utils.merge_nested_dictionaries(temp_dict, data_ips)
-    VIP_ADDRESS = str(list(IPv4Network(vm_profile["vm_deployment_cidr"]))[-1])
-    POOL_START_IP = str(
-        list(IPv4Network(vm_profile["vm_deployment_cidr"]))[num_Servers]
-    )
-    POOL_END_IP = list(IPv4Network(vm_profile["vm_deployment_cidr"]))[-2]
+    VIP_ADDRESS = str(public_IP_pool.pop())
+    POOL_START_IP = str(public_IP_pool.pop(0))
+    POOL_END_IP = str(public_IP_pool.pop())
     if vm_profile.get("DOCKER_REGISTRY_IP"):
         DOCKER = f"DOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
         if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
@@ -260,6 +259,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     else:
         DOCKER = ""
     optional_vars = f"""VM_CIDR = "{vm_profile['vm_deployment_cidr']}"
+    VM_POOL_ID = "
     VIP_ADDRESS = "{VIP_ADDRESS}"
     POOL_START_IP = "{POOL_START_IP}"
     POOL_END_IP = "{POOL_END_IP}"
@@ -275,11 +275,13 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     f.close()
 
 
-def delete_virtual_machines(servers_public_ip, maas_url, maas_api_key):
+def delete_virtual_machines(servers_public_ip, ip_range_id, poolmaas_url, maas_api_key):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.maas_virtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.delete_virtual_machines()
+    maas_base.release_ip_pool(ip_range_id)
+
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -331,6 +333,7 @@ def main():
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
+        VM_POOL_IP =config.get_variables(variable="DNS_IP")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
