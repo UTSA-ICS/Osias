@@ -333,7 +333,7 @@ def main():
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
-        VM_POOL_IP =config.get_variables(variable="DNS_IP")
+        VM_POOL_IP = config.get_variables(variable="DNS_IP")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
