@@ -270,9 +270,6 @@ class maas_base:
                 prefix = sorted_list_of_ips[index][
                     : sorted_list_of_ips[index].rfind(".")
                 ]  # first 3 octets of cidr
-                print(
-                    f"\tused_ips: {sorted_list_of_ips[index]}\n\tIP's available: {ips_available[index]}\n\tprefix: {prefix}"
-                )
                 if diff > gap:
                     first_ip_last_octet = random.randint(
                         int(sorted_list_of_ips[index].split(".")[-1]) + 1,
