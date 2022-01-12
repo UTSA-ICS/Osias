@@ -224,7 +224,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-sleep_on_failure:
+.sleep_on_failure:
   stage: sleep_on_failure
   tags:
     - shell

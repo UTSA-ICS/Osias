@@ -225,8 +225,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         CEPH = "false"
     server_list = []
     servers_public_ip = []
-    used_ips = maas_base.get_all_used_ips(vm_profile["vm_deployment_cidr"])
-    pool_id, public_IP_pool = maas_base.get_ip_pool(used_ips, vm_profile["ips_needed"])
+    pool_id, public_IP_pool = maas_base.get_ip_pool(vm_profile["vm_deployment_cidr"], vm_profile["ips_needed"])
     # public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
     public_ips = {}
     # Keeps the limit of VM's created from 1-7 VM's.
