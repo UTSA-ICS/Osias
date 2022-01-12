@@ -284,9 +284,8 @@ class maas_base:
                 first_ip = f"{prefix}.{first_ip_last_octet}"
                 last_ip = f"{prefix}.{last_ip_last_octet}"
                 self._run_maas_command(
-                    f"ipranges create type=dynamic start_ip=$first_ip end_ip=$last_ip comment='Openstack pool'"
+                    f"ipranges create type=dynamic start_ip={first_ip} end_ip={last_ip} comment='Openstack pool'"
                 )
-                # maas jbenson ipaddresses reserve ip=$last_ip
                 ip_pool = [
                     prefix + "." + str(i)
                     for i in range(first_ip_last_octet, last_ip_last_octet + 1)
