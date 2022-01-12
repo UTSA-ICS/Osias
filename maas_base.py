@@ -242,11 +242,11 @@ class maas_base:
         reserved_ips = self._run_maas_command(f"subnet reserved-ip-ranges {cidr}")
         used_ips = []
         for item in reserved_ips:
-            start = item['start']
-            ip0 = int(start.split('.')[-1])
-            num_ips = item['num_addresses']
-            prefix = start[:start.rfind(".")]  # first 3 octets of cidr
-            ip_list = range(ip0, ip0+num_ips)
+            start = item["start"]
+            ip0 = int(start.split(".")[-1])
+            num_ips = item["num_addresses"]
+            prefix = start[: start.rfind(".")]  # first 3 octets of cidr
+            ip_list = range(ip0, ip0 + num_ips)
             for ip in ip_list:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
@@ -260,31 +260,51 @@ class maas_base:
         sorted_list_of_ips = []
         for ip in sorted(used_ips, key=lambda ip: [int(ip) for ip in ip.split(".")]):
             sorted_list_of_ips.append(ip)
-        ips_available = [abs(int(x[1].split('.')[-1]) - int(x[0].split('.')[-1])) for x in zip(sorted_list_of_ips[1:], sorted_list_of_ips)]
+        ips_available = [
+            abs(int(x[1].split(".")[-1]) - int(x[0].split(".")[-1]))
+            for x in zip(sorted_list_of_ips[1:], sorted_list_of_ips)
+        ]
 
         for index, diff in enumerate(ips_available):
             if diff > gap:
-                prefix = sorted_list_of_ips[index][:sorted_list_of_ips[index].rfind(".")]  # first 3 octets of cidr
-                print(f"\tused_ips: {sorted_list_of_ips[index]}\n\tIP's available: {ips_available[index]}\n\tprefix: {prefix}")
+                prefix = sorted_list_of_ips[index][
+                    : sorted_list_of_ips[index].rfind(".")
+                ]  # first 3 octets of cidr
+                print(
+                    f"\tused_ips: {sorted_list_of_ips[index]}\n\tIP's available: {ips_available[index]}\n\tprefix: {prefix}"
+                )
                 if diff > gap:
-                    first_ip_last_octet = random.randint(int(sorted_list_of_ips[index].split('.')[-1]) + 1, int(sorted_list_of_ips[index].split('.')[-1]) + ips_available[index] - gap)
-                last_ip_last_octet = first_ip_last_octet + gap -1
+                    first_ip_last_octet = random.randint(
+                        int(sorted_list_of_ips[index].split(".")[-1]) + 1,
+                        int(sorted_list_of_ips[index].split(".")[-1])
+                        + ips_available[index]
+                        - gap,
+                    )
+                last_ip_last_octet = first_ip_last_octet + gap - 1
                 first_ip = f"{prefix}.{first_ip_last_octet}"
                 last_ip = f"{prefix}.{last_ip_last_octet}"
-                self._run_maas_command(f"ipranges create type=dynamic start_ip=$first_ip end_ip=$last_ip comment='Openstack pool'")
+                self._run_maas_command(
+                    f"ipranges create type=dynamic start_ip=$first_ip end_ip=$last_ip comment='Openstack pool'"
+                )
                 # maas jbenson ipaddresses reserve ip=$last_ip
-                ip_pool = [prefix+"."+str(i) for i in range(first_ip_last_octet, last_ip_last_octet+1)]
+                ip_pool = [
+                    prefix + "." + str(i)
+                    for i in range(first_ip_last_octet, last_ip_last_octet + 1)
+                ]
                 return ip_pool
         else:
             print("No more valid IPs available")
             return 1
-    
+
     def release_ip_pool(self, vip):
         pool_ids = self._run_maas_command(
-            f'ipranges read | jq ".[] |  {id:.id, start_ip: .start_ip, end_ip:.end_ip}" --compact-output')
-        pool_ids = [ast.literal_eval(i) for i in pool_ids.split('\n')]
+            f'ipranges read | jq ".[] |  {id:.id, start_ip: .start_ip, end_ip:.end_ip}" --compact-output'
+        )
+        pool_ids = [ast.literal_eval(i) for i in pool_ids.split("\n")]
         for d in pool_ids:
-            if int(vip.split('.')[-1]) in range(int(d['start_ip'].split('.')[-1]), int(d['end_ip'].split('.')[-1])):
+            if int(vip.split(".")[-1]) in range(
+                int(d["start_ip"].split(".")[-1]), int(d["end_ip"].split(".")[-1])
+            ):
                 self._run_maas_command(f"iprange delete {d['id']}")
 
     def set_machine_list(self):
