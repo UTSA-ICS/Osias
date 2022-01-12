@@ -255,6 +255,7 @@ class maas_base:
         return self._run_maas_command(f"machines read")
 
     def get_ip_pool(self, cidr: str, gap: int):
+        time.sleep(int(random.uniform(0,60)))
         used_ips = self._get_all_used_ips(cidr)
 
         sorted_list_of_ips = []
