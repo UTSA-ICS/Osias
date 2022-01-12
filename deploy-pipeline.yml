@@ -65,8 +65,6 @@ create_virtual_machines:
   extends:
    - .base_setup
   image: utsaics/maas:2.8
-  dependencies:
-    - generate_cidr_for_virtual_machines
   script:
     - export VM_PROFILE=$(cat test/vm_profile)
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
