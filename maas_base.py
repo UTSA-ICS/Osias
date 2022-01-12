@@ -5,6 +5,7 @@ import timeout_decorator
 import time
 import utils
 import random
+import ast
 
 
 class maas_base:
@@ -278,10 +279,13 @@ class maas_base:
             print("No more valid IPs available")
             return 1
     
-    def release_ip_pool(self)
-        pool_ids = self._run_maas_command(f'ipranges read | jq ".[] |  {id:.id, start_ip: .start_ip, end_ip:.end_ip}" --compact-output')
-        
-        self._run_maas_command(f"iprange delete {ip_range_id}")
+    def release_ip_pool(self, vip):
+        pool_ids = self._run_maas_command(
+            f'ipranges read | jq ".[] |  {id:.id, start_ip: .start_ip, end_ip:.end_ip}" --compact-output')
+        pool_ids = [ast.literal_eval(i) for i in pool_ids.split('\n')]
+        for d in pool_ids:
+            if int(vip.split('.')[-1]) in range(int(d['start_ip'].split('.')[-1]), int(d['end_ip'].split('.')[-1])):
+                self._run_maas_command(f"iprange delete {d['id']}")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
