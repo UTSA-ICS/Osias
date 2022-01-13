@@ -36,8 +36,8 @@ VM_Profile = {
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "",
     "DNS_IP": "",
-    "vm_deployment_cidr": "10.245.121.0/24",
-    "ips_needed": 12,
+    "VM_DEPLOYMENT_CIDR": "10.245.121.0/24",
+    "IPs_NEEDED": 12,
 }
 
 SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena"]

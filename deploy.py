@@ -226,7 +226,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     server_list = []
     servers_public_ip = []
     public_IP_pool = servers.get_ip_pool(
-        vm_profile["vm_deployment_cidr"], vm_profile["ips_needed"]
+        vm_profile["VM_DEPLOYMENT_CIDR"], vm_profile["IPs_NEEDED"]
     )
     # public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
     public_ips = {}
@@ -259,7 +259,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
             DOCKER += f"\n    DOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
     else:
         DOCKER = ""
-    optional_vars = f"""VM_CIDR = "{vm_profile['vm_deployment_cidr']}"
+    optional_vars = f"""VM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
     VIP_ADDRESS = "{VIP_ADDRESS}"
     POOL_START_IP = "{POOL_START_IP}"
     POOL_END_IP = "{POOL_END_IP}"
@@ -276,13 +276,13 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
 
 
 def delete_virtual_machines(
-    servers_public_ip, vip_address, vm_profile, maas_url, maas_api_key
+    servers_public_ip, vip_address, ips_needed, maas_url, maas_api_key
 ):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.maas_virtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.delete_virtual_machines()
-    maas_base.release_ip_pool(vip_address, vm_profile["ips_needed"])
+    maas_base.release_ip_pool(vip_address, ips_needed)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -334,7 +334,6 @@ def main():
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
-        VM_POOL_IP = config.get_variables(variable="DNS_IP")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
@@ -359,6 +358,7 @@ def main():
         ANSIBLE_MAX_VERSION = osias_variables.ANSIBLE_MAX_VERSION[OPENSTACK_RELEASE]
         MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
         CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
+        IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -468,7 +468,7 @@ def main():
                 delete_virtual_machines(
                     servers_public_ip,
                     VIP_ADDRESS,
-                    VM_PROFILE,
+                    IPs_NEEDED,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )
@@ -522,7 +522,7 @@ def main():
                 osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
             )
             ceph_enabled = VM_PROFILE.get("CEPH")
-            required_keys = ["vm_deployment_cidr"]
+            required_keys = ["VM_DEPLOYMENT_CIDR"]
             utils.check_required_keys_not_null(required_keys, VM_PROFILE)
             create_virtual_servers(
                 args.MAAS_URL,
