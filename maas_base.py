@@ -281,8 +281,8 @@ class maas_base:
                 last_ip_last_octet = first_ip_last_octet + gap - 1
                 first_ip = f"{prefix}.{first_ip_last_octet}"
                 last_ip = f"{prefix}.{last_ip_last_octet}"
-                self._run_maas_command(f"ipaddresses reserve ip={first_ip}")
                 self._run_maas_command(f"ipaddresses reserve ip={last_ip}")
+                self._run_maas_command(f"ipaddresses reserve ip={first_ip}")
                 ip_pool = [
                     prefix + "." + str(i)
                     for i in range(first_ip_last_octet + 1, last_ip_last_octet + 1)
