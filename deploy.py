@@ -275,12 +275,12 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     f.close()
 
 
-def delete_virtual_machines(servers_public_ip, vip, poolmaas_url, maas_api_key):
+def delete_virtual_machines(servers_public_ip, vip_address, vm_profile, maas_url, maas_api_key):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.maas_virtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.delete_virtual_machines()
-    maas_base.release_ip_pool(vip)
+    maas_base.release_ip_pool(vip_address, vm_profile['ips_needed'])
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -464,7 +464,7 @@ def main():
         elif args.operation == "delete_virtual_machines":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 delete_virtual_machines(
-                    servers_public_ip, VIP_ADDRESS, args.MAAS_URL, args.MAAS_API_KEY
+                    servers_public_ip, VIP_ADDRESS, VM_PROFILE, args.MAAS_URL, args.MAAS_API_KEY
                 )
             else:
                 raise Exception(
