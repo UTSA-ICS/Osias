@@ -282,7 +282,7 @@ def delete_virtual_machines(
     servers = maas_virtual.maas_virtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.delete_virtual_machines()
-    maas_base.release_ip_pool(vip_address, ips_needed)
+    servers.release_ip_pool(vip_address, ips_needed)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
