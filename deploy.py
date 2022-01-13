@@ -260,7 +260,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     else:
         DOCKER = ""
     optional_vars = f"""VM_CIDR = "{vm_profile['vm_deployment_cidr']}"
-    VM_POOL_ID = "
     VIP_ADDRESS = "{VIP_ADDRESS}"
     POOL_START_IP = "{POOL_START_IP}"
     POOL_END_IP = "{POOL_END_IP}"
