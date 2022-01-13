@@ -281,28 +281,22 @@ class maas_base:
                 last_ip_last_octet = first_ip_last_octet + gap - 1
                 first_ip = f"{prefix}.{first_ip_last_octet}"
                 last_ip = f"{prefix}.{last_ip_last_octet}"
-                self._run_maas_command(
-                    f"ipranges create type=dynamic start_ip={first_ip} end_ip={last_ip} comment='Openstack pool'"
-                )
+                self._run_maas_command(f"ipaddresses reserve ip={first_ip}")
+                self._run_maas_command(f"ipaddresses reserve ip={last_ip}")
                 ip_pool = [
                     prefix + "." + str(i)
-                    for i in range(first_ip_last_octet, last_ip_last_octet + 1)
+                    for i in range(first_ip_last_octet + 1, last_ip_last_octet + 1)
                 ]
                 return ip_pool
         else:
             print("No more valid IPs available")
             return 1
 
-    def release_ip_pool(self, vip):
-        pool_ids = self._run_maas_command(
-            f'ipranges read | jq ".[] |  {id:.id, start_ip: .start_ip, end_ip:.end_ip}" --compact-output'
-        )
-        pool_ids = [ast.literal_eval(i) for i in pool_ids.split("\n")]
-        for d in pool_ids:
-            if int(vip.split(".")[-1]) in range(
-                int(d["start_ip"].split(".")[-1]), int(d["end_ip"].split(".")[-1])
-            ):
-                self._run_maas_command(f"iprange delete {d['id']}")
+    def release_ip_pool(self, vip: str, ips_needed: int):
+        self._run_maas_command(f"ipaddresses release {vip}")
+        prefix = vip[: vip.rfind(".")]
+        first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed}"
+        self._run_maas_command(f"ipaddresses release {first_ip}")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
