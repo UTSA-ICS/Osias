@@ -5,7 +5,6 @@ import timeout_decorator
 import time
 import utils
 import random
-import ast
 
 
 class maas_base:
@@ -14,7 +13,11 @@ class maas_base:
         self.distro = distro
 
     def _run_maas_command(self, command):
-        return json.loads(utils.run_cmd(f"maas admin {command}", output=False))
+        try:
+            result = json.loads(utils.run_cmd(f"maas admin {command}", output=False))
+        except ValueError as e:
+            result = utils.run_cmd(f"maas admin {command}", output=False)
+        return result
 
     def _check_for_raid(self, server_list):
         no_raid = []
