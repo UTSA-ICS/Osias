@@ -13,11 +13,11 @@ class maas_base:
         self.distro = distro
 
     def _run_maas_command(self, command):
+        result = utils.run_cmd(f"maas admin {command}", output=False)
         try:
-            result = json.loads(utils.run_cmd(f"maas admin {command}", output=False))
+            return json.loads(result)
         except ValueError as e:
-            result = utils.run_cmd(f"maas admin {command}", output=False)
-        return result
+            return result
 
     def _check_for_raid(self, server_list):
         no_raid = []
