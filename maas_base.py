@@ -298,7 +298,7 @@ class maas_base:
     def release_ip_pool(self, vip: str, ips_needed: int):
         self._run_maas_command(f"ipaddresses release ip={vip}")
         prefix = vip[: vip.rfind(".")]
-        first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed}"
+        first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed + 1}"
         self._run_maas_command(f"ipaddresses release ip={first_ip}")
 
     def set_machine_list(self):
