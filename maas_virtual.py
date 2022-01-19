@@ -87,11 +87,16 @@ class maas_virtual(maas_base):
         return server
 
     def find_virtual_machines(self, no_of_vms: int, vm_profile):
-        machines = self._run_maas_command_with_filter("machines read", "system_id", "status_name", "pool.name")
+        machines = self._run_maas_command_with_filter(
+            "machines read", "system_id", "status_name", "pool.name"
+        )
         ids = []
         for machine in machines:
-            if machine['status'] == "Ready" and machine['pool'] == "virtual_machine_pool":
-            ids.append(machine['system_id'])
+            if (
+                machine["status"] == "Ready"
+                and machine["pool"] == "virtual_machine_pool"
+            ):
+                ids.append(machine["system_id"])
         if len(ids) >= no_of_vms:
             return ids[:no_of_vms]
         else:
@@ -102,7 +107,7 @@ class maas_virtual(maas_base):
 
     def delete_virtual_machines(self):
         for server in self.machine_list:
-            #self._run_maas_command(f"machine delete {server}")
+            # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {server}")
 
     def get_machines_interface_ip(

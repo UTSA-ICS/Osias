@@ -24,12 +24,11 @@ class maas_base:
         for arg in filters:
             values += f"{arg}:.{arg},"
         values += "}"
-        str_results = 
-            utils.run_cmd(
-                f"maas admin {command} | jq '.[] | {values}' --compact-output",
-                output=False,
-            )
-        result = [ast.literal_eval(i) for i in str_results.split('\n')] 
+        str_results = utils.run_cmd(
+            f"maas admin {command} | jq '.[] | {values}' --compact-output",
+            output=False,
+        )
+        result = [ast.literal_eval(i) for i in str_results.split("\n")]
         return result
 
     def _check_for_raid(self, server_list):
