@@ -24,10 +24,12 @@ class maas_base:
         for arg in filters:
             values += f"{''.join(i for i in arg if i.isalnum())}:.{arg},"
         values += "}"
-        str_results = utils.run_cmd(
+        str_results = run_cmd(
             f"maas admin {command} | jq '.[] | {values}' --compact-output",
             output=False,
         )
+        str_results = str_results.decode("utf-8")
+        str_results = str_results.rstrip()
         result = [ast.literal_eval(i) for i in str_results.split("\n")]
         return result
 

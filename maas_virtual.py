@@ -86,22 +86,23 @@ class maas_virtual(maas_base):
         )
         return server
 
-    def find_virtual_machines(self, no_of_vms: int, vm_profile):
-        machines = self._run_maas_command_with_filter(
+    def find_virtual_machines(no_of_vms: int, vm_profile):
+        machines = run_maas_command_with_filter(
             "machines read", "system_id", "status_name", "pool.name"
         )
         ids = []
         for machine in machines:
             if (
-                machine["status"] == "Ready"
-                and machine["pool"] == "virtual_machine_pool"
+                machine["statusname"] == "Ready"
+                and machine["poolname"] == "virtual_machine_pool"
             ):
-                ids.append(machine["system_id"])
+                ids.append(machine["systemid"])
         if len(ids) >= no_of_vms:
             return ids[:no_of_vms]
         else:
             while len(ids) < no_of_vms:
-                system_id = self.create_virtual_machine(vm_profile)
+                print("Creating virtual machine...")
+                system_id = create_virtual_machine(vm_profile)
                 ids.append(system_id)
             return ids[:no_of_vms]
 
