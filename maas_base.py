@@ -19,6 +19,19 @@ class maas_base:
         except ValueError as e:
             return result
 
+    def _run_maas_command_with_filter(self, command, *filters):
+        values = "{"
+        for arg in filters:
+            values += f"{arg}:.{arg},"
+        values += "}"
+        str_results = 
+            utils.run_cmd(
+                f"maas admin {command} | jq '.[] | {values}' --compact-output",
+                output=False,
+            )
+        result = [ast.literal_eval(i) for i in str_results.split('\n')] 
+        return result
+
     def _check_for_raid(self, server_list):
         no_raid = []
         raid = []
@@ -258,7 +271,9 @@ class maas_base:
         return self._run_maas_command(f"machines read")
 
     def get_ip_pool(self, cidr: str, gap: int):
-        time.sleep(int(random.uniform(0, 60)))
+        rest = int(random.uniform(0, 60))
+        print(f"Sleeping {rest} seconds.")
+        time.sleep(rest)
         used_ips = self._get_all_used_ips(cidr)
 
         sorted_list_of_ips = []
