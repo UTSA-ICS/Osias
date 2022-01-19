@@ -22,7 +22,7 @@ class maas_base:
     def _run_maas_command_with_filter(self, command, *filters):
         values = "{"
         for arg in filters:
-            values += f"{arg}:.{arg},"
+            values += f"{''.join(i for i in arg if i.isalnum())}:.{arg},"
         values += "}"
         str_results = utils.run_cmd(
             f"maas admin {command} | jq '.[] | {values}' --compact-output",
