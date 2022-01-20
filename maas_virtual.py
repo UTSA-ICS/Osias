@@ -20,7 +20,10 @@ class maas_virtual(maas_base):
         if machine_info["status_name"] != "Ready":
             self._waiting([server], "Ready")
         for i, v in enumerate(machine_info["interface_set"]):
-            if machine_info["interface_set"][i]["name"] == "eno2" and machine_info["interface_set"][i]["children"][0] != "br0":
+            if (
+                machine_info["interface_set"][i]["name"] == "eno2"
+                and machine_info["interface_set"][i]["children"][0] != "br0"
+            ):
                 interface_id = machine_info["interface_set"][i]["id"]
                 self._run_maas_command(
                     f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
@@ -88,10 +91,10 @@ class maas_virtual(maas_base):
         return server
 
     def find_virtual_machines_and_deploy(self, no_of_vms: int, vm_profile):
-        #TODO create the dictionary of vms and ips with public, internal, data to match the multinode file. 
+        # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file. 
         machines = self._run_maas_command(
             "machines read | jq '.[] | {systemid:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses,}' --compact-output"
-            )
+        )
         ids = {}
         machine_no = 0
         for machine in machines and machine_no <= no_of_vms:
