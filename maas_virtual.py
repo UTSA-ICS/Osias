@@ -91,7 +91,7 @@ class maas_virtual(maas_base):
         return server
 
     def find_virtual_machines_and_deploy(self, no_of_vms: int, vm_profile):
-        # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file. 
+        # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file.
         machines = self._run_maas_command(
             "machines read | jq '.[] | {systemid:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses,}' --compact-output"
         )
