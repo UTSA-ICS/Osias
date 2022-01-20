@@ -5,6 +5,7 @@ import timeout_decorator
 import time
 import utils
 import random
+import osias_variables
 
 
 class maas_base:
@@ -17,21 +18,10 @@ class maas_base:
         try:
             return json.loads(result)
         except ValueError as e:
+            str_results = str_results.decode("utf-8")
+            str_results = str_results.rstrip()
+            result = [ast.literal_eval(i) for i in str_results.split("\n")]
             return result
-
-    def _run_maas_command_with_filter(self, command, *filters):
-        values = "{"
-        for arg in filters:
-            values += f"{''.join(i for i in arg if i.isalnum())}:.{arg},"
-        values += "}"
-        str_results = run_cmd(
-            f"maas admin {command} | jq '.[] | {values}' --compact-output",
-            output=False,
-        )
-        str_results = str_results.decode("utf-8")
-        str_results = str_results.rstrip()
-        result = [ast.literal_eval(i) for i in str_results.split("\n")]
-        return result
 
     def _check_for_raid(self, server_list):
         no_raid = []
@@ -181,6 +171,23 @@ class maas_base:
         self.machine_list = deployment_list
         return deployment_list
 
+    def _get_all_used_ips(self, cidr: str):
+        reserved_ips = self._run_maas_command(f"subnet reserved-ip-ranges {cidr}")
+        used_ips = []
+        for item in reserved_ips:
+            start = item["start"]
+            ip0 = int(start.split(".")[-1])
+            num_ips = item["num_addresses"]
+            prefix = start[: start.rfind(".")]  # first 3 octets of cidr
+            ip_list = range(ip0, ip0 + num_ips)
+            for ip in ip_list:
+                used_ips.append(f"{prefix}.{ip}")
+        return used_ips
+
+    def parse_ip_types(self, ips: list):
+        for ip in ips:
+            if 
+
     def _release(self, server_list):
         for machine in server_list[:]:
             self._run_maas_command(f"machine release {machine}")
@@ -254,19 +261,6 @@ class maas_base:
                 f"machine deploy {machine} distro_series={self.distro}"
             )
         self._waiting(server_list[:], "Deployed")
-
-    def _get_all_used_ips(self, cidr: str):
-        reserved_ips = self._run_maas_command(f"subnet reserved-ip-ranges {cidr}")
-        used_ips = []
-        for item in reserved_ips:
-            start = item["start"]
-            ip0 = int(start.split(".")[-1])
-            num_ips = item["num_addresses"]
-            prefix = start[: start.rfind(".")]  # first 3 octets of cidr
-            ip_list = range(ip0, ip0 + num_ips)
-            for ip in ip_list:
-                used_ips.append(f"{prefix}.{ip}")
-        return used_ips
 
     def get_machines_info(self):
         return self._run_maas_command(f"machines read")

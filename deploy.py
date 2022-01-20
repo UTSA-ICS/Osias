@@ -227,22 +227,22 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     public_IP_pool = servers.get_ip_pool(
         vm_profile["VM_DEPLOYMENT_CIDR"], vm_profile["IPs_NEEDED"]
     )
-    # public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
     public_ips = {}
     # Keeps the limit of VM's created from 1-7 VM's.
     num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
-    server_list = servers.find_virtual_machines(num_Servers, vm_profile)
+    full_server_dict = servers.find_virtual_machines_and_deploy(num_Servers, vm_profile)
+    server_dict = list(full_server_dict)[:num_Servers]
+    server_list = [server_dict['systemid'] for server_dict in server_dict]
+    # TO DO: update servers based off of new DHCP ip from dict.
     for i in range(num_Servers):
-        public_ips[server_id] = {"public": public_VM_IP}
+        #public_VM_IP = public_IP_pool.pop(0)
+        servers_public_ip = [server_dict['systemid'] for server_dict in server_dict]
+        servers_public_ip.append(public_VM_IP)
+        vm_profile["Public_VM_IP"] = public_VM_IP
+        public_ips[server_dict] = {"public": public_VM_IP}
     servers.set_public_ip(public_ips=servers_public_ip)
-    servers.deploy(server_list)
+    servers.deploy(list(server_list.keys()))
     machines_info = servers.get_machines_info()
-    internal_ips = servers.get_machines_interface_ip(
-        server_list, machines_info, "eno1", "internal"
-    )
-    data_ips = servers.get_machines_interface_ip(
-        server_list, machines_info, "eno3", "data"
-    )
     temp_dict = utils.merge_nested_dictionaries(public_ips, internal_ips)
     final_dict = utils.merge_nested_dictionaries(temp_dict, data_ips)
     VIP_ADDRESS = str(public_IP_pool.pop())
