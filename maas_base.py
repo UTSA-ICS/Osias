@@ -18,9 +18,9 @@ class maas_base:
         try:
             return json.loads(result)
         except ValueError as e:
-            str_results = str_results.decode("utf-8")
-            str_results = str_results.rstrip()
-            result = [ast.literal_eval(i) for i in str_results.split("\n")]
+            result = result.decode("utf-8")
+            result = result.rstrip()
+            result = [ast.literal_eval(i) for i in result.split("\n")]
             return result
 
     def _check_for_raid(self, server_list):
@@ -184,9 +184,24 @@ class maas_base:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
 
-    def parse_ip_types(self, ips: list):
-        for ip in ips:
-            if 
+    def _parse_ip_types(vms: dict):
+    results = {}
+    for k, v in vms.items():
+        temp = {}
+        for cidr in ["Internal_CIDR", "Data_CIDR", "VM_DEPLOYMENT_CIDR"]:
+            cidr_prefix = osias_variables.VM_Profile[cidr][: osias_variables.VM_Profile[cidr].rfind(".")]
+            for ip in v['ipaddresses']:
+                ip_prefix = ip[: ip.rfind(".")]
+                if ip_prefix in cidr_prefix:
+                    if cidr_prefix in "Internal_CIDR":
+                        label = "internal"
+                    elif cidr_prefix in "Data_CIDR":
+                        label = "data"
+                    elif cidr_prefix in "VM_DEPLOYMENT_CIDR":
+                        label = "public"
+                temp[label] = ip
+        results[k] = temp
+    return results
 
     def _release(self, server_list):
         for machine in server_list[:]:

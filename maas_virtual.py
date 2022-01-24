@@ -107,13 +107,15 @@ class maas_virtual(maas_base):
                 ids[machine["systemid"]] = machine["ipaddresses"]
                 machine_no += 1
         if len(ids) >= no_of_vms:
-            return ids
+            result = self._parse_ip_types(ids)
+            return result
         else:
             while len(ids) < no_of_vms:
                 print("Creating virtual machine...")
                 system_id = create_virtual_machine(vm_profile)
                 ids[machine["system_id"]] = machine["ip_addresses"]
-            return ids
+            result = self._parse_ip_types(ids)
+            return result
 
     def delete_virtual_machines(self):
         for server in self.machine_list:
