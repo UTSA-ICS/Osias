@@ -12,11 +12,11 @@ class maas_virtual(maas_base):
     def _get_public_cidr(self, vm_ip_address):
         subnets = self._run_maas_command("subnets read")
         for subnet in subnets:
-            if ip_address(vm_ip_address) in ip_network(subnet["cidr"]):
+            if ip_address(vm_ip_address) == ip_network(subnet["cidr"]):
                 return subnet["cidr"]
         return None
 
-    def _create_bridge_interface(self, server, public_cidr, vm_ip, machine_info):
+    def _create_bridge_interface(self, server, public_cidr, machine_info):
         self._waiting([server], "Ready")
         for i, v in enumerate(machine_info["interface_set"]):
             if "eno2" in str(machine_info["interface_set"][i]):
@@ -24,7 +24,7 @@ class maas_virtual(maas_base):
                 self._run_maas_command(
                     f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
                 )
-                self._set_interface(server, "br0", public_cidr, vm_ip)
+                self._set_interface(server, "br0", public_cidr)
 
     def _get_pod_id(self, storage, cores, memory):
         pods = self._run_maas_command(f"pods read")
@@ -56,13 +56,13 @@ class maas_virtual(maas_base):
                         return pod["id"]
         return False
 
-    def _set_interface(self, system, interface, cidr, vm_ip):
+    def _set_interface(self, system, interface, cidr):
         self._run_maas_command(
-            f"interface link-subnet {system} {interface} subnet={cidr} mode=STATIC ip_address={vm_ip}"
+            f"interface link-subnet {system} {interface} subnet={cidr} mode=DHCP"
         )
 
     def create_virtual_machine(self, vm_profile):
-        public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
+        # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
             vm_profile["HDD1"]
             + vm_profile["HDD2"]
@@ -73,16 +73,16 @@ class maas_virtual(maas_base):
             total_storage, vm_profile["vCPU"], vm_profile["RAM_in_MB"]
         )
         if vm_profile["Data_CIDR"]:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={public_cidr};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
         else:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={public_cidr}"
+            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']}"
         server = self._run_maas_command(
             f"vm-host compose {pod_id} cores={vm_profile['vCPU']} memory={vm_profile['RAM_in_MB']} 'storage=mylabel:{vm_profile['HDD1']},mylabel:{vm_profile['HDD2']},mylabel:{vm_profile['HDD3']},mylabel:{vm_profile['HDD4']}' interfaces='{interfaces}'"
         )
         server = server["system_id"]
         machine_info = self._run_maas_command(f"machine read {server}")
         self._create_bridge_interface(
-            server, public_cidr, vm_profile["Public_VM_IP"], machine_info
+            server, vm_profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
         return server
 

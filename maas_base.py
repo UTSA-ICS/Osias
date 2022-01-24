@@ -193,7 +193,7 @@ class maas_base:
                 cidr_prefix = osias_variables.VM_Profile[cidr][
                     : osias_variables.VM_Profile[cidr].rfind(".")
                 ]
-                for ip in v["ipaddresses"]:
+                for ip in ast.literal_eval(v["ipaddresses"]):
                     ip_prefix = ip[: ip.rfind(".")]
                     if ip_prefix in cidr_prefix:
                         label = ""
