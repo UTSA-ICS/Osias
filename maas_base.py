@@ -6,6 +6,7 @@ import time
 import utils
 import random
 import osias_variables
+import ast
 
 
 class maas_base:
@@ -17,7 +18,7 @@ class maas_base:
         result = utils.run_cmd(f"maas admin {command}", output=False)
         try:
             return json.loads(result)
-        except ValueError as e:
+        except ValueError:
             result = result.decode("utf-8")
             result = result.rstrip()
             result = [ast.literal_eval(i) for i in result.split("\n")]
@@ -184,7 +185,7 @@ class maas_base:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
 
-    def _parse_ip_types(vms: dict):
+    def _parse_ip_types(self, vms: dict):
         results = {}
         for k, v in vms.items():
             temp = {}
@@ -195,11 +196,12 @@ class maas_base:
                 for ip in v["ipaddresses"]:
                     ip_prefix = ip[: ip.rfind(".")]
                     if ip_prefix in cidr_prefix:
-                        if cidr_prefix in "Internal_CIDR":
+                        label = ""
+                        if ip_prefix in cidr_prefix and cidr is "Internal_CIDR":
                             label = "internal"
-                        elif cidr_prefix in "Data_CIDR":
+                        elif ip_prefix in cidr_prefix and cidr is "Data_CIDR":
                             label = "data"
-                        elif cidr_prefix in "VM_DEPLOYMENT_CIDR":
+                        elif ip_prefix in cidr_prefix and cidr is "VM_DEPLOYMENT_CIDR":
                             label = "public"
                     temp[label] = ip
             results[k] = temp
