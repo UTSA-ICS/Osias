@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-import utils
 from maas_base import maas_base
 from ipaddress import ip_network, ip_address
+import osias_variables
 
 
 class maas_virtual(maas_base):
@@ -17,18 +17,14 @@ class maas_virtual(maas_base):
         return None
 
     def _create_bridge_interface(self, server, public_cidr, vm_ip, machine_info):
-        if machine_info["status_name"] != "Ready":
-            self._waiting([server], "Ready")
+        self._waiting([server], "Ready")
         for i, v in enumerate(machine_info["interface_set"]):
-            if (
-                machine_info["interface_set"][i]["name"] == "eno2"
-                and machine_info["interface_set"][i]["children"][0] != "br0"
-            ):
+            if "eno2" in str(machine_info["interface_set"][i]):
                 interface_id = machine_info["interface_set"][i]["id"]
                 self._run_maas_command(
                     f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
                 )
-            self._set_interface(server, "br0", public_cidr, vm_ip)
+                self._set_interface(server, "br0", public_cidr, vm_ip)
 
     def _get_pod_id(self, storage, cores, memory):
         pods = self._run_maas_command(f"pods read")
@@ -62,7 +58,7 @@ class maas_virtual(maas_base):
 
     def _set_interface(self, system, interface, cidr, vm_ip):
         self._run_maas_command(
-            f"interface link-subnet {system} {interface} subnet={cidr} mode=DHCP"
+            f"interface link-subnet {system} {interface} subnet={cidr} mode=STATIC ip_address={vm_ip}"
         )
 
     def create_virtual_machine(self, vm_profile):
@@ -92,30 +88,31 @@ class maas_virtual(maas_base):
 
     def find_virtual_machines_and_deploy(self, no_of_vms: int, vm_profile):
         # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file.
+        vm_profile = osias_variables.VM_Profile
         machines = self._run_maas_command(
-            "machines read | jq '.[] | {systemid:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses,}' --compact-output"
+            "machines read | jq '.[] | {systemid:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses}' --compact-output"
         )
+        print(f"machines: {machines}")
         ids = {}
         machine_no = 0
-        for machine in machines and machine_no <= no_of_vms:
+        for machine in machines:
             if (
                 machine["statusname"] == "Ready"
                 and machine["poolname"] == "virtual_machine_pool"
+                and machine_no < no_of_vms
             ):
-                self._run_maas_command(f"aquire {machine['systemid']}")
+                self._run_maas_command(
+                    f"machines allocate system_id={machine['systemid']}"
+                )
 
                 ids[machine["systemid"]] = machine["ipaddresses"]
                 machine_no += 1
-        if len(ids) >= no_of_vms:
-            result = self._parse_ip_types(ids)
-            return result
-        else:
-            while len(ids) < no_of_vms:
-                print("Creating virtual machine...")
-                system_id = create_virtual_machine(vm_profile)
-                ids[machine["system_id"]] = machine["ip_addresses"]
-            result = self._parse_ip_types(ids)
-            return result
+        while len(ids) < no_of_vms:
+            print("Creating virtual machine...")
+            system_id = self.create_virtual_machine(vm_profile)
+            ids[machine["system_id"]] = machine["ip_addresses"]
+        result = self._parse_ip_types(ids)
+        return result
 
     def delete_virtual_machines(self):
         for server in self.machine_list:
