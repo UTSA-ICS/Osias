@@ -17,6 +17,8 @@ class MaasBase:
 
     def _run_maas_command(self, command):
         result = utils.run_cmd(f"maas admin {command}", output=False)
+        if result is None:
+            return result
         try:
             return json.loads(result)
         except ValueError:
@@ -341,10 +343,10 @@ class MaasBase:
             return 1
 
     def release_ip_pool(self, vip: str, ips_needed: int):
-        self._run_maas_command(f"ipaddresses release ip={vip}")
+        self._run_maas_command(f"ipaddresses release ip={vip} | jq '.[] | {}'")
         prefix = vip[: vip.rfind(".")]
         first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed + 1}"
-        self._run_maas_command(f"ipaddresses release ip={first_ip}")
+        self._run_maas_command(f"ipaddresses release ip={first_ip} |j q '.[] | {}'")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
