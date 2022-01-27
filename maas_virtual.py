@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 from maas_base import MaasBase
-from ipaddress import ip_network, ip_address
+from ipaddress import IPv4Network, IPv4Address
 import osias_variables
 
 
@@ -12,7 +12,7 @@ class MaasVirtual(MaasBase):
     def _get_public_cidr(self, vm_ip_address):
         subnets = self._run_maas_command("subnets read")
         for subnet in subnets:
-            if ip_address(vm_ip_address) == ip_network(subnet["cidr"]):
+            if IPv4Address(vm_ip_address) in IPv4Network(subnet["cidr"]):
                 return subnet["cidr"]
         return None
 

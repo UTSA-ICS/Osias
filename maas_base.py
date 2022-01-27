@@ -7,7 +7,7 @@ import utils
 import random
 import osias_variables
 import ast
-from ipaddress import ip_network, ip_address
+from ipaddress import IPv4Network, IPv4Address
 
 
 class MaasBase:
@@ -199,17 +199,17 @@ class MaasBase:
                         fixed_cidr = osias_variables.VM_Profile[cidr]
                         for ip in ips:
                             if (
-                                ip_address(ip) in ip_network(fixed_cidr)
+                                IPv4Address(ip) in IPv4Network(fixed_cidr)
                                 and cidr is "Internal_CIDR"
                             ):
                                 label = "internal"
                             if (
-                                ip_address(ip) in ip_network(fixed_cidr)
+                                IPv4Address(ip) in IPv4Network(fixed_cidr)
                                 and cidr is "Data_CIDR"
                             ):
                                 label = "data"
                             if (
-                                ip_address(ip) in ip_network(fixed_cidr)
+                                IPv4Address(ip) in IPv4Network(fixed_cidr)
                                 and cidr is "VM_DEPLOYMENT_CIDR"
                             ):
                                 label = "public"
