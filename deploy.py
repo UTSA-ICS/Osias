@@ -213,7 +213,7 @@ def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
 
 def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-    servers = maas_virtual.maas_virtual(
+    servers = maas_virtual.MaasVirtual(
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
     if isinstance(ceph_enabled, str):
@@ -274,7 +274,7 @@ def delete_virtual_machines(
     servers_public_ip, vip_address, ips_needed, maas_url, maas_api_key
 ):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    servers = maas_virtual.maas_virtual(None)
+    servers = maas_virtual.MaasVirtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.delete_virtual_machines()
     servers.release_ip_pool(vip_address, ips_needed)
