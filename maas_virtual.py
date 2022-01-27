@@ -99,6 +99,8 @@ class MaasVirtual(MaasBase):
         return server_list
 
     def find_virtual_machines_and_deploy(self, no_of_vms: int):
+        rest = int(random.uniform(0, 60))
+        print(f"Sleeping {rest} seconds.")
         vm_profile = osias_variables.VM_Profile
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
