@@ -22,7 +22,7 @@ class MaasBase:
         except ValueError:
             result = result.decode("utf-8")
             result = result.rstrip()
-            result = result.replace("null", "")
+            result = result.replace("null", "'Null'")
             result = [ast.literal_eval(i) for i in result.split("\n")]
             return result
 
