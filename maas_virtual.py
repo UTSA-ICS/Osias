@@ -99,7 +99,6 @@ class MaasVirtual(MaasBase):
         return server_list
 
     def find_virtual_machines_and_deploy(self, no_of_vms: int):
-        # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file.
         vm_profile = osias_variables.VM_Profile
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses}' --compact-output"
