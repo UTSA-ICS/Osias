@@ -249,7 +249,7 @@ class MaasBase:
     def _waiting(self, server_list: list, desired_status: str):
         while len(server_list) > 0:
             machine_info_list = self._run_maas_command(
-                "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,poolname:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
+                "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
             )
             for server in server_list[:]:
                 for machine in machine_info_list:

@@ -101,15 +101,15 @@ class MaasVirtual(MaasBase):
     def find_virtual_machines_and_deploy(self, no_of_vms: int):
         vm_profile = osias_variables.VM_Profile
         machines = self._run_maas_command(
-            "machines read | jq '.[] | {system_id:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses}' --compact-output"
+            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
         )
         print(f"machines: {machines}")
         ids = []
         machine_no = 0
         for machine in machines:
             if (
-                machine["statusname"] == "Ready"
-                and machine["poolname"] == "virtual_machine_pool"
+                machine["status_name"] == "Ready"
+                and machine["pool_name"] == "virtual_machine_pool"
                 and machine_no < no_of_vms
             ):
                 self._run_maas_command(
