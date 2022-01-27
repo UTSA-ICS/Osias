@@ -7,9 +7,10 @@ import utils
 import random
 import osias_variables
 import ast
+from ipaddress import ip_network, ip_address
 
 
-class maas_base:
+class MaasBase:
     def __init__(self, distro):
         self.fs_type = "ext4"
         self.distro = distro
@@ -185,26 +186,36 @@ class maas_base:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
 
-    def _parse_ip_types(self, vms: dict):
+    def _parse_ip_types(self, machine_ids: list, machine_info: list):
+        """Given a list of servers and machine info, return a parsed list of info."""
         results = {}
-        for k, v in vms.items():
-            temp = {}
-            for cidr in ["Internal_CIDR", "Data_CIDR", "VM_DEPLOYMENT_CIDR"]:
-                cidr_prefix = osias_variables.VM_Profile[cidr][
-                    : osias_variables.VM_Profile[cidr].rfind(".")
-                ]
-                for ip in ast.literal_eval(v["ipaddresses"]):
-                    ip_prefix = ip[: ip.rfind(".")]
-                    if ip_prefix in cidr_prefix:
-                        label = ""
-                        if ip_prefix in cidr_prefix and cidr is "Internal_CIDR":
-                            label = "internal"
-                        elif ip_prefix in cidr_prefix and cidr is "Data_CIDR":
-                            label = "data"
-                        elif ip_prefix in cidr_prefix and cidr is "VM_DEPLOYMENT_CIDR":
-                            label = "public"
-                    temp[label] = ip
-            results[k] = temp
+        for machine in machine_ids:
+            for info in machine_info:
+                if machine == info["system_id"]:
+                    ips = info["ip_addresses"]
+                    temp = {}
+                    for cidr in ["Internal_CIDR", "Data_CIDR", "VM_DEPLOYMENT_CIDR"]:
+                        fixed_cidr = osias_variables.VM_Profile[cidr]
+                        for ip in ips:
+                            if (
+                                ip_address(ip) in ip_network(fixed_cidr)
+                                and cidr is "Internal_CIDR"
+                            ):
+                                label = "internal"
+                            if (
+                                ip_address(ip) in ip_network(fixed_cidr)
+                                and cidr is "Data_CIDR"
+                            ):
+                                label = "data"
+                            if (
+                                ip_address(ip) in ip_network(fixed_cidr)
+                                and cidr is "VM_DEPLOYMENT_CIDR"
+                            ):
+                                label = "public"
+                            temp[label] = ip
+                            # print(f"ip_prefix: {ip}\tcidr_prefix: {cidr}")
+                    results[machine] = temp
+        print(results)
         return results
 
     def _release(self, server_list):
@@ -235,9 +246,11 @@ class maas_base:
             self._create_single_bootable_partition(raided_servers)
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
-    def _waiting(self, server_list, desired_status):
+    def _waiting(self, server_list: list, desired_status: str):
         while len(server_list) > 0:
-            machine_info_list = self._run_maas_command(f"machines read")
+            machine_info_list = self._run_maas_command(
+                "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,poolname:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
+            )
             for server in server_list[:]:
                 for machine in machine_info_list:
                     if server in machine["system_id"]:
@@ -266,20 +279,22 @@ class maas_base:
             else:
                 continue
         print("All servers have reached the desired state.")
+        return machine_info_list
 
     def deploy(self, server_list=None):
         if server_list:
             server_list = server_list
         else:
             server_list = self.machine_list
-        self._release(server_list[:])
-        print("Info: Removing RAIDs and creating OSD's")
-        self._wipe_drives_create_osds(server_list)
+        # self._release(server_list[:])
+        # print("Info: Removing RAIDs and creating OSD's")
+        # self._wipe_drives_create_osds(server_list)
         for machine in server_list[:]:
             self._run_maas_command(
                 f"machine deploy {machine} distro_series={self.distro}"
             )
-        self._waiting(server_list[:], "Deployed")
+        machine_info = self._waiting(server_list[:], "Deployed")
+        return self._parse_ip_types(list(server_list), list(machine_info))
 
     def get_machines_info(self):
         return self._run_maas_command(f"machines read")

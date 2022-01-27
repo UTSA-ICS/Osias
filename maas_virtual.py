@@ -1,13 +1,13 @@
 #!/usr/bin/python3
 
-from maas_base import maas_base
+from maas_base import MaasBase
 from ipaddress import ip_network, ip_address
 import osias_variables
 
 
-class maas_virtual(maas_base):
+class MaasVirtual(MaasBase):
     def __init__(self, distro):
-        maas_base.__init__(self, distro)
+        MaasBase.__init__(self, distro)
 
     def _get_public_cidr(self, vm_ip_address):
         subnets = self._run_maas_command("subnets read")
@@ -16,15 +16,24 @@ class maas_virtual(maas_base):
                 return subnet["cidr"]
         return None
 
-    def _create_bridge_interface(self, server, public_cidr, machine_info):
-        self._waiting([server], "Ready")
-        for i, v in enumerate(machine_info["interface_set"]):
-            if "eno2" in str(machine_info["interface_set"][i]):
-                interface_id = machine_info["interface_set"][i]["id"]
-                self._run_maas_command(
-                    f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
-                )
-                self._set_interface(server, "br0", public_cidr)
+    def _create_bridge_interface(self, server_list: list, public_cidr, machines_info):
+        self._waiting(server_list, "Ready")
+        for server in server_list:
+            machine_info = [
+                info for info in machines_info if server in info["system_id"]
+            ][0]
+            for i, v in enumerate(machine_info["interface_set"]):
+                if "eno2" in str(machine_info["interface_set"][i]):
+                    interface_id = machine_info["interface_set"][i]["id"]
+                    self._run_maas_command(
+                        f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
+                    )
+                    self._set_interface(server, "br0", public_cidr)
+                    self._set_interface(
+                        server, "eno3", osias_variables.VM_Profile["Data_CIDR"]
+                    )
+            self._run_maas_command(f"interface disconnect {server} eno3")
+            self._set_interface(server, "eno3", osias_variables.VM_Profile["Data_CIDR"])
 
     def _get_pod_id(self, storage, cores, memory):
         pods = self._run_maas_command(f"pods read")
@@ -58,10 +67,10 @@ class maas_virtual(maas_base):
 
     def _set_interface(self, system, interface, cidr):
         self._run_maas_command(
-            f"interface link-subnet {system} {interface} subnet={cidr} mode=DHCP"
+            f"interface link-subnet {system} {interface} subnet={cidr} mode=AUTO"
         )
 
-    def create_virtual_machine(self, vm_profile):
+    def create_virtual_machine(self, vm_profile, num_VMs):
         # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
             vm_profile["HDD1"]
@@ -76,24 +85,27 @@ class maas_virtual(maas_base):
             interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
         else:
             interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']}"
-        server = self._run_maas_command(
-            f"vm-host compose {pod_id} cores={vm_profile['vCPU']} memory={vm_profile['RAM_in_MB']} 'storage=mylabel:{vm_profile['HDD1']},mylabel:{vm_profile['HDD2']},mylabel:{vm_profile['HDD3']},mylabel:{vm_profile['HDD4']}' interfaces='{interfaces}'"
-        )
-        server = server["system_id"]
-        machine_info = self._run_maas_command(f"machine read {server}")
+        server_list = []
+        for _ in range(num_VMs):
+            server = self._run_maas_command(
+                f"vm-host compose {pod_id} cores={vm_profile['vCPU']} memory={vm_profile['RAM_in_MB']} 'storage=mylabel:{vm_profile['HDD1']},mylabel:{vm_profile['HDD2']},mylabel:{vm_profile['HDD3']},mylabel:{vm_profile['HDD4']}' interfaces='{interfaces}'"
+            )
+            print(f"server: {server}")
+            server_list.append(server["system_id"])
+        machine_info = self._run_maas_command("machines read")
         self._create_bridge_interface(
-            server, vm_profile["VM_DEPLOYMENT_CIDR"], machine_info
+            server_list, vm_profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
-        return server
+        return server_list
 
-    def find_virtual_machines_and_deploy(self, no_of_vms: int, vm_profile):
+    def find_virtual_machines_and_deploy(self, no_of_vms: int):
         # TODO create the dictionary of vms and ips with public, internal, data to match the multinode file.
         vm_profile = osias_variables.VM_Profile
         machines = self._run_maas_command(
-            "machines read | jq '.[] | {systemid:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses}' --compact-output"
+            "machines read | jq '.[] | {system_id:.system_id,statusname:.status_name,poolname:.pool.name,ipaddresses:.ip_addresses}' --compact-output"
         )
         print(f"machines: {machines}")
-        ids = {}
+        ids = []
         machine_no = 0
         for machine in machines:
             if (
@@ -102,17 +114,18 @@ class maas_virtual(maas_base):
                 and machine_no < no_of_vms
             ):
                 self._run_maas_command(
-                    f"machines allocate system_id={machine['systemid']}"
+                    f"machines allocate system_id={machine['system_id']}"
                 )
-
-                ids[machine["systemid"]] = machine["ipaddresses"]
+                ids.append(machine["system_id"])
                 machine_no += 1
-        while len(ids) < no_of_vms:
-            print("Creating virtual machine...")
-            system_id = self.create_virtual_machine(vm_profile)
-            ids[machine["system_id"]] = machine["ip_addresses"]
-        result = self._parse_ip_types(ids)
-        return result
+        if len(ids) < no_of_vms:
+            create_n_vms = int(no_of_vms - len(ids))
+            print(f"Creating {create_n_vms} virtual machine...")
+            machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
+            ids.extend(machine_list)
+        print(f"ids: {ids}")
+        final_ids = self.deploy(ids)
+        return final_ids
 
     def delete_virtual_machines(self):
         for server in self.machine_list:
