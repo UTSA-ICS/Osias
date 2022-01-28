@@ -4,6 +4,11 @@ default:
   image: python:3.7-buster
   interruptible: true
 
+variables:
+    DEPLOY_MULTIPLE_RELEASES:
+        value: "true"
+        description: Flag for deployment of multiple releases or one release.
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'

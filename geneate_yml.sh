@@ -44,7 +44,7 @@ deploy:$release:
     trigger:
         include: deploy-pipeline.yml
         strategy: depend
-fi
 "
+fi
 
 echo "$deploy_pipeline"
