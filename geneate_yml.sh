@@ -9,6 +9,7 @@ stages:
     - deploy
 
 $current_release:
+    stage: deploy
     variables:
         VM_PROFILE: \"\$VM_PROFILE_CURRENT_RELEASE\"
         REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
@@ -18,6 +19,7 @@ $current_release:
         strategy: depend
 
 $previous_release:
+    stage: deploy
     variables:
         VM_PROFILE: \"\$VM_PROFILE_PREVIOUS_RELEASE\"
         REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
