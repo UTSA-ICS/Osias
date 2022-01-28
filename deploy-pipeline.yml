@@ -46,6 +46,8 @@ generate_cidr_for_virtual_machines:
   tags:
     - shell
   script:
+    - echo "$VM_PROFILE"
+    - exit 1
     - if [[ -z "$VM_PROFILE" ]]; then echo "ERROR - VM_PROFILE is not set" && exit 1; fi
     - cd test
     - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
