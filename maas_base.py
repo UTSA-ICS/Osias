@@ -17,7 +17,7 @@ class MaasBase:
 
     def _run_maas_command(self, command):
         result = utils.run_cmd(f"maas admin {command}", output=False)
-        if result == b'':
+        if result == b"":
             return result
         try:
             return json.loads(result)
