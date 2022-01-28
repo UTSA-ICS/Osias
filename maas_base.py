@@ -346,7 +346,7 @@ class MaasBase:
         self._run_maas_command(f"ipaddresses release ip={vip} | jq '.[] | {{}}'")
         prefix = vip[: vip.rfind(".")]
         first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed + 1}"
-        self._run_maas_command(f"ipaddresses release ip={first_ip} | q '.[] | {{}}'")
+        self._run_maas_command(f"ipaddresses release ip={first_ip} | jq '.[] | {{}}'")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
