@@ -50,7 +50,7 @@ release_testing:
         DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
     trigger:
         include:
-            - artifacts: release-test.yml
+            - artifact: release-test.yml
               job: generate_yaml_config
         strategy: depend
 
