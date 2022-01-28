@@ -10,18 +10,18 @@ stages:
 
 $current_release:
     variables:
-        VM_PROFILE: "\$VM_PROFILE_CURRENT_RELEASE"
-        REPROVISION_SERVERS: "\$REPROVISION_SERVERS"
-        DOCKER_REGISTRY_PASSWORD: "\$DOCKER_REGISTRY_PASSWORD"
+        VM_PROFILE: \"\$VM_PROFILE_CURRENT_RELEASE\"
+        REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
+        DOCKER_REGISTRY_PASSWORD: \"\$DOCKER_REGISTRY_PASSWORD\"
     trigger:
         include: deploy-pipeline.yml
         strategy: depend
 
 $previous_release:
     variables:
-        VM_PROFILE: "\$VM_PROFILE_PREVIOUS_RELEASE"
-        REPROVISION_SERVERS: "\$REPROVISION_SERVERS"
-        DOCKER_REGISTRY_PASSWORD: "\$DOCKER_REGISTRY_PASSWORD"
+        VM_PROFILE: \"\$VM_PROFILE_PREVIOUS_RELEASE\"
+        REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
+        DOCKER_REGISTRY_PASSWORD: \"\$DOCKER_REGISTRY_PASSWORD\"
     trigger:
         include: deploy-pipeline.yml
         strategy: depend
