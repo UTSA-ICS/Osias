@@ -1,5 +1,7 @@
 #!/bin/bash
 
+cat deploy-pipeline.yml > deploy.yml
+
 common_section="
 default:
   # Official language image. Look for the different tagged releases at:
@@ -30,7 +32,9 @@ deploy:$current_release:
         REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
         DOCKER_REGISTRY_PASSWORD: \"\$DOCKER_REGISTRY_PASSWORD\"
     trigger:
-        include: deploy-pipeline.yml
+        include:
+            - artifact: deploy.yml
+              job: generate_yaml_config
         strategy: depend
 
 deploy:$previous_release:

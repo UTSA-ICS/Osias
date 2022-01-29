@@ -12,7 +12,7 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-  - PIPELINE_NAME
+  - RELEASE_NAME
   - generate_cidr
   - reprovision_servers
   - bootstrap_networking
@@ -42,10 +42,10 @@ stages:
   - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
   - echo "$MULTINODE"
 
-deploy:PIPELINE_NAME:
-    stage: PIPELINE_NAME
+deploy:RELEASE_NAME:
+    stage: RELEASE_NAME
     script:
-        - exit 0
+        - echo "Deployment of RELEASE_NAME release"
 
 generate_cidr_for_virtual_machines:
   stage: generate_cidr
