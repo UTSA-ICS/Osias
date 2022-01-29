@@ -44,6 +44,8 @@ stages:
 
 deploy:PIPELINE_NAME:
     stage: PIPELINE_NAME
+    script:
+        - exit 0
 
 generate_cidr_for_virtual_machines:
   stage: generate_cidr
