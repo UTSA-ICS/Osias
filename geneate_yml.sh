@@ -1,5 +1,18 @@
 #!/bin/bash
 
+common_section="
+default:
+  # Official language image. Look for the different tagged releases at:
+  # https://hub.docker.com/r/library/python/tags/
+  image: python:3.7-buster
+  interruptible: true
+
+workflow:
+  rules:
+    - if: '\$CI_PIPELINE_SOURCE == \"merge_request_event\"'
+    - if: '\$CI_PIPELINE_SOURCE == \"schedule\"'
+    - if: '\$CI_PIPELINE_SOURCE == \"web\"'
+"
 
 if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]];
 then
@@ -47,4 +60,4 @@ deploy:$release:
 "
 fi
 
-echo "$deploy_pipeline"
+echo "$common_section""$deploy_pipeline"
