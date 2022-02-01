@@ -12,6 +12,7 @@ workflow:
 
 stages:
   - static_analysis
+  - tag_virtual_servers
   - deploy_pipeline
 
 shellcheck:
@@ -33,6 +34,15 @@ python_black:
     - docker-runner
     script:
         - python3 -m black --check --diff --color .
+
+tag_virtual_servers:
+    stage: tag_virtual_servers
+    image:
+      image: utsaics/maas:2.8
+    script:
+    #- export VM_PROFILE=$(cat test/vm_profile)
+    - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+    - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
 
 # For 3 release pipelines.
 multiple_releases:

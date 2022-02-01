@@ -211,6 +211,12 @@ def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
     servers.deploy()
 
 
+def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
+    number_of_vms = vm_profile["Number_of_VM_Servers"]
+    release = vm_profile["OPENSTACK_RELEASE"]
+    utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+
+
 def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(
@@ -249,19 +255,19 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     POOL_START_IP = str(public_IP_pool.pop(0))
     POOL_END_IP = str(public_IP_pool.pop())
     if vm_profile.get("DOCKER_REGISTRY_IP"):
-        DOCKER = f"DOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
+        DOCKER = f"\t\tDOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
         if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
-            DOCKER += f"\n    DOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
+            DOCKER += f"\n\t\tDOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
     else:
         DOCKER = ""
     optional_vars = f"""VM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
-    VIP_ADDRESS = "{VIP_ADDRESS}"
-    POOL_START_IP = "{POOL_START_IP}"
-    POOL_END_IP = "{POOL_END_IP}"
-    DNS_IP = "{vm_profile['DNS_IP']}"
-    CEPH = {CEPH}
-    OPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
-    {DOCKER}
+\t\tVIP_ADDRESS = "{VIP_ADDRESS}"
+\t\tPOOL_START_IP = "{POOL_START_IP}"
+\t\tPOOL_END_IP = "{POOL_END_IP}"
+\t\tDNS_IP = "{vm_profile['DNS_IP']}"
+\t\tCEPH = {CEPH}
+\t\tOPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
+\t\t{DOCKER}
     """
     multinode = utils.create_multinode(server_dict, optional_vars)
     print(f"Generated multinode is: {multinode}")
