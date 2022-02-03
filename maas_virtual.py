@@ -103,8 +103,8 @@ class MaasVirtual(MaasBase):
 
     def find_virtual_machines_and_tag(
         self,
-        vm_profile: int,
-        pipeline_id: int,
+        vm_profile,
+        pipeline_id,
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
         release = vm_profile["OPENSTACK_RELEASE"]
@@ -112,7 +112,8 @@ class MaasVirtual(MaasBase):
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
-        print(f"machines: {machines}")
+        machines = ast.literal_eval(machines)
+        print(f"length: {len(machines)}\tmachines: {machines}")
         ids = []
         machine_no = 0
         for machine in machines:

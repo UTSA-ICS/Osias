@@ -215,13 +215,8 @@ def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
 
 
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
-    print("INSIDE TAG_VIRTUAL_SERVERS")
-    number_of_vms = vm_profile["Number_of_VM_Servers"]
-    release = vm_profile["OPENSTACK_RELEASE"]
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-    servers = maas_virtual.MaasVirtual(
-        osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
-    )
+    servers = maas_virtual.MaasVirtual(None)
     servers.find_virtual_machines_and_tag(
         vm_profile,
         os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())),
@@ -550,7 +545,6 @@ def main():
             )
     elif args.operation == "tag_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
-            print("Going to run tag_virtual_servers....")
             tag_virtual_servers(
                 args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE)
             )
