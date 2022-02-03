@@ -177,7 +177,6 @@ class MaasVirtual(MaasBase):
                 f"machine deploy {server} distro_series={self.distro}"
             )
             self._run_maas_command(f"tag update-nodes openstack_ready add={server}")
-            
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name

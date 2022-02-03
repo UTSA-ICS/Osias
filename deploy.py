@@ -293,7 +293,6 @@ def delete_virtual_machines(
     servers.set_public_ip(servers_public_ip)
     servers.release_ip_pool(vip_address, ips_needed)
     servers.delete_virtual_machines(os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())))
-    
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
