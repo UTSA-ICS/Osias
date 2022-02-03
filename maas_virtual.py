@@ -108,7 +108,9 @@ class MaasVirtual(MaasBase):
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
         release = vm_profile["OPENSTACK_RELEASE"]
-        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(' ')[0]
+        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
+            " "
+        )[0]
         print(f"distro: {distro}")
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
