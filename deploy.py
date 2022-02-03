@@ -8,6 +8,7 @@ import maas_virtual
 import setup_configs
 import utils
 import osias_variables
+import os
 
 
 def parse_args():
