@@ -221,7 +221,8 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
     servers.find_virtual_machines_and_tag(
-        vm_profile["Number_of_VM_Servers"], os.getenv("CI_PIPELINE_ID", "42")
+        vm_profile["Number_of_VM_Servers"],
+        os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())),
     )
 
 
@@ -548,7 +549,9 @@ def main():
     elif args.operation == "tag_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
             print("Going to run tag_virtual_servers....")
-            tag_virtual_servers(args.MAAS_URL, args.MAAS_API_KEY, vm_profile)
+            tag_virtual_servers(
+                args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE)
+            )
         else:
             raise Exception(
                 "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
