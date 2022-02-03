@@ -145,9 +145,8 @@ class MaasVirtual(MaasBase):
             self._run_maas_command(f"tag update-nodes openstack_ready remove={vm}")
         return ids
 
-    def find_virtual_machines_and_deploy(self, no_of_vms: int, pipeline_id: int):
-        vm_profile = osias_variables.VM_Profile
-        release = osias_variables["OPENSTACK_RELEASE"]
+    def find_virtual_machines_and_deploy(self, vm_profile, pipeline_id: int):
+        release = vm_profile["OPENSTACK_RELEASE"]
         distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
             " "
         )[0]
