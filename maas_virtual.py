@@ -111,12 +111,9 @@ class MaasVirtual(MaasBase):
         distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
             " "
         )[0]
-        print(f"distro: {distro}")
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
-        print(f"length: {len(machines)}")
-        print(f"machines: {machines}")
         ids = []
         machine_no = 0
         for machine in machines:
@@ -166,9 +163,13 @@ class MaasVirtual(MaasBase):
             ):
                 ids.append(machine["system_id"])
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
+        print(dict_of_ids_and_ips)
         return dict_of_ids_and_ips
 
-    def delete_virtual_machines(self):
+    def delete_virtual_machines(self, pipeline_id: int):
+        release = vm_profile["OPENSTACK_RELEASE"]
+        pipeline_tag_name = f"{pipeline_id}_{release}"
+        self._run_maas_command(f"tag delete {pipeline_tag_name}")
         for server in self.machine_list:
             # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {server}")
@@ -176,6 +177,7 @@ class MaasVirtual(MaasBase):
                 f"machine deploy {server} distro_series={self.distro}"
             )
             self._run_maas_command(f"tag update-nodes openstack_ready add={server}")
+            
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name

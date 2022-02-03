@@ -291,8 +291,9 @@ def delete_virtual_machines(
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.MaasVirtual(None)
     servers.set_public_ip(servers_public_ip)
-    servers.delete_virtual_machines()
     servers.release_ip_pool(vip_address, ips_needed)
+    servers.delete_virtual_machines(os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())))
+    
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
