@@ -88,6 +88,7 @@ def parse_args():
             "cleanup",
             "reboot_servers",
             "reprovision_servers",
+            "tag_virtual_servers",
             "create_virtual_servers",
             "bootstrap_networking",
             "bootstrap_openstack",
