@@ -38,6 +38,8 @@ python_black:
 tag_virtual_servers:
     stage: tag_virtual_servers
     image: utsaics/maas:2.8
+    tags:
+        - docker-runner
     before_script:
         - pip3 install toml timeout_decorator
     script:
