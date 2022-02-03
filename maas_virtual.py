@@ -5,6 +5,7 @@ from ipaddress import IPv4Network, IPv4Address
 import osias_variables
 import random
 import time
+import ast
 
 
 class MaasVirtual(MaasBase):
@@ -147,7 +148,8 @@ class MaasVirtual(MaasBase):
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
-        print(f"machines: {machines}")
+        print(f"type: {type(machines)}\t machines: {machines}")
+        machines = ast.literal_eval(machines)
         ids = []
         machine_no = 0
         for machine in machines:
