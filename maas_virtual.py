@@ -100,6 +100,42 @@ class MaasVirtual(MaasBase):
         )
         return server_list
 
+    def find_virtual_machines_and_tag(self, no_of_vms: int, pipeline_id: int):
+        vm_profile = osias_variables.VM_Profile
+        release = osias_variables["OPENSTACK_RELEASE"]
+        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
+        machines = self._run_maas_command(
+            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+        )
+        print(f"machines: {machines}")
+        ids = []
+        machine_no = 0
+        for machine in machines:
+            if (
+                machine["status_name"] == "Deployed"
+                and machine["pool_name"] == "virtual_machine_pool"
+                and machine["distro_series"] == distro
+                and machine["tag_names"].__contains__("openstack_ready")
+                and machine_no < no_of_vms
+            ):
+                ids.append(machine["system_id"])
+                machine_no += 1
+        if len(ids) < no_of_vms:
+            create_n_vms = int(no_of_vms - len(ids))
+            print(f"Creating {create_n_vms} virtual machine...")
+            machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
+            self.deploy(machine_list)
+            ids.extend(machine_list)
+        pipeline_tag_name = f"{pipeline_id}_{release}"
+        print(f"ids: {ids}\ntag: {pipeline_tag_name}")
+        self._run_maas_command(
+            f"tags create name={pipeline_tag_name} comment='Openstack {release} for {pipeline_id}'"
+        )
+        for vm in ids:
+            self._run_maas_command(f"tag update-nodes {pipeline_tag_name} add={vm}")
+            self._run_maas_command(f"tag update-nodes openstack_ready remove={vm}")
+        return ids
+
     def find_virtual_machines_and_deploy(self, no_of_vms: int, pipeline_id: int):
         vm_profile = osias_variables.VM_Profile
         release = osias_variables["OPENSTACK_RELEASE"]
@@ -118,9 +154,6 @@ class MaasVirtual(MaasBase):
                 and machine["tag_names"].__contains__("openstack_ready")
                 and machine_no < no_of_vms
             ):
-                self._run_maas_command(
-                    f"machines allocate system_id={machine['system_id']}"
-                )
                 ids.append(machine["system_id"])
                 machine_no += 1
         if len(ids) < no_of_vms:
