@@ -100,9 +100,13 @@ class MaasVirtual(MaasBase):
         )
         return server_list
 
-    def find_virtual_machines_and_tag(self, no_of_vms: int, pipeline_id: int):
-        vm_profile = osias_variables.VM_Profile
-        release = osias_variables["OPENSTACK_RELEASE"]
+    def find_virtual_machines_and_tag(
+        self,
+        vm_profile: int,
+        pipeline_id: int,
+    ):
+        no_of_vms = vm_profile["Number_of_VM_Servers"]
+        release = vm_profile["OPENSTACK_RELEASE"]
         distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"

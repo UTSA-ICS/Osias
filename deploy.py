@@ -34,7 +34,7 @@ def parse_args():
         "--target_node",
         type=str,
         required=False,
-        help="The target node IP address that will the specified script will run on",
+        help="The target node IP address that willuuid the specified script will run on",
     )
     parser.add_argument(
         "--config",
@@ -223,7 +223,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
     servers.find_virtual_machines_and_tag(
-        vm_profile["Number_of_VM_Servers"],
+        vm_profile,
         os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())),
     )
 
