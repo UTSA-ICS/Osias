@@ -213,6 +213,7 @@ def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
 
 
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
+    print("INSIDE TAG_VIRTUAL_SERVERS")
     number_of_vms = vm_profile["Number_of_VM_Servers"]
     release = vm_profile["OPENSTACK_RELEASE"]
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
@@ -372,15 +373,6 @@ def main():
 
         if args.operation == "cleanup":
             cleanup(servers_public_ip, storage_nodes_public_ip)
-        elif args.operation == "tag_virtual_servers":
-            if args.MAAS_URL and args.MAAS_API_KEY:
-                tag_virtual_servers(args.MAAS_URL, args.MAAS_API_KEY, vm_profile)
-            else:
-                raise Exception(
-                    "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
-                    + "If operation is specified as [reprovision_servers] then "
-                    + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
-                )
         elif args.operation == "reprovision_servers":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 reprovision_servers(
@@ -551,6 +543,16 @@ def main():
             raise Exception(
                 "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
                 + "If operation is specified as [create_virtual_servers] then "
+                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+            )
+    elif args.operation == "tag_virtual_servers":
+        if args.MAAS_URL and args.MAAS_API_KEY:
+            print("Going to run tag_virtual_servers....")
+            tag_virtual_servers(args.MAAS_URL, args.MAAS_API_KEY, vm_profile)
+        else:
+            raise Exception(
+                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                + "If operation is specified as [reprovision_servers] then "
                 + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
             )
     elif args.operation == "run_command":
