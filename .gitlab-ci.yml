@@ -55,7 +55,6 @@ release_testing:
         include:
             - artifact: release-test.yml
               job: generate_yaml_config
-        artifacts: true
         strategy: depend
 
 # For 3 release pipelines.
