@@ -35,7 +35,7 @@ deploy:$current_release:
         include: deploy.yml
         strategy: depend
     needs:
-        - pipeline: $CI_PIPELINE_SOURCE
+        - pipeline: $PARENT_PIPELINE_ID
           job: generate_yaml_config
 
 deploy:$previous_release:
