@@ -12,7 +12,7 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-  - RELEASE_NAME
+  - <RELEASE_NAME>
   - generate_cidr
   - reprovision_servers
   - bootstrap_networking
@@ -42,18 +42,16 @@ stages:
   - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
   - echo "$MULTINODE"
 
-deploy:RELEASE_NAME:
-    stage: RELEASE_NAME
+deploy:<RELEASE_NAME>:
+    stage: <RELEASE_NAME>
     script:
-        - echo "Deployment of RELEASE_NAME release"
+        - echo "Deployment of <RELEASE_NAME> release"
 
 generate_cidr_for_virtual_machines:
   stage: generate_cidr
   tags:
     - shell
   script:
-    - echo "$VM_PROFILE"
-    - exit 1
     - if [[ -z "$VM_PROFILE" ]]; then echo "ERROR - VM_PROFILE is not set" && exit 1; fi
     - cd test
     - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
