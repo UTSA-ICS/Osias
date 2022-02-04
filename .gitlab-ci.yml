@@ -48,8 +48,6 @@ generate_yaml_config:
         paths:
             - release-test.yml
             - deploy.yml
-    variables:
-        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 release_testing:
     stage: deploy_pipeline
@@ -59,6 +57,7 @@ release_testing:
               job: generate_yaml_config
         strategy: depend
     variables:
+        DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
         PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 # For 3 release pipelines.

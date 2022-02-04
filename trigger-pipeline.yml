@@ -1,0 +1,51 @@
+default:
+  # Official language image. Look for the different tagged releases at:
+  # https://hub.docker.com/r/library/python/tags/
+  image: python:3.7-buster
+  interruptible: true
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+
+stages:
+    - handle-yaml
+    - deploy
+
+.base_trigger:
+    stage: deploy
+    trigger:
+        include:
+            - artifact: deploy.yml
+              job: handle-yaml
+        strategy: depend
+
+handle-yaml:
+    stage: handle-yaml
+    needs:
+        - pipeline: $PARENT_PIPELINE_ID
+          job: generate_yaml_config
+    script:
+        - echo "This job only exists to handle the YAML"
+    artifacts:
+        paths:
+            - deploy.yml
+
+deploy:RELEASE_NAME:
+    extends: .base_trigger
+    variables:
+        VM_PROFILE: RELEASE_VM_PROFILE
+        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+        DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+
+deploy:PREVIOUS_RELEASE_NAME:
+    extends: .base_trigger
+    variables:
+        VM_PROFILE: "$VM_PROFILE_PREVIOUS_RELEASE"
+        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+        DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+    rules:
+        - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'
