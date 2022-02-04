@@ -48,6 +48,8 @@ generate_yaml_config:
         paths:
             - release-test.yml
             - deploy.yml
+    variables:
+        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
 
 release_testing:
     stage: deploy_pipeline
