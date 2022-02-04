@@ -15,7 +15,6 @@ stages:
     - handle-yaml
     - deploy
 
-.base_trigger:
 handle-yaml:
     stage: handle-yaml
     needs:
