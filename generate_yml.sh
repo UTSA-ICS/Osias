@@ -34,8 +34,10 @@ deploy:$current_release:
     trigger:
         include:
             - artifact: deploy.yml
-              job: generate_yaml_config
         strategy: depend
+    needs:
+        - pipeline: $CI_PIPELINE_SOURCE
+	  job: generate_yaml_config
 
 deploy:$previous_release:
     stage: deploy
