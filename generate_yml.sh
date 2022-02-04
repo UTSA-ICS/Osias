@@ -29,7 +29,7 @@ stages:
 handle-yaml:
     stage: handle-yaml
     needs:
-        - pipeline: $PARENT_PIPELINE_ID
+        - pipeline: \$PARENT_PIPELINE_ID
           job: generate_yaml_config
     script:
         - echo \"This job only exists to handle the YAML\"
