@@ -16,13 +16,6 @@ stages:
     - deploy
 
 .base_trigger:
-    stage: deploy
-    trigger:
-        include:
-            - artifact: deploy.yml
-              job: handle-yaml
-        strategy: depend
-
 handle-yaml:
     stage: handle-yaml
     needs:
@@ -32,17 +25,27 @@ handle-yaml:
         - echo "This job only exists to handle the YAML"
     artifacts:
         paths:
-            - deploy.yml
+            - deploy*.yml
 
-deploy:RELEASE_NAME:
-    extends: .base_trigger
+deploy:<RELEASE_NAME>:
+    stage: deploy
+    trigger:
+        include:
+            - artifact: deploy-<RELEASE_NAME>.yml
+              job: handle-yaml
+        strategy: depend
     variables:
         VM_PROFILE: RELEASE_VM_PROFILE
         REPROVISION_SERVERS: "$REPROVISION_SERVERS"
         DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
 
-deploy:PREVIOUS_RELEASE_NAME:
-    extends: .base_trigger
+deploy:<PREVIOUS_RELEASE_NAME>:
+    stage: deploy
+    trigger:
+        include:
+            - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
+              job: handle-yaml
+        strategy: depend
     variables:
         VM_PROFILE: "$VM_PROFILE_PREVIOUS_RELEASE"
         REPROVISION_SERVERS: "$REPROVISION_SERVERS"

@@ -47,7 +47,7 @@ generate_yaml_config:
     artifacts:
         paths:
             - release-test.yml
-            - deploy.yml
+            - deploy*.yml
 
 release_testing:
     stage: deploy_pipeline
