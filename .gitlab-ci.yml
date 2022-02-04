@@ -8,6 +8,9 @@ variables:
     DEPLOY_MULTIPLE_RELEASES:
         value: "true"
         description: Flag for deployment of multiple releases or one release.
+    SLEEP_FAILURE_TIME:
+        value: "3600"
+        description: Pipeline sleep time for failure scenarios
 
 workflow:
   rules:
@@ -34,7 +37,7 @@ python_black:
     stage: static_analysis
     image:
       name: cytopia/black
-      entrypoint: ["/bin/ash", "-c"]
+      entrypoint: ["/bin/bash", "-c"]
     tags:
     - docker-runner
     script:
