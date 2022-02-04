@@ -32,8 +32,7 @@ deploy:$current_release:
         REPROVISION_SERVERS: \"\$REPROVISION_SERVERS\"
         DOCKER_REGISTRY_PASSWORD: \"\$DOCKER_REGISTRY_PASSWORD\"
     trigger:
-        include:
-            - artifact: deploy.yml
+        include: deploy.yml
         strategy: depend
     needs:
         - pipeline: $CI_PIPELINE_SOURCE
