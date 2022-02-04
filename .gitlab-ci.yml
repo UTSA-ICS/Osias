@@ -37,7 +37,7 @@ python_black:
     stage: static_analysis
     image:
       name: cytopia/black
-      entrypoint: ["/bin/bash", "-c"]
+      entrypoint: ["/bin/ash", "-c"]
     tags:
     - docker-runner
     script:
