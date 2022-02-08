@@ -4,6 +4,14 @@ default:
   image: python:3.7-buster
   interruptible: true
 
+variables:
+    DEPLOY_MULTIPLE_RELEASES:
+        value: "true"
+        description: Flag for deployment of multiple releases or one release.
+    SLEEP_FAILURE_TIME:
+        value: "3600"
+        description: Pipeline sleep time for failure scenarios
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
@@ -12,6 +20,7 @@ workflow:
 
 stages:
   - static_analysis
+  - generate_yaml
   - deploy_pipeline
 
 shellcheck:
@@ -34,29 +43,22 @@ python_black:
     script:
         - python3 -m black --check --diff --color .
 
-# For 3 release pipelines.
-multiple_releases:
+generate_yaml_config:
+    stage: generate_yaml
+    script:
+        - bash generate_yml.sh > release-test.yml
+    artifacts:
+        paths:
+            - release-test.yml
+            - deploy*.yml
+
+release_testing:
     stage: deploy_pipeline
     trigger:
-        include: deploy-pipeline.yml
-        strategy: depend
-    parallel:
-        matrix:
-            - VM_PROFILE: [ "$VM_PROFILE_CURRENT_RELEASE", "$VM_PROFILE_PREVIOUS_RELEASE"]
-              REPROVISION_SERVERS: "$REPROVISION_SERVERS"
-              DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
-    rules:
-        - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'
-        
-single_release:
-    stage: deploy_pipeline
-    trigger:
-        include: deploy-pipeline.yml
+        include:
+            - artifact: release-test.yml
+              job: generate_yaml_config
         strategy: depend
     variables:
-        MULTINODE: "$MULTINODE"
-        VM_PROFILE: "$VM_PROFILE"
-        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
-        DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
-    rules:
-        - if: '($DEPLOY_MULTIPLE_RELEASES != "true")'
+        DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
+        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
