@@ -477,9 +477,8 @@ def main():
             )
         elif args.operation == "delete_virtual_machines":
             if args.MAAS_URL and args.MAAS_API_KEY:
-                VM_PROFILE = utils.merge_dictionaries(
-                    osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
-                )
+                VM_PROFILE = ast.literal_eval(args.VM_PROFILE)
+
                 delete_virtual_machines(
                     servers_public_ip,
                     VIP_ADDRESS,
