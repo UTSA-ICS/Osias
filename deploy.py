@@ -238,7 +238,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     # Keeps the limit of VM's created from 1-7 VM's.
     num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
     server_dict = servers.find_virtual_machines_and_deploy(
-        vm_profile, os.getenv("CI_PIPELINE_SOURCE", str(uuid.uuid4()))
+        vm_profile, os.getenv("CI_PIPELINE_SOURCE")
     )
     #    servers_public_ip = []
     #    public_ips = {}
@@ -285,14 +285,16 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
 
 
 def delete_virtual_machines(
-    servers_public_ip, vip_address, ips_needed, maas_url, maas_api_key
+    servers_public_ip, vip_address, ips_needed, vm_profile, maas_url, maas_api_key
 ):
     print("DELETING VIRTUAL MACHINES")
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.MaasVirtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.release_ip_pool(vip_address, ips_needed)
-    servers.delete_virtual_machines(os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())))
+    servers.delete_virtual_machines(
+        vm_profile, os.getenv("CI_PIPELINE_ID", str(uuid.uuid4()))
+    )
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -479,6 +481,7 @@ def main():
                     servers_public_ip,
                     VIP_ADDRESS,
                     IPs_NEEDED,
+                    vm_profile,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )

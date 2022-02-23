@@ -166,9 +166,9 @@ class MaasVirtual(MaasBase):
         print(dict_of_ids_and_ips)
         return dict_of_ids_and_ips
 
-    def delete_virtual_machines(self, pipeline_id: int):
-        release = vm_profile["OPENSTACK_RELEASE"]
-        pipeline_tag_name = f"{pipeline_id}_{release}"
+    def delete_virtual_machines(self, vm_profile, pipeline_id: int):
+        openstack_release = vm_profile["OPENSTACK_RELEASE"]
+        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
         self._run_maas_command(f"tag delete {pipeline_tag_name}")
         for server in self.machine_list:
             # self._run_maas_command(f"machine delete {server}")
