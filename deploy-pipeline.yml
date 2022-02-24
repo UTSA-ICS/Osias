@@ -249,6 +249,7 @@ delete_virtual_machines:
       when: always
   needs:
     job: create_virtual_machines
+    pipeline: $PARENT_PIPELINE_ID
 
 .release_cidr_for_virtual_machines:
   stage: release_cidr
