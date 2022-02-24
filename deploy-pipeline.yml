@@ -42,7 +42,6 @@ stages:
   - echo "$MULTINODE"
   needs:
   - pipeline: $PARENT_PIPELINE_ID
-    job: tag_virtual_servers
 
 .generate_cidr_for_virtual_machines:
   stage: generate_cidr
