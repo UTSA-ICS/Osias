@@ -45,6 +45,11 @@ tag_virtual_servers:
     script:
         - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
         - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+        - echo "PARENT_PROJECT_PIPELINE_ID=?" >> build.env
+    artifacts:
+      reports:
+        dotenv: build.env
+
 
 # For 3 release pipelines.
 multiple_releases:

@@ -84,6 +84,12 @@ def parse_args():
         help="Dictionary of values containing the following which over-write the defaults listed in osias_variables.py",
     )
     parser.add_argument(
+        "--PARENT_PROJECT_PIPELINE_ID",
+        type=int,
+        required=False,
+        help="The project-level ID of the current pipeline.",
+    )
+    parser.add_argument(
         "operation",
         type=str,
         choices=[
@@ -297,9 +303,7 @@ def delete_virtual_machines(
     servers = maas_virtual.MaasVirtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.release_ip_pool(vip_address, ips_needed)
-    servers.delete_virtual_machines(
-        openstack_release, os.getenv("CI_PIPELINE_SOURCE", str(uuid.uuid4()))
-    )
+    servers.delete_virtual_machines(openstack_release, args.PARENT_PROJECT_PIPELINE_ID)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
