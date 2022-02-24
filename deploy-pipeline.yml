@@ -40,6 +40,10 @@ stages:
   - pip3 install toml timeout_decorator
   - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
   - echo "$MULTINODE"
+  - echo "$PARENT_PIPELINE_ID"
+  needs:
+  - pipeline: $PARENT_PIPELINE_ID
+    job: tag_virtual_servers
 
 .generate_cidr_for_virtual_machines:
   stage: generate_cidr
@@ -246,7 +250,7 @@ delete_virtual_machines:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
   needs:
-    - pipeline: $PARENT_PROJECT_PIPELINE_ID
+    - pipeline: $PARENT_PIPELINE_ID
       job: tag_virtual_servers
 
 
