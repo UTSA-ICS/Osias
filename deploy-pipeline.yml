@@ -42,6 +42,7 @@ stages:
   - echo "$MULTINODE"
   needs:
   - pipeline: $PARENT_PIPELINE_ID
+    job: tag_virtual_servers
 
 .generate_cidr_for_virtual_machines:
   stage: generate_cidr
@@ -246,6 +247,8 @@ delete_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
+  needs:
+    job: create_virtual_machines
 
 .release_cidr_for_virtual_machines:
   stage: release_cidr
