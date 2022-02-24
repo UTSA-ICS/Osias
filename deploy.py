@@ -285,7 +285,12 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
 
 
 def delete_virtual_machines(
-    servers_public_ip, vip_address, ips_needed, vm_profile, maas_url, maas_api_key
+    servers_public_ip,
+    vip_address,
+    ips_needed,
+    openstack_release,
+    maas_url,
+    maas_api_key,
 ):
     print("DELETING VIRTUAL MACHINES")
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
@@ -293,7 +298,7 @@ def delete_virtual_machines(
     servers.set_public_ip(servers_public_ip)
     servers.release_ip_pool(vip_address, ips_needed)
     servers.delete_virtual_machines(
-        vm_profile, os.getenv("CI_PIPELINE_ID", str(uuid.uuid4()))
+        openstack_release, os.getenv("CI_PIPELINE_ID", str(uuid.uuid4()))
     )
 
 
@@ -477,13 +482,11 @@ def main():
             )
         elif args.operation == "delete_virtual_machines":
             if args.MAAS_URL and args.MAAS_API_KEY:
-                VM_PROFILE = ast.literal_eval(args.VM_PROFILE)
-
                 delete_virtual_machines(
                     servers_public_ip,
                     VIP_ADDRESS,
                     IPs_NEEDED,
-                    VM_PROFILE,
+                    OPENSTACK_RELEASE,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )
