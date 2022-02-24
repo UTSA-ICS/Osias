@@ -64,7 +64,10 @@ multiple_releases:
               DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
     rules:
         - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'
-        
+    variables:
+        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+
+
 single_release:
     stage: deploy_pipeline
     trigger:
@@ -75,5 +78,6 @@ single_release:
         VM_PROFILE: "$VM_PROFILE"
         REPROVISION_SERVERS: "$REPROVISION_SERVERS"
         DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     rules:
         - if: '($DEPLOY_MULTIPLE_RELEASES != "true")'

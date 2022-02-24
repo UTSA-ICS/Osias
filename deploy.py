@@ -269,7 +269,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     POOL_START_IP = str(public_IP_pool.pop(0))
     POOL_END_IP = str(public_IP_pool.pop())
     if vm_profile.get("DOCKER_REGISTRY_IP"):
-        DOCKER = f"\t\tDOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
+        DOCKER = f"DOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
         if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
             DOCKER += f"\n\t\tDOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
     else:

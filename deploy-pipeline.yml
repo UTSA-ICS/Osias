@@ -240,8 +240,8 @@ delete_virtual_machines:
   extends:
     - .base_setup
   script:
-    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --PARENT_PROJECT_PIPELINE_ID "$PARENT_PROJECT_PIPELINE_ID"
-    - echo $PARENT_PROJECT_PIPELINE_ID
+    - echo $PARENT_PIPELINE_ID
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --PARENT_PROJECT_PIPELINE_ID "$PARENT_PIPELINE_ID"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
