@@ -76,13 +76,15 @@ class MaasVirtual(MaasBase):
     def create_virtual_machine(self, vm_profile, num_VMs):
         # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
-            vm_profile["HDD1"]
-            + vm_profile["HDD2"]
-            + vm_profile["HDD3"]
-            + vm_profile["HDD4"]
+            osias_variables.VM_Profile["HDD1"]
+            + osias_variables.VM_Profile["HDD2"]
+            + osias_variables.VM_Profile["HDD3"]
+            + osias_variables.VM_Profile["HDD4"]
         )
         pod_id = self._get_pod_id(
-            total_storage, vm_profile["vCPU"], vm_profile["RAM_in_MB"]
+            total_storage,
+            osias_variables.VM_Profile["vCPU"],
+            osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
             interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
@@ -91,7 +93,7 @@ class MaasVirtual(MaasBase):
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
-                f"vm-host compose {pod_id} cores={vm_profile['vCPU']} memory={vm_profile['RAM_in_MB']} 'storage=mylabel:{vm_profile['HDD1']},mylabel:{vm_profile['HDD2']},mylabel:{vm_profile['HDD3']},mylabel:{vm_profile['HDD4']}' interfaces='{interfaces}'"
+                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
             )
             print(f"server: {server}")
             server_list.append(server["system_id"])
