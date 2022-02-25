@@ -67,7 +67,6 @@ create_virtual_machines:
    - .base_setup
   image: utsaics/maas:2.8
   script:
-    #- export VM_PROFILE=$(cat test/vm_profile)
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'

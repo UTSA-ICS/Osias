@@ -31,7 +31,7 @@ python_black:
       name: cytopia/black
       entrypoint: ["/bin/ash", "-c"]
     tags:
-    - docker-runner
+        - docker-runner
     script:
         - python3 -m black --check --diff --color .
 
