@@ -166,14 +166,19 @@ class MaasVirtual(MaasBase):
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):
         print("Inside of maas_virtual: delete_virtual_machines function.")
         pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
+        machines = self._run_maas_command(
+            "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+        )
+        machine_dict = {}
+        for machine in machines:
+            if machine["tag_names"].__contains__(pipeline_tag_name):
+                machine_dict[machine["system_id"]] = machine["distro_series"]
         self._run_maas_command(f"tag delete {pipeline_tag_name}")
-        for server in self.machine_list:
+        for k, v in machine_dict.items():
             # self._run_maas_command(f"machine delete {server}")
-            self._run_maas_command(f"machine release {server}")
-            self._run_maas_command(
-                f"machine deploy {server} distro_series={self.distro}"
-            )
-            self._run_maas_command(f"tag update-nodes openstack_ready add={server}")
+            self._run_maas_command(f"machine release {k}")
+            self._run_maas_command(f"machine deploy {k} distro_series={v}")
+            self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name
