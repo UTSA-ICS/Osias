@@ -1,30 +1,42 @@
 #!/usr/bin/python3
 
-import utils
-from maas_base import maas_base
-from ipaddress import ip_network, ip_address
+from maas_base import MaasBase
+from ipaddress import IPv4Network, IPv4Address
+import osias_variables
+import random
+import time
+import ast
 
 
-class maas_virtual(maas_base):
+class MaasVirtual(MaasBase):
     def __init__(self, distro):
-        maas_base.__init__(self, distro)
+        MaasBase.__init__(self, distro)
 
     def _get_public_cidr(self, vm_ip_address):
         subnets = self._run_maas_command("subnets read")
         for subnet in subnets:
-            if ip_address(vm_ip_address) in ip_network(subnet["cidr"]):
+            if IPv4Address(vm_ip_address) in IPv4Network(subnet["cidr"]):
                 return subnet["cidr"]
         return None
 
-    def _create_bridge_interface(self, server, public_cidr, vm_ip, machine_info):
-        self._waiting([server], "Ready")
-        for i, v in enumerate(machine_info["interface_set"]):
-            if "eno2" in str(machine_info["interface_set"][i]):
-                interface_id = machine_info["interface_set"][i]["id"]
-                self._run_maas_command(
-                    f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
-                )
-                self._set_interface(server, "br0", public_cidr, vm_ip)
+    def _create_bridge_interface(self, server_list: list, public_cidr, machines_info):
+        self._waiting(server_list, "Ready")
+        for server in server_list:
+            machine_info = [
+                info for info in machines_info if server in info["system_id"]
+            ][0]
+            for i, v in enumerate(machine_info["interface_set"]):
+                if "eno2" in str(machine_info["interface_set"][i]):
+                    interface_id = machine_info["interface_set"][i]["id"]
+                    self._run_maas_command(
+                        f"interfaces create-bridge {server} name=br0 parent={interface_id} bridge_stp=True"
+                    )
+                    self._set_interface(server, "br0", public_cidr)
+                    self._set_interface(
+                        server, "eno3", osias_variables.VM_Profile["Data_CIDR"]
+                    )
+            self._run_maas_command(f"interface disconnect {server} eno3")
+            self._set_interface(server, "eno3", osias_variables.VM_Profile["Data_CIDR"])
 
     def _get_pod_id(self, storage, cores, memory):
         pods = self._run_maas_command(f"pods read")
@@ -56,39 +68,117 @@ class maas_virtual(maas_base):
                         return pod["id"]
         return False
 
-    def _set_interface(self, system, interface, cidr, vm_ip):
+    def _set_interface(self, system, interface, cidr):
         self._run_maas_command(
-            f"interface link-subnet {system} {interface} subnet={cidr} mode=STATIC ip_address={vm_ip}"
+            f"interface link-subnet {system} {interface} subnet={cidr} mode=AUTO"
         )
 
-    def create_virtual_machine(self, vm_profile):
-        public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
+    def create_virtual_machine(self, vm_profile, num_VMs):
+        # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
-            vm_profile["HDD1"]
-            + vm_profile["HDD2"]
-            + vm_profile["HDD3"]
-            + vm_profile["HDD4"]
+            osias_variables.VM_Profile["HDD1"]
+            + osias_variables.VM_Profile["HDD2"]
+            + osias_variables.VM_Profile["HDD3"]
+            + osias_variables.VM_Profile["HDD4"]
         )
         pod_id = self._get_pod_id(
-            total_storage, vm_profile["vCPU"], vm_profile["RAM_in_MB"]
+            total_storage,
+            osias_variables.VM_Profile["vCPU"],
+            osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={public_cidr};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
         else:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={public_cidr}"
-        server = self._run_maas_command(
-            f"vm-host compose {pod_id} cores={vm_profile['vCPU']} memory={vm_profile['RAM_in_MB']} 'storage=mylabel:{vm_profile['HDD1']},mylabel:{vm_profile['HDD2']},mylabel:{vm_profile['HDD3']},mylabel:{vm_profile['HDD4']}' interfaces='{interfaces}'"
-        )
-        server = server["system_id"]
-        machine_info = self._run_maas_command(f"machine read {server}")
+            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']}"
+        server_list = []
+        for _ in range(num_VMs):
+            server = self._run_maas_command(
+                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
+            )
+            print(f"server: {server}")
+            server_list.append(server["system_id"])
+        machine_info = self._run_maas_command("machines read")
         self._create_bridge_interface(
-            server, public_cidr, vm_profile["Public_VM_IP"], machine_info
+            server_list, vm_profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
-        return server
+        return server_list
 
-    def delete_virtual_machines(self):
-        for server in self.machine_list:
-            utils.run_cmd(f"maas admin machine delete {server}")
+    def find_virtual_machines_and_tag(
+        self,
+        vm_profile,
+        pipeline_id,
+    ):
+        no_of_vms = vm_profile["Number_of_VM_Servers"]
+        release = vm_profile["OPENSTACK_RELEASE"]
+        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
+            " "
+        )[0]
+        machines = self._run_maas_command(
+            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+        )
+        ids = []
+        machine_no = 0
+        for machine in machines:
+            if (
+                machine["status_name"] == "Deployed"
+                and machine["pool_name"] == "virtual_machine_pool"
+                and machine["distro_series"] == distro
+                and machine["tag_names"].__contains__("openstack_ready")
+                and machine_no < no_of_vms
+            ):
+                ids.append(machine["system_id"])
+                machine_no += 1
+        if len(ids) < no_of_vms:
+            create_n_vms = int(no_of_vms - len(ids))
+            print(f"Creating {create_n_vms} virtual machine...")
+            machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
+            self.deploy(machine_list)
+            ids.extend(machine_list)
+        pipeline_tag_name = f"{pipeline_id}_{release}"
+        print(f"ids: {ids}\ntag: {pipeline_tag_name}")
+        self._run_maas_command(
+            f"tags create name={pipeline_tag_name} comment='Openstack {release} for {pipeline_id}'"
+        )
+        for vm in ids:
+            self._run_maas_command(f"tag update-nodes {pipeline_tag_name} add={vm}")
+            self._run_maas_command(f"tag update-nodes openstack_ready remove={vm}")
+        return ids
+
+    def find_virtual_machines_and_deploy(self, vm_profile, pipeline_id: int):
+        release = vm_profile["OPENSTACK_RELEASE"]
+        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
+            " "
+        )[0]
+        pipeline_tag_name = f"{pipeline_id}_{release}"
+        print(f"tag: {pipeline_tag_name}\tdistro: {distro}")
+        machines = self._run_maas_command(
+            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+        )
+        print(f"type: {type(machines)}\t machines: {machines}")
+        ids = []
+        for machine in machines:
+            if machine["tag_names"].__contains__(pipeline_tag_name):
+                ids.append(machine["system_id"])
+        dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
+        print(dict_of_ids_and_ips)
+        return dict_of_ids_and_ips
+
+    def delete_virtual_machines(self, openstack_release, pipeline_id: int):
+        print("Inside of maas_virtual: delete_virtual_machines function.")
+        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
+        machines = self._run_maas_command(
+            "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+        )
+        machine_dict = {}
+        for machine in machines:
+            if machine["tag_names"].__contains__(pipeline_tag_name):
+                machine_dict[machine["system_id"]] = machine["distro_series"]
+        self._run_maas_command(f"tag delete {pipeline_tag_name}")
+        for k, v in machine_dict.items():
+            # self._run_maas_command(f"machine delete {server}")
+            self._run_maas_command(f"machine release {k}")
+            self._run_maas_command(f"machine deploy {k} distro_series={v}")
+            self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name

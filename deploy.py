@@ -2,13 +2,14 @@
 
 import argparse
 import ast
-from ipaddress import IPv4Network
 
 import maas_base
 import maas_virtual
 import setup_configs
 import utils
 import osias_variables
+import os
+import uuid
 
 
 def parse_args():
@@ -33,7 +34,7 @@ def parse_args():
         "--target_node",
         type=str,
         required=False,
-        help="The target node IP address that will the specified script will run on",
+        help="The target node IP address that willuuid the specified script will run on",
     )
     parser.add_argument(
         "--config",
@@ -83,12 +84,19 @@ def parse_args():
         help="Dictionary of values containing the following which over-write the defaults listed in osias_variables.py",
     )
     parser.add_argument(
+        "--PARENT_PROJECT_PIPELINE_ID",
+        type=int,
+        required=False,
+        help="The project-level ID of the current pipeline.",
+    )
+    parser.add_argument(
         "operation",
         type=str,
         choices=[
             "cleanup",
             "reboot_servers",
             "reprovision_servers",
+            "tag_virtual_servers",
             "create_virtual_servers",
             "bootstrap_networking",
             "bootstrap_openstack",
@@ -207,14 +215,23 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
 
 def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    servers = maas_base.maas_base(distro)
+    servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
     servers.deploy()
 
 
+def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
+    utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+    servers = maas_virtual.MaasVirtual(None)
+    servers.find_virtual_machines_and_tag(
+        vm_profile,
+        os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())),
+    )
+
+
 def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-    servers = maas_virtual.maas_virtual(
+    servers = maas_virtual.MaasVirtual(
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
     if isinstance(ceph_enabled, str):
@@ -224,62 +241,53 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
             CEPH = "false"
     else:
         CEPH = "false"
-    server_list = []
-    servers_public_ip = []
-    public_IP_pool = [str(ip) for ip in IPv4Network(vm_profile["vm_deployment_cidr"])]
-    public_ips = {}
     # Keeps the limit of VM's created from 1-7 VM's.
     num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
-    for i in range(num_Servers):
-        public_VM_IP = public_IP_pool.pop(0)
-        servers_public_ip.append(public_VM_IP)
-        vm_profile["Public_VM_IP"] = public_VM_IP
-        server_id = servers.create_virtual_machine(vm_profile)
-        server_list.append(server_id)
-        public_ips[server_id] = {"public": public_VM_IP}
-    servers.set_public_ip(public_ips=servers_public_ip)
-    servers.deploy(server_list)
-    machines_info = servers.get_machines_info()
-    internal_ips = servers.get_machines_interface_ip(
-        server_list, machines_info, "eno1", "internal"
+    server_dict = servers.find_virtual_machines_and_deploy(
+        vm_profile, os.getenv("PARENT_PIPELINE_ID")
     )
-    data_ips = servers.get_machines_interface_ip(
-        server_list, machines_info, "eno3", "data"
+    print(f"server_dict: {server_dict}")
+    public_IP_pool = servers.get_ip_pool(
+        vm_profile["VM_DEPLOYMENT_CIDR"], vm_profile["IPs_NEEDED"]
     )
-    temp_dict = utils.merge_nested_dictionaries(public_ips, internal_ips)
-    final_dict = utils.merge_nested_dictionaries(temp_dict, data_ips)
-    VIP_ADDRESS = str(list(IPv4Network(vm_profile["vm_deployment_cidr"]))[-1])
-    POOL_START_IP = str(
-        list(IPv4Network(vm_profile["vm_deployment_cidr"]))[num_Servers]
-    )
-    POOL_END_IP = list(IPv4Network(vm_profile["vm_deployment_cidr"]))[-2]
+    VIP_ADDRESS = str(public_IP_pool.pop())
+    POOL_START_IP = str(public_IP_pool.pop(0))
+    POOL_END_IP = str(public_IP_pool.pop())
     if vm_profile.get("DOCKER_REGISTRY_IP"):
         DOCKER = f"DOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
         if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
-            DOCKER += f"\n    DOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
+            DOCKER += f"\n\t\tDOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
     else:
         DOCKER = ""
-    optional_vars = f"""VM_CIDR = "{vm_profile['vm_deployment_cidr']}"
-    VIP_ADDRESS = "{VIP_ADDRESS}"
-    POOL_START_IP = "{POOL_START_IP}"
-    POOL_END_IP = "{POOL_END_IP}"
-    DNS_IP = "{vm_profile['DNS_IP']}"
-    CEPH = {CEPH}
-    OPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
-    {DOCKER}
+    optional_vars = f"""VM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
+\t\tVIP_ADDRESS = "{VIP_ADDRESS}"
+\t\tPOOL_START_IP = "{POOL_START_IP}"
+\t\tPOOL_END_IP = "{POOL_END_IP}"
+\t\tDNS_IP = "{vm_profile['DNS_IP']}"
+\t\tCEPH = {CEPH}
+\t\tOPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
+\t\t{DOCKER}
     """
-    multinode = utils.create_multinode(final_dict, optional_vars)
+    multinode = utils.create_multinode(server_dict, optional_vars)
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
     f.write(f"{multinode}")
     f.close()
 
 
-def delete_virtual_machines(servers_public_ip, maas_url, maas_api_key):
+def delete_virtual_machines(
+    vip_address,
+    ips_needed,
+    openstack_release,
+    parent_project_pipeline_id,
+    maas_url,
+    maas_api_key,
+):
+    print("DELETING VIRTUAL MACHINES")
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    servers = maas_virtual.maas_virtual(None)
-    servers.set_public_ip(servers_public_ip)
-    servers.delete_virtual_machines()
+    servers = maas_virtual.MaasVirtual(None)
+    servers.release_ip_pool(vip_address, ips_needed)
+    servers.delete_virtual_machines(openstack_release, parent_project_pipeline_id)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -355,6 +363,7 @@ def main():
         ANSIBLE_MAX_VERSION = osias_variables.ANSIBLE_MAX_VERSION[OPENSTACK_RELEASE]
         MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
         CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
+        IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -460,9 +469,20 @@ def main():
                 ],
             )
         elif args.operation == "delete_virtual_machines":
+            VM_PROFILE = utils.merge_dictionaries(
+                osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
+            )
+            OPENSTACK_RELEASE = VM_PROFILE.get("OPENSTACK_RELEASE")
+            IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
+            VIP_ADDRESS = VM_PROFILE.get("VIP_ADDRESS")
             if args.MAAS_URL and args.MAAS_API_KEY:
                 delete_virtual_machines(
-                    servers_public_ip, args.MAAS_URL, args.MAAS_API_KEY
+                    VIP_ADDRESS,
+                    IPs_NEEDED,
+                    OPENSTACK_RELEASE,
+                    args.PARENT_PROJECT_PIPELINE_ID,
+                    args.MAAS_URL,
+                    args.MAAS_API_KEY,
                 )
             else:
                 raise Exception(
@@ -514,7 +534,7 @@ def main():
                 osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
             )
             ceph_enabled = VM_PROFILE.get("CEPH")
-            required_keys = ["vm_deployment_cidr"]
+            required_keys = ["VM_DEPLOYMENT_CIDR"]
             utils.check_required_keys_not_null(required_keys, VM_PROFILE)
             create_virtual_servers(
                 args.MAAS_URL,
@@ -526,6 +546,17 @@ def main():
             raise Exception(
                 "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
                 + "If operation is specified as [create_virtual_servers] then "
+                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+            )
+    elif args.operation == "tag_virtual_servers":
+        if args.MAAS_URL and args.MAAS_API_KEY:
+            tag_virtual_servers(
+                args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE)
+            )
+        else:
+            raise Exception(
+                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                + "If operation is specified as [reprovision_servers] then "
                 + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
             )
     elif args.operation == "run_command":
