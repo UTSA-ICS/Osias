@@ -244,7 +244,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     # Keeps the limit of VM's created from 1-7 VM's.
     num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
     server_dict = servers.find_virtual_machines_and_deploy(
-        vm_profile, os.getenv("CI_PIPELINE_SOURCE")
+        vm_profile, os.getenv("PARENT_PIPELINE_ID")
     )
     print(f"server_dict: {server_dict}")
     public_IP_pool = servers.get_ip_pool(
