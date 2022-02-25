@@ -2,7 +2,7 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  # interruptible: true
 
 variables:
     DEPLOY_MULTIPLE_RELEASES:
@@ -20,6 +20,7 @@ workflow:
 
 stages:
   - static_analysis
+  - tag_virtual_servers
   - generate_yaml
   - deploy_pipeline
 
@@ -42,6 +43,21 @@ python_black:
     - docker-runner
     script:
         - python3 -m black --check --diff --color .
+
+tag_virtual_servers:
+    stage: tag_virtual_servers
+    image: utsaics/maas:2.8
+    tags:
+        - docker-runner
+    before_script:
+        - pip3 install toml timeout_decorator
+    script:
+        - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+        - python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+        - echo "CI_PIPELINE_ID=?" >> build.env
+    artifacts:
+      reports:
+        dotenv: build.env
 
 generate_yaml_config:
     stage: generate_yaml

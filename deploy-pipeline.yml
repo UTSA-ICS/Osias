@@ -47,7 +47,7 @@ deploy:<RELEASE_NAME>:
     script:
         - echo "Deployment of <RELEASE_NAME> release"
 
-generate_cidr_for_virtual_machines:
+.generate_cidr_for_virtual_machines:
   stage: generate_cidr
   tags:
     - shell
@@ -71,11 +71,8 @@ create_virtual_machines:
   extends:
    - .base_setup
   image: utsaics/maas:2.8
-  dependencies:
-    - generate_cidr_for_virtual_machines
   script:
-    - export VM_PROFILE=$(cat test/vm_profile)
-    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+    # - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -84,6 +81,10 @@ create_virtual_machines:
   artifacts:
     paths:
       - MULTINODE.env
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: tag_virtual_servers
+
 
 reprovision_servers:
   stage: reprovision_servers
@@ -103,7 +104,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
 
-bootstrap_networking:
+.bootstrap_networking:
   stage: bootstrap_networking
   extends:
     - .base_setup
@@ -111,7 +112,7 @@ bootstrap_networking:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
-cleanup:
+.cleanup:
   stage: cleanup
   extends:
     - .base_setup
@@ -127,7 +128,7 @@ cleanup:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-reboot_servers:
+.reboot_servers:
   stage: reboot_servers
   extends:
     - .base_setup
@@ -143,7 +144,7 @@ reboot_servers:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-bootstrap:openstack:
+.bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
     - .base_setup
@@ -156,7 +157,7 @@ bootstrap:openstack:
          python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
        fi
 
-ceph:deploy:
+.ceph:deploy:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -168,7 +169,7 @@ ceph:deploy:
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
 
-openstack:pull:
+.openstack:pull:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -177,7 +178,7 @@ openstack:pull:
     # Pull openstack kolla images
     - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
 
-deploy:openstack:
+.deploy:openstack:
   stage: deploy
   extends:
     - .base_setup
@@ -187,7 +188,7 @@ deploy:openstack:
     # 2. Run Kolla deploy
     - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
-post_deploy:openstack:
+.post_deploy:openstack:
   stage: post_deploy
   extends:
     - .base_setup
@@ -195,14 +196,14 @@ post_deploy:openstack:
     # Setup the openstack cloud with public network, images, flavors etc.
     - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
-test:setup:
+.test:setup:
   stage: test_setup
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
-test:refstack:
+.test:refstack:
   stage: test_refstack
   extends:
     - .base_setup
@@ -222,7 +223,7 @@ test:refstack:
       - ./0.json
     when: always
 
-test:stress:
+.test:stress:
   stage: test_stress
   extends:
     - .base_setup
@@ -232,7 +233,7 @@ test:stress:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-sleep_on_failure:
+.sleep_on_failure:
   stage: sleep_on_failure
   tags:
     - shell
@@ -248,12 +249,12 @@ delete_virtual_machines:
   extends:
     - .base_setup
   script:
-    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --PARENT_PROJECT_PIPELINE_ID "$PARENT_PIPELINE_ID"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
 
-release_cidr_for_virtual_machines:
+.release_cidr_for_virtual_machines:
   stage: release_cidr
   tags:
     - shell
