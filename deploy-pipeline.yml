@@ -76,9 +76,6 @@ create_virtual_machines:
   artifacts:
     paths:
       - MULTINODE.env
-  needs:
-    - pipeline: $PARENT_PIPELINE_ID
-      job: tag_virtual_servers
 
 reprovision_servers:
   stage: reprovision_servers
