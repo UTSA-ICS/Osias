@@ -150,19 +150,14 @@ class MaasVirtual(MaasBase):
             " "
         )[0]
         pipeline_tag_name = f"{pipeline_id}_{release}"
-        print(f"tag: {pipeline_tag_name}")
+        print(f"tag: {pipeline_tag_name}\tdistro: {distro}")
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
         print(f"type: {type(machines)}\t machines: {machines}")
         ids = []
         for machine in machines:
-            if (
-                machine["status_name"] == "Deployed"
-                and machine["pool_name"] == "virtual_machine_pool"
-                and machine["distro_series"] == distro
-                and machine["tag_names"].__contains__(pipeline_tag_name)
-            ):
+            if machine["tag_names"].__contains__(pipeline_tag_name):
                 ids.append(machine["system_id"])
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         print(dict_of_ids_and_ips)
