@@ -303,9 +303,6 @@ class MaasBase:
         return self._run_maas_command(f"machines read")
 
     def get_ip_pool(self, cidr: str, gap: int):
-        rest = int(random.uniform(0, 60))
-        print(f"Sleeping {rest} seconds.")
-        time.sleep(rest)
         used_ips = self._get_all_used_ips(cidr)
 
         sorted_list_of_ips = []

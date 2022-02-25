@@ -246,22 +246,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     server_dict = servers.find_virtual_machines_and_deploy(
         vm_profile, os.getenv("CI_PIPELINE_SOURCE")
     )
-    #    servers_public_ip = []
-    #    public_ips = {}
-    #    server_dict = list(full_server_dict)[:num_Servers]
-    #   server_list = [server_dict["systemid"] for server_dict in server_dict]
-    #   # TO DO: update servers based off of new DHCP ip from dict.
-    #   for i in range(num_Servers):
-    #       # public_VM_IP = public_IP_pool.pop(0)
-    #       servers_public_ip = [server_dict["systemid"] for server_dict in server_dict]
-    #        servers_public_ip.append(public_VM_IP)
-    #        vm_profile["Public_VM_IP"] = public_VM_IP
-    #        public_ips[server_dict] = {"public": public_VM_IP}
-    #    servers.set_public_ip(public_ips=servers_public_ip)
-    #    servers.deploy(list(server_list.keys()))
-    #    machines_info = servers.get_machines_info()
-    #    temp_dict = utils.merge_nested_dictionaries(public_ips, internal_ips)
-    #    final_dict = utils.merge_nested_dictionaries(temp_dict, data_ips)
+    print(f"server_dict: {server_dict}")
     public_IP_pool = servers.get_ip_pool(
         vm_profile["VM_DEPLOYMENT_CIDR"], vm_profile["IPs_NEEDED"]
     )
@@ -295,6 +280,7 @@ def delete_virtual_machines(
     vip_address,
     ips_needed,
     openstack_release,
+    parent_project_pipeline_id,
     maas_url,
     maas_api_key,
 ):
@@ -303,7 +289,7 @@ def delete_virtual_machines(
     servers = maas_virtual.MaasVirtual(None)
     servers.set_public_ip(servers_public_ip)
     servers.release_ip_pool(vip_address, ips_needed)
-    servers.delete_virtual_machines(openstack_release, args.PARENT_PROJECT_PIPELINE_ID)
+    servers.delete_virtual_machines(openstack_release, parent_project_pipeline_id)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -491,6 +477,7 @@ def main():
                     VIP_ADDRESS,
                     IPs_NEEDED,
                     OPENSTACK_RELEASE,
+                    args.PARENT_PROJECT_PIPELINE_ID,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )
