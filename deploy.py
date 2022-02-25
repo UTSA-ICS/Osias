@@ -468,6 +468,28 @@ def main():
                     OPENSTACK_RELEASE,
                 ],
             )
+        elif args.operation == "delete_virtual_machines":
+            VM_PROFILE = utils.merge_dictionaries(
+                osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
+            )
+            OPENSTACK_RELEASE = VM_PROFILE.get("OPENSTACK_RELEASE")
+            IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
+            VIP_ADDRESS = VM_PROFILE.get("VIP_ADDRESS")
+            if args.MAAS_URL and args.MAAS_API_KEY:
+                delete_virtual_machines(
+                    VIP_ADDRESS,
+                    IPs_NEEDED,
+                    OPENSTACK_RELEASE,
+                    args.PARENT_PROJECT_PIPELINE_ID,
+                    args.MAAS_URL,
+                    args.MAAS_API_KEY,
+                )
+            else:
+                raise Exception(
+                    "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                    + "If operation is specified as [delete_virtual_machines] then "
+                    + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                )
         elif args.operation == "copy_files":
             if args.file_path:
                 client = utils.create_ssh_client(servers_public_ip[0])
@@ -524,28 +546,6 @@ def main():
             raise Exception(
                 "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
                 + "If operation is specified as [create_virtual_servers] then "
-                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
-            )
-    elif args.operation == "delete_virtual_machines":
-        VM_PROFILE = utils.merge_dictionaries(
-            osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
-        )
-        OPENSTACK_RELEASE = VM_PROFILE.get("OPENSTACK_RELEASE")
-        IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
-        VIP_ADDRESS = VM_PROFILE.get("VIP_ADDRESS")
-        if args.MAAS_URL and args.MAAS_API_KEY:
-            delete_virtual_machines(
-                VIP_ADDRESS,
-                IPs_NEEDED,
-                OPENSTACK_RELEASE,
-                args.PARENT_PROJECT_PIPELINE_ID,
-                args.MAAS_URL,
-                args.MAAS_API_KEY,
-            )
-        else:
-            raise Exception(
-                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
-                + "If operation is specified as [delete_virtual_machines] then "
                 + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
             )
     elif args.operation == "tag_virtual_servers":

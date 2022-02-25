@@ -41,9 +41,6 @@ stages:
   - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
   - echo "$MULTINODE"
   - echo "$PARENT_PIPELINE_ID"
-  needs:
-  - pipeline: $PARENT_PIPELINE_ID
-    job: tag_virtual_servers
 
 .generate_cidr_for_virtual_machines:
   stage: generate_cidr
@@ -80,6 +77,9 @@ create_virtual_machines:
   artifacts:
     paths:
       - MULTINODE.env
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: tag_virtual_servers
 
 reprovision_servers:
   stage: reprovision_servers
