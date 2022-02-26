@@ -157,7 +157,7 @@ class MaasVirtual(MaasBase):
         print(f"type: {type(machines)}\t machines: {machines}")
         ids = []
         for machine in machines:
-            if machine["tag_names"].__contains__(pipeline_tag_name):
+            if machine["tag_names"].__contains__(pipeline_tag_name) and machine["status_name"] == "Deployed":
                 ids.append(machine["system_id"])
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         print(dict_of_ids_and_ips)
@@ -177,8 +177,9 @@ class MaasVirtual(MaasBase):
         for k, v in machine_dict.items():
             # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {k}")
-            self._run_maas_command(f"machine deploy {k} distro_series={v}")
             self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
+            self._waiting([{k}], "Ready")
+            self._run_maas_command(f"machine deploy {k} distro_series={v}")
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name
