@@ -157,7 +157,10 @@ class MaasVirtual(MaasBase):
         print(f"type: {type(machines)}\t machines: {machines}")
         ids = []
         for machine in machines:
-            if machine["tag_names"].__contains__(pipeline_tag_name) and machine["status_name"] == "Deployed":
+            if (
+                machine["tag_names"].__contains__(pipeline_tag_name)
+                and machine["status_name"] == "Deployed"
+            ):
                 ids.append(machine["system_id"])
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         print(dict_of_ids_and_ips)
