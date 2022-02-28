@@ -181,7 +181,7 @@ class MaasVirtual(MaasBase):
             # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {k}")
             self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
-            self._waiting([{k}], "Ready")
+            self._waiting([f"{k}"], "Ready")
             self._run_maas_command(f"machine deploy {k} distro_series={v}")
 
     def get_machines_interface_ip(
