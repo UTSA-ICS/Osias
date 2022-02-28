@@ -229,7 +229,8 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
     public_IP_pool = servers.get_ip_pool(
-        osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], osias_variables.VM_Profile["IPs_NEEDED"]
+        osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
+        osias_variables.VM_Profile["IPs_NEEDED"],
     )
     VIP_ADDRESS = str(public_IP_pool.pop())
     POOL_END_IP = str(public_IP_pool.pop())
