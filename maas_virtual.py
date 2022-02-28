@@ -135,8 +135,8 @@ class MaasVirtual(MaasBase):
         tags = []
         tags.append(f"{pipeline_id}_{release}")
         tags.append(f"{pipeline_id}_{release}_vip-{vip.replace('.','_')}")
-        tags.append(f"{pipeline_id}_{release}_ipend-{ip_end.replace('.','_')}")
-        tags.append(f"{pipeline_id}_ipstart-{ip_start.replace('.','_')}")
+        tags.append(f"{pipeline_id}_{release}_ip_end-{ip_end.replace('.','_')}")
+        tags.append(f"{pipeline_id}_{release}_ip_start-{ip_start.replace('.','_')}")
         for tag in tags:
             self._run_maas_command(
                 f"tags create name={tag} comment='Openstack {release} for {pipeline_id}'"

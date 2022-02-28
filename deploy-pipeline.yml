@@ -73,7 +73,7 @@ create_virtual_machines:
    - .base_setup
   image: utsaics/maas:2.8
   script:
-    # - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -82,10 +82,6 @@ create_virtual_machines:
   artifacts:
     paths:
       - MULTINODE.env
-  needs:
-    - pipeline: $PARENT_PIPELINE_ID
-      job: tag_virtual_servers
-
 
 reprovision_servers:
   stage: reprovision_servers
