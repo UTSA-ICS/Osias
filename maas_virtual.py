@@ -184,7 +184,7 @@ class MaasVirtual(MaasBase):
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
-        pipeline_tag_name = f"{pipeline_id}_{release}"
+        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
 
         machine_dict = {}
         for machine in machines:
