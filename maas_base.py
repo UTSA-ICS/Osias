@@ -257,7 +257,7 @@ class MaasBase:
             for server in server_list[:]:
                 for machine in machine_info_list:
                     print(f"server: {server}\t machine: {machine}")
-                    if server in machine["system_id"]:
+                    if str(server) in machine["system_id"]:
                         current_status = machine["status_name"]
                         status_message = machine["status_message"]
                         print(
