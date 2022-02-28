@@ -134,8 +134,8 @@ class MaasVirtual(MaasBase):
             ids.extend(machine_list)
         tags = []
         tags.append(f"{pipeline_id}_{release}")
-        tags.append(f"{pipeline_id}_vip-{vip.replace('.','_')}")
-        tags.append(f"{pipeline_id}_ipend-{ip_end.replace('.','_')}")
+        tags.append(f"{pipeline_id}_{release}_vip-{vip.replace('.','_')}")
+        tags.append(f"{pipeline_id}_{release}_ipend-{ip_end.replace('.','_')}")
         tags.append(f"{pipeline_id}_ipstart-{ip_start.replace('.','_')}")
         for tag in tags:
             self._run_maas_command(
@@ -181,17 +181,18 @@ class MaasVirtual(MaasBase):
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):
         print("Inside of maas_virtual: delete_virtual_machines function.")
-        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
+        pipeline_tag_name = f"{pipeline_id}_{release}"
+
         machine_dict = {}
         for machine in machines:
             if machine["tag_names"].__contains__(pipeline_tag_name):
                 machine_dict[machine["system_id"]] = machine["distro_series"]
-        self._run_maas_command(f"tag delete {pipeline_tag_name}")
+                for tag in machine["tag_names"]:
+                    self._run_maas_command(f"tag delete {tag}")
         for k, v in machine_dict.items():
-            # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {k}")
             self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
             self._waiting([f"{k}"], "Ready")
