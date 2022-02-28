@@ -134,9 +134,9 @@ class MaasVirtual(MaasBase):
             ids.extend(machine_list)
         tags = []
         tags.append(f"{pipeline_id}_{release}")
-        tags.append(f"{pipeline_id}_vip={vip}")
-        tags.append(f"{pipeline_id}_ipend={ip_end}")
-        tags.append(f"{pipeline_id}_ipstart={ip_start}")
+        tags.append(f"{pipeline_id}_vip-{vip.replace('.','_')}")
+        tags.append(f"{pipeline_id}_ipend-{ip_end.replace('.','_')}")
+        tags.append(f"{pipeline_id}_ipstart-{ip_start.replace('.','_')}")
         for tag in tags:
             self._run_maas_command(
                 f"tags create name={tag} comment='Openstack {release} for {pipeline_id}'"
@@ -170,11 +170,11 @@ class MaasVirtual(MaasBase):
                 ids.append(machine["system_id"])
                 for tag in machine["tag_names"]:
                     if "vip" in tag:
-                        vip = tag.split("=")[1]
+                        vip = tag.split("-")[1].replace("_", ".")
                     if "ipstart" in tag:
-                        ip_start = tag.split("=")[1]
+                        ip_start = tag.split("-")[1].replace("_", ".")
                     if "ipend" in tag:
-                        ip_end = tag.split("=")[1]
+                        ip_end = tag.split("-")[1].replace("_", ".")
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         print(dict_of_ids_and_ips)
         return dict_of_ids_and_ips, vip, ip_end, ip_start
