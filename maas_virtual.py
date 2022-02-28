@@ -87,9 +87,9 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={vm_profile['Data_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={osias_variables.vm_profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.vm_profile['Data_CIDR']}"
         else:
-            interfaces = f"eno1:subnet_cidr={vm_profile['Internal_CIDR']};eno2:subnet_cidr={vm_profile['VM_DEPLOYMENT_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={osias_variables.vm_profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.vm_profile['VM_DEPLOYMENT_CIDR']}"
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
@@ -104,9 +104,7 @@ class MaasVirtual(MaasBase):
         return server_list
 
     def find_virtual_machines_and_tag(
-        self,
-        vm_profile,
-        pipeline_id,
+        self, vm_profile, pipeline_id, vip, ip_end, ip_start
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
         release = vm_profile["OPENSTACK_RELEASE"]
@@ -134,13 +132,18 @@ class MaasVirtual(MaasBase):
             machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
             self.deploy(machine_list)
             ids.extend(machine_list)
-        pipeline_tag_name = f"{pipeline_id}_{release}"
-        print(f"ids: {ids}\ntag: {pipeline_tag_name}")
-        self._run_maas_command(
-            f"tags create name={pipeline_tag_name} comment='Openstack {release} for {pipeline_id}'"
-        )
+        tags = []
+        tags.append(f"{pipeline_id}_{release}")
+        tags.append(f"{pipeline_id}_{release}_vip-{vip.replace('.','_')}")
+        tags.append(f"{pipeline_id}_{release}_ipend-{ip_end.replace('.','_')}")
+        tags.append(f"{pipeline_id}_ipstart-{ip_start.replace('.','_')}")
+        for tag in tags:
+            self._run_maas_command(
+                f"tags create name={tag} comment='Openstack {release} for {pipeline_id}'"
+            )
         for vm in ids:
-            self._run_maas_command(f"tag update-nodes {pipeline_tag_name} add={vm}")
+            for tag in tags:
+                self._run_maas_command(f"tag update-nodes {tag} add={vm}")
             self._run_maas_command(f"tag update-nodes openstack_ready remove={vm}")
         return ids
 
@@ -156,29 +159,44 @@ class MaasVirtual(MaasBase):
         )
         print(f"type: {type(machines)}\t machines: {machines}")
         ids = []
+        vip = ""
+        ip_start = ""
+        ip_end = ""
         for machine in machines:
-            if machine["tag_names"].__contains__(pipeline_tag_name):
+            if (
+                machine["tag_names"].__contains__(pipeline_tag_name)
+                and machine["status_name"] == "Deployed"
+            ):
                 ids.append(machine["system_id"])
+                for tag in machine["tag_names"]:
+                    if "vip" in tag:
+                        vip = tag.split("-")[1].replace("_", ".")
+                    if "ipstart" in tag:
+                        ip_start = tag.split("-")[1].replace("_", ".")
+                    if "ipend" in tag:
+                        ip_end = tag.split("-")[1].replace("_", ".")
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         print(dict_of_ids_and_ips)
-        return dict_of_ids_and_ips
+        return dict_of_ids_and_ips, vip, ip_end, ip_start
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):
         print("Inside of maas_virtual: delete_virtual_machines function.")
-        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
+        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
+
         machine_dict = {}
         for machine in machines:
             if machine["tag_names"].__contains__(pipeline_tag_name):
                 machine_dict[machine["system_id"]] = machine["distro_series"]
-        self._run_maas_command(f"tag delete {pipeline_tag_name}")
+                for tag in machine["tag_names"]:
+                    self._run_maas_command(f"tag delete {tag}")
         for k, v in machine_dict.items():
-            # self._run_maas_command(f"machine delete {server}")
             self._run_maas_command(f"machine release {k}")
-            self._run_maas_command(f"machine deploy {k} distro_series={v}")
             self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
+            self._waiting([f"{k}"], "Ready")
+            self._run_maas_command(f"machine deploy {k} distro_series={v}")
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name
