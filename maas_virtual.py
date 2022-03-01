@@ -87,9 +87,9 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
-            interfaces = f"eno1:subnet_cidr={osias_variables.vm_profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.vm_profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.vm_profile['Data_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.VM_Profile['Data_CIDR']}"
         else:
-            interfaces = f"eno1:subnet_cidr={osias_variables.vm_profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.vm_profile['VM_DEPLOYMENT_CIDR']}"
+            interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}"
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
