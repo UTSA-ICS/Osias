@@ -44,9 +44,9 @@ stages:
   - echo "$PARENT_PIPELINE_ID"
 
 deploy:<RELEASE_NAME>:
-    stage: <RELEASE_NAME>
-    script:
-        - echo "Deployment of <RELEASE_NAME> release"
+  stage: <RELEASE_NAME>
+  script:
+    - echo "Deployment of <RELEASE_NAME> release"
 
 .generate_cidr_for_virtual_machines:
   stage: generate_cidr
@@ -70,7 +70,7 @@ deploy:<RELEASE_NAME>:
 create_virtual_machines:
   stage: reprovision_servers
   extends:
-   - .base_setup
+    - .base_setup
   image: utsaics/maas:2.8
   script:
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
