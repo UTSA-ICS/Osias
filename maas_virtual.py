@@ -130,7 +130,7 @@ class MaasVirtual(MaasBase):
             create_n_vms = int(no_of_vms - len(ids))
             print(f"Creating {create_n_vms} virtual machine...")
             machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
-            self.deploy(machine_list)
+            self.deploy(server_list=machine_list)
             ids.extend(machine_list)
         tags = []
         tags.append(f"{pipeline_id}_{release}")
