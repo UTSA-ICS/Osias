@@ -22,9 +22,11 @@ class MaasVirtual(MaasBase):
     def _create_bridge_interface(self, server_list: list, public_cidr, machines_info):
         self._waiting(server_list, "Ready")
         for server in server_list:
+            print(f"Creating bridge interface on {server}")
             machine_info = [
                 info for info in machines_info if server in info["system_id"]
             ][0]
+            print(f"Processed Machine Info: {machine_info}")
             for i, v in enumerate(machine_info["interface_set"]):
                 if "eno2" in str(machine_info["interface_set"][i]):
                     interface_id = machine_info["interface_set"][i]["id"]
@@ -98,6 +100,7 @@ class MaasVirtual(MaasBase):
             print(f"server: {server}")
             server_list.append(server["system_id"])
         machine_info = self._run_maas_command("machines read")
+        print(f"MACHINE_INFO: {machine_info}")
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
