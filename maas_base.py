@@ -286,13 +286,12 @@ class MaasBase:
         return machine_info_list
 
     def deploy(self, server_list=None):
+        print(f"server_list: {server_list}\n\tdistro: {self.distro}")
         if server_list:
             server_list = server_list
         else:
             server_list = self.machine_list
-        # self._release(server_list[:])
-        # print("Info: Removing RAIDs and creating OSD's")
-        # self._wipe_drives_create_osds(server_list)
+        print(f"server_list: {server_list}\n\tdistro: {self.distro}")
         for machine in server_list[:]:
             self._run_maas_command(
                 f"machine deploy {machine} distro_series={self.distro}"

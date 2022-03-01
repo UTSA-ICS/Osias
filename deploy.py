@@ -227,7 +227,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
     file generation."""
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-    servers = maas_virtual.MaasVirtual(vm_profile["OPENSTACK_RELEASE"])
+    servers = maas_virtual.MaasVirtual(None)
     public_IP_pool = servers.get_ip_pool(
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
