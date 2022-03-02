@@ -21,13 +21,10 @@ class MaasVirtual(MaasBase):
 
     def _create_bridge_interface(self, server_list: list, public_cidr, machines_info):
         print(f"Creating a bridge interface for {server_list}, please wait.")
-        self._waiting(server_list, "Ready")
         for server in server_list:
-            print(f"Creating bridge interface on {server}")
             machine_info = [
                 info for info in machines_info if server in info["system_id"]
             ][0]
-            print(f"Processed Machine Info: {machine_info}")
             for i, v in enumerate(machine_info["interface_set"]):
                 if "eno2" in str(machine_info["interface_set"][i]):
                     interface_id = machine_info["interface_set"][i]["id"]
@@ -98,13 +95,9 @@ class MaasVirtual(MaasBase):
             server = self._run_maas_command(
                 f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
             )
-            print(f"server: {server}")
             server_list.append(server["system_id"])
         machine_info = self._run_maas_command("machines read")
-        print(f"MACHINE_INFO: {machine_info}")
-        print(
-            f"PREBRIDGE:\nserver_list:{server_list}\nVM_DEPLOYMENT_CIDR:{osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}\n"
-        )
+        self._waiting(server_list, "Ready")
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
@@ -137,7 +130,6 @@ class MaasVirtual(MaasBase):
             create_n_vms = int(no_of_vms - len(ids))
             print(f"Creating {create_n_vms} virtual machine...")
             machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
-            print(f"distro: {distro}\tserver_list: {machine_list}")
             self.distro = distro
             self.deploy(server_list=machine_list)
             ids.extend(machine_list)
@@ -162,11 +154,9 @@ class MaasVirtual(MaasBase):
             " "
         )[0]
         pipeline_tag_name = f"{pipeline_id}_{release}"
-        print(f"tag: {pipeline_tag_name}\tdistro: {distro}")
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
-        print(f"type: {type(machines)}\t machines: {machines}")
         ids = []
         vip = ""
         ip_start = ""
@@ -185,11 +175,9 @@ class MaasVirtual(MaasBase):
                     if "ipend" in tag:
                         ip_end = tag.split("-")[1].replace("_", ".")
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
-        print(dict_of_ids_and_ips)
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):
-        print("Inside of maas_virtual: delete_virtual_machines function.")
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )

@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 
+import copy
 import json
 import timeout_decorator
 import time
@@ -216,7 +217,6 @@ class MaasBase:
                             ):
                                 label = "public"
                             temp[label] = ip
-                            # print(f"ip_prefix: {ip}\tcidr_prefix: {cidr}")
                     results[machine] = temp
         print(results)
         return results
@@ -251,13 +251,13 @@ class MaasBase:
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
         i = 1
+
         while len(server_list) > 0:
             machine_info_list = self._run_maas_command(
                 "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
             )
             for server in server_list[:]:
                 for machine in machine_info_list:
-                    print(f"server: {server}\t machine: {machine}")
                     if str(server) in machine["system_id"]:
                         current_status = machine["status_name"]
                         status_message = machine["status_message"]
@@ -289,12 +289,10 @@ class MaasBase:
         return machine_info_list
 
     def deploy(self, server_list=None):
-        print(f"server_list: {server_list}\n\tdistro: {self.distro}")
         if server_list:
             server_list = server_list
         else:
             server_list = self.machine_list
-        print(f"server_list: {server_list}\n\tdistro: {self.distro}")
         for machine in server_list[:]:
             self._run_maas_command(
                 f"machine deploy {machine} distro_series={self.distro}"
