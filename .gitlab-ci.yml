@@ -3,6 +3,8 @@ default:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
   interruptible: true
+  tags:
+    - docker-runner
 
 variables:
     DEPLOY_MULTIPLE_RELEASES:
@@ -27,8 +29,6 @@ stages:
 shellcheck:
   stage: static_analysis
   image: pipelinecomponents/shellcheck:latest
-  tags:
-      - docker-runner
   script:
       - |
         find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
@@ -39,16 +39,12 @@ python_black:
     image:
       name: cytopia/black
       entrypoint: ["/bin/ash", "-c"]
-    tags:
-        - docker-runner
     script:
         - python3 -m black --check --diff --color .
 
 tag_virtual_servers:
     stage: tag_virtual_servers
     image: utsaics/maas:2.8
-    tags:
-        - docker-runner
     before_script:
         - pip3 install toml timeout_decorator
     script:
