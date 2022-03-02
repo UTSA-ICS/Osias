@@ -250,6 +250,7 @@ class MaasBase:
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
+        i = 1
         while len(server_list) > 0:
             machine_info_list = self._run_maas_command(
                 "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
@@ -278,8 +279,10 @@ class MaasBase:
                     else:
                         continue
             if len(server_list) > 0:
-                print("Sleeping 30 seconds.")
-                time.sleep(30)
+                ttime = int((30 / i ** (1 / 3)))
+                print(f"Sleeping {ttime} seconds.")
+                time.sleep(ttime)
+                i = i + 1
             else:
                 continue
         print("All servers have reached the desired state.")

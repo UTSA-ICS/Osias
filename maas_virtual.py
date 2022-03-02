@@ -101,6 +101,9 @@ class MaasVirtual(MaasBase):
             server_list.append(server["system_id"])
         machine_info = self._run_maas_command("machines read")
         print(f"MACHINE_INFO: {machine_info}")
+        print(
+            f"PREBRIDGE:\nserver_list:{server_list}\nVM_DEPLOYMENT_CIDR:{osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}\n"
+        )
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
