@@ -251,12 +251,12 @@ class MaasBase:
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
         i = 1
-
-        while len(server_list) > 0:
+        servers = copy.deepcopy(server_list)
+        while len(servers) > 0:
             machine_info_list = self._run_maas_command(
                 "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
             )
-            for server in server_list[:]:
+            for server in servers[:]:
                 for machine in machine_info_list:
                     if str(server) in machine["system_id"]:
                         current_status = machine["status_name"]
@@ -266,7 +266,7 @@ class MaasBase:
                         )
                         if current_status == desired_status:
                             print("STATE: COMPLETE.")
-                            server_list.remove(server)
+                            servers.remove(server)
                             break
                         elif current_status == "Failed deployment":
                             print("STATE: Re-deploying.")
@@ -278,7 +278,7 @@ class MaasBase:
                             print("STATE: Waiting")
                     else:
                         continue
-            if len(server_list) > 0:
+            if len(servers) > 0:
                 ttime = int((30 / i ** (1 / 3)))
                 print(f"Sleeping {ttime} seconds.")
                 time.sleep(ttime)
