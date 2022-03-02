@@ -170,9 +170,9 @@ class MaasVirtual(MaasBase):
                 for tag in machine["tag_names"]:
                     if "vip" in tag:
                         vip = tag.split("-")[1].replace("_", ".")
-                    if "ipstart" in tag:
+                    if "ip_start" in tag:
                         ip_start = tag.split("-")[1].replace("_", ".")
-                    if "ipend" in tag:
+                    if "ip_end" in tag:
                         ip_end = tag.split("-")[1].replace("_", ".")
         dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
         return dict_of_ids_and_ips, vip, ip_end, ip_start

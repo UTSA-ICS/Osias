@@ -253,9 +253,15 @@ class MaasBase:
         i = 1
         servers = copy.deepcopy(server_list)
         while len(servers) > 0:
-            machine_info_list = self._run_maas_command(
-                "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message,pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
+            if len(servers) == 1:
+                read_cmd = f"machine read {servers[0]}"
+            else:
+                read_cmd = "machines read"
+            cmd = (
+                " | jq '.[] | {system_id:.system_id,status_name:.status_name,status_message:.status_message"
+                ",pool_name:.pool.name,ip_addresses:.ip_addresses}' --compact-output"
             )
+            machine_info_list = self._run_maas_command(f"{read_cmd} {cmd}")
             for server in servers[:]:
                 for machine in machine_info_list:
                     if str(server) in machine["system_id"]:
