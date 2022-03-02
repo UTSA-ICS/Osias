@@ -20,6 +20,7 @@ class MaasVirtual(MaasBase):
         return None
 
     def _create_bridge_interface(self, server_list: list, public_cidr, machines_info):
+        print(f"Creating a bridge interface for {server_list}, please wait.")
         self._waiting(server_list, "Ready")
         for server in server_list:
             print(f"Creating bridge interface on {server}")
