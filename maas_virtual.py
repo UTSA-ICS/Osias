@@ -184,11 +184,14 @@ class MaasVirtual(MaasBase):
         pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
 
         machine_dict = {}
+        tags = []
         for machine in machines:
             if machine["tag_names"].__contains__(pipeline_tag_name):
                 machine_dict[machine["system_id"]] = machine["distro_series"]
                 for tag in machine["tag_names"]:
-                    self._run_maas_command(f"tag delete {tag}")
+                    tags.append(tag)  if tag not in tags else tags
+        for tag in tags:
+            self._run_maas_command(f"tag delete {tag}")
         for k, v in machine_dict.items():
             self._run_maas_command(f"machine release {k}")
             self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
