@@ -189,7 +189,7 @@ class MaasVirtual(MaasBase):
             if machine["tag_names"].__contains__(pipeline_tag_name):
                 machine_dict[machine["system_id"]] = machine["distro_series"]
                 for tag in machine["tag_names"]:
-                    tags.append(tag)  if tag not in tags else tags
+                    tags.append(tag) if tag not in tags else tags
         for tag in tags:
             self._run_maas_command(f"tag delete {tag}")
         for k, v in machine_dict.items():
