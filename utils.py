@@ -70,23 +70,6 @@ def merge_dictionaries(default_dictionary, user_input_dictionary):
     return {**default_dictionary, **user_input_dictionary}
 
 
-def merge_nested_dictionaries(a, b, path=None):
-    """Merge nested dictionaries where the value is also a dictionary"""
-    if path is None:
-        path = []
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_nested_dictionaries(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass
-            else:
-                raise Exception("Conflict at %s" % ".".join(path + [str(key)]))
-        else:
-            a[key] = b[key]
-    return a
-
-
 def create_ssh_client(target_node):
     client = ssh_tool("ubuntu", target_node)
     if not client.check_access():

@@ -2,14 +2,15 @@
 
 import argparse
 import ast
+import os
+
+import toml
 
 import maas_base
 import maas_virtual
+import osias_variables
 import setup_configs
 import utils
-import osias_variables
-import os
-import uuid
 
 
 def parse_args():
@@ -82,12 +83,6 @@ def parse_args():
         type=str,
         required=False,
         help="Dictionary of values containing the following which over-write the defaults listed in osias_variables.py",
-    )
-    parser.add_argument(
-        "--PARENT_PROJECT_PIPELINE_ID",
-        type=int,
-        required=False,
-        help="The project-level ID of the current pipeline.",
     )
     parser.add_argument(
         "operation",
@@ -226,6 +221,9 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
     IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
     file generation."""
+    parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    if not parent_project_pipeline_id:
+        raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
     public_IP_pool = servers.get_ip_pool(
@@ -237,7 +235,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     POOL_START_IP = str(public_IP_pool.pop(0))
     servers.find_virtual_machines_and_tag(
         vm_profile,
-        os.getenv("CI_PIPELINE_ID", str(uuid.uuid4())),
+        parent_project_pipeline_id,
         VIP_ADDRESS,
         POOL_END_IP,
         POOL_START_IP,
@@ -245,6 +243,9 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
 
 
 def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
+    parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    if not parent_project_pipeline_id:
+        raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
@@ -261,27 +262,25 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         VIP_ADDRESS,
         POOL_END_IP,
         POOL_START_IP,
-    ) = servers.find_virtual_machines_and_deploy(
-        vm_profile, os.getenv("PARENT_PIPELINE_ID")
-    )
+    ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
     print(f"server_dict: {server_dict}")
 
+    optional_vars = {}
     if vm_profile.get("DOCKER_REGISTRY_IP"):
-        DOCKER = f"DOCKER_REGISTRY = \"{vm_profile['DOCKER_REGISTRY_IP']}\""
+        optional_vars["DOCKER_REGISTRY"] = vm_profile["DOCKER_REGISTRY_IP"]
         if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
-            DOCKER += f"\n\t\tDOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
-    else:
-        DOCKER = ""
-    optional_vars = f"""CEPH = {CEPH}
-\t\tDNS_IP = "{vm_profile['DNS_IP']}"
-\t\tOPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
-\t\tPOOL_START_IP = "{POOL_START_IP}"
-\t\tPOOL_END_IP = "{POOL_END_IP}"
-\t\tVIP_ADDRESS = "{VIP_ADDRESS}"
-\t\tVM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
-\t\t{DOCKER}
-    """
-    multinode = utils.create_multinode(server_dict, optional_vars)
+            optional_vars["DOCKER_REGISTRY_USERNAME"] = vm_profile[
+                "DOCKER_REGISTRY_USERNAME"
+            ]
+
+    optional_vars["CEPH"] = CEPH
+    optional_vars["DNS_IP"] = vm_profile["DNS_IP"]
+    optional_vars["OPENSTACK_RELEASE"] = vm_profile["OPENSTACK_RELEASE"]
+    optional_vars["POOL_START_IP"] = POOL_START_IP
+    optional_vars["POOL_END_IP"] = POOL_END_IP
+    optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
+    optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
+    multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
     f.write(f"{multinode}")
@@ -292,10 +291,12 @@ def delete_virtual_machines(
     vip_address,
     ips_needed,
     openstack_release,
-    parent_project_pipeline_id,
     maas_url,
     maas_api_key,
 ):
+    parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    if not parent_project_pipeline_id:
+        raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
     print("DELETING VIRTUAL MACHINES")
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.MaasVirtual(None)
@@ -487,7 +488,6 @@ def main():
                     VIP_ADDRESS,
                     IPs_NEEDED,
                     OPENSTACK_RELEASE,
-                    args.PARENT_PROJECT_PIPELINE_ID,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )
