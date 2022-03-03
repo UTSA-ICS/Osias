@@ -4,7 +4,6 @@ import toml
 import subprocess
 from ssh_tool import ssh_tool
 from itertools import islice
-import osias_variables
 
 
 class parser:
@@ -65,7 +64,7 @@ def convert_to_list(parm):
     return parm
 
 
-def merge_dictionaries(default_dictionary, user_input_dictionary, path=None):
+def merge_dictionaries(default_dictionary, user_input_dictionary):
     """Merges user_input_dictionary into default dictionary;
     default values will be overwritten by users input."""
     return {**default_dictionary, **user_input_dictionary}
@@ -186,7 +185,7 @@ def create_multinode(input_dictionary, optional_variables):
 \t\tprivate = \"{internal}\"
 \t\tdata = \"{data}\""""
 
-    multinode += f"\n[variables]\n\t[variables.0]\n"
+    multinode += "\n[variables]\n\t[variables.0]\n"
     multinode += f"\t\t{optional_variables}"
     return multinode
 

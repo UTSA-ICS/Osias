@@ -34,7 +34,7 @@ def parse_args():
         "--target_node",
         type=str,
         required=False,
-        help="The target node IP address that willuuid the specified script will run on",
+        help="The target node IP address that the specified script will run on",
     )
     parser.add_argument(
         "--config",
@@ -256,8 +256,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
             CEPH = "false"
     else:
         CEPH = "false"
-    # Keeps the limit of VM's created from 1-7 VM's.
-    num_Servers = sorted([1, int(vm_profile["Number_of_VM_Servers"]), 7])[1]
     (
         server_dict,
         VIP_ADDRESS,
@@ -274,13 +272,13 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
             DOCKER += f"\n\t\tDOCKER_REGISTRY_USERNAME = \"{vm_profile['DOCKER_REGISTRY_USERNAME']}\""
     else:
         DOCKER = ""
-    optional_vars = f"""VM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
-\t\tVIP_ADDRESS = "{VIP_ADDRESS}"
+    optional_vars = f"""CEPH = {CEPH}
+\t\tDNS_IP = "{vm_profile['DNS_IP']}"
+\t\tOPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
 \t\tPOOL_START_IP = "{POOL_START_IP}"
 \t\tPOOL_END_IP = "{POOL_END_IP}"
-\t\tDNS_IP = "{vm_profile['DNS_IP']}"
-\t\tCEPH = {CEPH}
-\t\tOPENSTACK_RELEASE = "{vm_profile['OPENSTACK_RELEASE']}"
+\t\tVIP_ADDRESS = "{VIP_ADDRESS}"
+\t\tVM_CIDR = "{vm_profile['VM_DEPLOYMENT_CIDR']}"
 \t\t{DOCKER}
     """
     multinode = utils.create_multinode(server_dict, optional_vars)

@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 from ipaddress import IPv4Network
-import osias_variables
 import ast
 
 
@@ -119,7 +118,7 @@ enable_haproxy: "yes"
             network_interface = "br0"
             ha_options = """
 # If vip's don't match, disabling haproxy will fail deployment
-enable_haproxy: "no"  
+enable_haproxy: "no"
     """
 
     globals_file = f"""

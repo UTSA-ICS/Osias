@@ -3,9 +3,6 @@
 from maas_base import MaasBase
 from ipaddress import IPv4Network, IPv4Address
 import osias_variables
-import random
-import time
-import ast
 
 
 class MaasVirtual(MaasBase):
@@ -39,7 +36,7 @@ class MaasVirtual(MaasBase):
             self._set_interface(server, "eno3", osias_variables.VM_Profile["Data_CIDR"])
 
     def _get_pod_id(self, storage, cores, memory):
-        pods = self._run_maas_command(f"pods read")
+        pods = self._run_maas_command("pods read")
         print(
             f"VM REQUIREMENTS: \n\tNEED STORAGE: {storage}\tCORES: {cores}\tMEMORY: {memory}"
         )
@@ -59,11 +56,11 @@ class MaasVirtual(MaasBase):
                 f"POD {pod['id']} HAS: STORAGE: {free_storage}\tCORES: {free_cores}\tMEMORY: {free_memory}"
             )
             if free_memory >= memory:
-                print(f"There is sufficient memory")
+                print("There is sufficient memory")
                 if free_cores >= cores:
-                    print(f"There is sufficient cores")
+                    print("There is sufficient cores")
                     if free_storage >= storage:
-                        print(f"There is sufficient storage")
+                        print("There is sufficient storage")
                         print(pod["id"])
                         return pod["id"]
         return False
@@ -150,9 +147,6 @@ class MaasVirtual(MaasBase):
 
     def find_virtual_machines_and_deploy(self, vm_profile, pipeline_id: int):
         release = vm_profile["OPENSTACK_RELEASE"]
-        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
-            " "
-        )[0]
         pipeline_tag_name = f"{pipeline_id}_{release}"
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"

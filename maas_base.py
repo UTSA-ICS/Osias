@@ -29,146 +29,8 @@ class MaasBase:
             result = [ast.literal_eval(i) for i in result.split("\n")]
             return result
 
-    def _check_for_raid(self, server_list):
-        no_raid = []
-        raid = []
-        for server in server_list[:]:
-            result = self._run_maas_command(f"raids read {server}")
-            if result:
-                raid.append(server)
-            else:
-                no_raid.append(server)
-        return no_raid, raid
-
-    def _create_boot_partitions(self, server):
-        RAID_BOOT_IDS = []
-        ALL_HDDS_IDS = []
-        ALL_BLOCKDEVICES = self._run_maas_command(f"block-devices read {server}")
-        for block in ALL_BLOCKDEVICES:
-            ALL_HDDS_IDS.append(block["id"])
-        for hdd in ALL_HDDS_IDS:
-            BOOT_PART_ID = self._run_maas_command(
-                f"partitions create {server} {hdd} size=2G bootable=yes"
-            )
-            RAID_BOOT_IDS.append(BOOT_PART_ID["id"])
-        RAID_BOOT_IDS = ",".join([str(elem) for elem in RAID_BOOT_IDS])
-        return RAID_BOOT_IDS
-
-    def _create_root_partitions(self, server):
-        RAID_ROOT_IDS = []
-        ALL_HDDS_IDS = []
-        ALL_BLOCKDEVICES = self._run_maas_command(f"block-devices read {server}")
-        for block in ALL_BLOCKDEVICES:
-            ALL_HDDS_IDS.append(block["id"])
-        for hdd in ALL_HDDS_IDS:
-            ROOT_PART_ID = self._run_maas_command(
-                f"partitions create {server} {hdd} bootable=yes"
-            )
-            RAID_ROOT_IDS.append(ROOT_PART_ID["id"])
-        RAID_ROOT_IDS = ",".join([str(elem) for elem in RAID_ROOT_IDS])
-        return RAID_ROOT_IDS
-
-    def _create_single_bootable_partition(self, server_list):
-        for server in server_list[:]:
-            ALL_BLOCKDEVICES = self._run_maas_command(f"block-devices read {server}")
-            for block in ALL_BLOCKDEVICES:
-                if "sda" in block["name"]:
-                    device_id = block["id"]
-            partition_id = self._run_maas_command(
-                f"partitions create {server} {device_id} bootable=yes"
-            )
-            partition_id = partition_id["id"]
-            self._run_maas_command(
-                f"partition format {server} {device_id} {partition_id} fstype={self.fs_type} label='boot'"
-            )
-            self._run_maas_command(
-                f"partition mount {server} {device_id} {partition_id} mount_point='/'"
-            )
-
-    def _create_software_raid_for_boot(self, server_list):
-        for server in server_list[:]:
-            RAID_BOOT_IDS = "{" + RAID_BOOT_IDS + "}"
-            self._run_maas_command(
-                f"raids create {server} name=md/boot level={self.raid_level} partitions={RAID_BOOT_IDS}"
-            )
-            self._run_maas_command(
-                f"raids create {server} name=md/boot level={self.raid_level} partitions={RAID_BOOT_IDS}"
-            )
-            RAID_BOOT_ID = self._run_maas_command(f"block-devices read {server}")
-            for section in RAID_BOOT_ID:
-                if "md/boot" in section["name"]:
-                    RAID_BOOT_ID = section["id"]
-            self._run_maas_command(
-                f"block-device format {server} {RAID_BOOT_ID} fstype={self.fs_type} label='boot'"
-            )
-            self._run_maas_command(
-                f"block-device mount {server} {RAID_BOOT_ID} mount_point='/boot'"
-            )
-
-    def _create_software_raid_for_root(self, server_list):
-        for server in server_list[:]:
-            print(f"INFO: Creating RAID on {server}")
-            RAID_ROOT_IDS = self._create_root_partitions(server)
-            RAID_ROOT_IDS = "{" + RAID_ROOT_IDS + "}"
-            RAID_ROOT_ID = self._run_maas_command(
-                f"raids create {server} name='md/root' level={self.raid_level} partitions={RAID_ROOT_IDS}"
-            )
-            RAID_ROOT_ID = self._run_maas_command(f"block-devices read {server}")
-            for section in RAID_ROOT_ID:
-                if "md/root" in section["name"]:
-                    RAID_ROOT_ID = section["id"]
-            self._run_maas_command(
-                f"block-device format {server} {RAID_ROOT_ID} fstype={self.fs_type} label='root'"
-            )
-            self._run_maas_command(
-                f"block-device mount {server} {RAID_ROOT_ID} mount_point='/'"
-            )
-
-    def _delete_all_bcache(self, server_list):
-        for server in server_list[:]:
-            BCACHE_DEVICE_IDS = self._run_maas_command(f"bcaches read {server}")
-            for ID in BCACHE_DEVICE_IDS:
-                bcache_id = ID["id"]
-                utils.run_cmd(
-                    f"maas admin bcache delete {server} {bcache_id}", output=False
-                )
-            BCACHE_CACHE_SETS = self._run_maas_command(
-                f"bcache-cache-sets read {server}"
-            )
-            for ID in BCACHE_CACHE_SETS:
-                BCACHE_CACHE_SETS_ID = ID["id"]
-                utils.run_cmd(
-                    f"maas admin bcache-cache-set delete {server} {BCACHE_CACHE_SETS_ID}",
-                    output=False,
-                )
-
-    def _delete_all_partitions(self, server_list):
-        for server in server_list[:]:
-            PARTITIONS = self._run_maas_command(f"block-devices read {server}")
-            for block in PARTITIONS:
-                if block["partitions"]:
-                    partition_id = block["partitions"][0]["id"]
-                    device_id = block["partitions"][0]["device_id"]
-                    utils.run_cmd(
-                        f"maas admin partition delete {server} {device_id} {partition_id}",
-                        output=False,
-                    )
-
-    def _delete_all_raids(self, server_list=None):
-        if server_list:
-            server_list = server_list
-        else:
-            server_list = self.machine_list
-        for server in server_list[:]:
-            machine_list = self._run_maas_command(f"raids read {server}")
-            MD_DEVICES = []
-            for raid in machine_list:
-                MD_DEVICES.append(raid["id"])
-            for device in MD_DEVICES:
-                utils.run_cmd(f"maas admin raid delete {server} {device}", output=False)
-
     def _find_machine_ids(self):
-        machine_list = self._run_maas_command(f"machines read")
+        machine_list = self._run_maas_command("machines read")
         deployment_list = []
         for machine in machine_list:
             check = any(item in self.public_ips for item in machine["ip_addresses"])
@@ -203,17 +65,17 @@ class MaasBase:
                         for ip in ips:
                             if (
                                 IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr is "Internal_CIDR"
+                                and cidr == "Internal_CIDR"
                             ):
                                 label = "internal"
                             if (
                                 IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr is "Data_CIDR"
+                                and cidr == "Data_CIDR"
                             ):
                                 label = "data"
                             if (
                                 IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr is "VM_DEPLOYMENT_CIDR"
+                                and cidr == "VM_DEPLOYMENT_CIDR"
                             ):
                                 label = "public"
                             temp[label] = ip
@@ -225,28 +87,6 @@ class MaasBase:
         for machine in server_list[:]:
             self._run_maas_command(f"machine release {machine}")
         self._waiting(server_list, "Ready")
-
-    def _wipe_drives_create_software_raid(self, server_list):
-        no_raid, raided_servers = self._check_for_raid(server_list)
-        if no_raid:
-            print("INFO: Step 1/3 - Delete All Partitions")
-            self._delete_all_partitions(no_raid)
-            print("INFO: Step 2/3 - Delete All BCache")
-            self._delete_all_bcache(no_raid)
-            print("INFO: Step 3/3 - Create Software RAID for Root")
-            self._create_software_raid_for_root(no_raid)
-
-    def _wipe_drives_create_osds(self, server_list):
-        no_raid, raided_servers = self._check_for_raid(server_list)
-        if raided_servers:
-            print("INFO: Step 1/4 - Delete All RAIDs")
-            self._delete_all_raids(raided_servers)
-            print("INFO: Step 2/4 - Delete All Partitions")
-            self._delete_all_partitions(raided_servers)
-            print("INFO: Step 3/4 - Delete All BCache")
-            self._delete_all_bcache(raided_servers)
-            print("INFO: Step 4/4 - Creating Single Bootable Partition")
-            self._create_single_bootable_partition(raided_servers)
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
@@ -304,7 +144,7 @@ class MaasBase:
         return self._parse_ip_types(list(server_list), list(machine_info))
 
     def get_machines_info(self):
-        return self._run_maas_command(f"machines read")
+        return self._run_maas_command("machines read")
 
     def get_ip_pool(self, cidr: str, gap: int):
         used_ips = self._get_all_used_ips(cidr)
