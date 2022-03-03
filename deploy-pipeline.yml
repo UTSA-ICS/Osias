@@ -48,25 +48,6 @@ deploy:<RELEASE_NAME>:
   script:
     - echo "Deployment of <RELEASE_NAME> release"
 
-.generate_cidr_for_virtual_machines:
-  stage: generate_cidr
-  tags:
-    - shell
-  script:
-    - if [[ -z "$VM_PROFILE" ]]; then echo "ERROR - VM_PROFILE is not set" && exit 1; fi
-    - cd test
-    - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
-    - echo "$VM_DEPLOYMENT_CIDR" > vm_deployment_cidr
-    - echo "Using CIDR [$VM_DEPLOYMENT_CIDR]"
-    - python3 -c "import json;import os;vm_profile=json.loads(os.getenv('VM_PROFILE'));vm_profile['vm_deployment_cidr']=os.getenv('VM_DEPLOYMENT_CIDR');vm_profile_file = open('vm_profile', 'w');vm_profile_file.write(json.dumps(vm_profile));vm_profile_file.close()"
-  artifacts:
-    paths:
-      - test/vm_deployment_cidr
-      - test/vm_profile
-    when: always
-  rules:
-    - if: '$MULTINODE == "" || $MULTINODE == null'
-
 create_virtual_machines:
   stage: reprovision_servers
   extends:
@@ -101,7 +82,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
 
-.bootstrap_networking:
+bootstrap_networking:
   stage: bootstrap_networking
   extends:
     - .base_setup
@@ -109,7 +90,7 @@ reprovision_servers:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
-.cleanup:
+cleanup:
   stage: cleanup
   extends:
     - .base_setup
@@ -125,7 +106,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-.reboot_servers:
+reboot_servers:
   stage: reboot_servers
   extends:
     - .base_setup
@@ -141,7 +122,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-.bootstrap:openstack:
+bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
     - .base_setup
@@ -154,7 +135,7 @@ reprovision_servers:
          python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
        fi
 
-.ceph:deploy:
+ceph:deploy:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -166,7 +147,7 @@ reprovision_servers:
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
 
-.openstack:pull:
+openstack:pull:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -175,7 +156,7 @@ reprovision_servers:
     # Pull openstack kolla images
     - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
 
-.deploy:openstack:
+deploy:openstack:
   stage: deploy
   extends:
     - .base_setup
@@ -185,7 +166,7 @@ reprovision_servers:
     # 2. Run Kolla deploy
     - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
-.post_deploy:openstack:
+post_deploy:openstack:
   stage: post_deploy
   extends:
     - .base_setup
@@ -193,14 +174,14 @@ reprovision_servers:
     # Setup the openstack cloud with public network, images, flavors etc.
     - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
-.test:setup:
+test:setup:
   stage: test_setup
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
-.test:refstack:
+test:refstack:
   stage: test_refstack
   extends:
     - .base_setup
@@ -220,7 +201,7 @@ reprovision_servers:
       - ./0.json
     when: always
 
-.test:stress:
+test:stress:
   stage: test_stress
   extends:
     - .base_setup
@@ -230,7 +211,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-.sleep_on_failure:
+sleep_on_failure:
   stage: sleep_on_failure
   tags:
     - shell
@@ -247,21 +228,6 @@ delete_virtual_machines:
     - .base_setup
   script:
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --PARENT_PROJECT_PIPELINE_ID "$PARENT_PIPELINE_ID"
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: always
-
-.release_cidr_for_virtual_machines:
-  stage: release_cidr
-  tags:
-    - shell
-  dependencies:
-    - generate_cidr_for_virtual_machines
-  script:
-    - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
-    - cd test
-    - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
-    - echo "RELEASED $VM_DEPLOYMENT_CIDR"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
