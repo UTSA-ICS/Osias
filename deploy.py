@@ -251,12 +251,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
     if isinstance(ceph_enabled, str):
-        if ast.literal_eval(ceph_enabled):
-            CEPH = "true"
-        else:
-            CEPH = "false"
-    else:
-        CEPH = "false"
+        CEPH = ast.literal_eval(ceph_enabled)
     (
         server_dict,
         VIP_ADDRESS,
