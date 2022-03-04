@@ -90,7 +90,7 @@ class MaasBase:
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
-        i = 1
+        timer_loop_counter = 1
         servers = copy.deepcopy(server_list)
         while len(servers) > 0:
             if len(servers) == 1:
@@ -122,10 +122,11 @@ class MaasBase:
                     else:
                         continue
             if len(servers) > 0:
-                ttime = int((30 / i ** (1 / 3)))
+                # This will slowly speed up the timer, reducing time as follows: [30, 23, 20, 18, 17, 16, 15, 15, 14]
+                ttime = int((30 / timer_loop_counter ** (1 / 3)))
                 print(f"Sleeping {ttime} seconds.")
                 time.sleep(ttime)
-                i = i + 1
+                timer_loop_counter = timer_loop_counter + 1
             else:
                 continue
         print("All servers have reached the desired state.")
