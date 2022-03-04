@@ -186,7 +186,7 @@ class MaasBase:
 
     def release_ip_pool(self, *ips):
         for ip in ips:
-            self._run_maas_command(f"ipaddresses release ip={ip} | jq '.[] | {{}}'")
+            self._run_maas_command(f"ipaddresses release ip={ip}")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
