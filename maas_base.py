@@ -177,7 +177,7 @@ class MaasBase:
                 self._run_maas_command(f"ipaddresses reserve ip={first_ip}")
                 ip_pool = [
                     prefix + "." + str(i)
-                    for i in range(first_ip_last_octet + 1, last_ip_last_octet + 1)
+                    for i in range(first_ip_last_octet, last_ip_last_octet + 1)
                 ]
                 return ip_pool
         else:
