@@ -2,7 +2,7 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  #interruptible: true
   tags:
     - docker-runner
 

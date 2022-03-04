@@ -2,7 +2,7 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  #interruptible: true
   tags:
     - docker-runner
 
@@ -37,8 +37,6 @@ tag_virtual_servers:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   script:
     - |
-      echo "$MULTINODE"
-      exit 1
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
           python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
           python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
