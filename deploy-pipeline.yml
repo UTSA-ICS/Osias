@@ -7,227 +7,226 @@ default:
     - docker-runner
 
 workflow:
-    rules:
-        - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-    - <RELEASE_NAME>
-    - generate_cidr
-    - reprovision_servers
-    - bootstrap_networking
-    - cleanup
-    - reboot_servers
-    - bootstrap_openstack
-    - pre_deploy
-    - deploy
-    - post_deploy
-    - test_setup
-    - test_refstack
-    - test_stress
-    - sleep_on_failure
-    - release_cidr
+  - <RELEASE_NAME>
+  - generate_cidr
+  - reprovision_servers
+  - bootstrap_networking
+  - cleanup
+  - reboot_servers
+  - bootstrap_openstack
+  - pre_deploy
+  - deploy
+  - post_deploy
+  - test_setup
+  - test_refstack
+  - test_stress
+  - sleep_on_failure
+  - release_cidr
 
 .base_setup:
-    before_script:
-      # Setup and add SSH_PRIVATE_KEY to ssh agent
-      - 'which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )'
-      - eval $(ssh-agent -s)
-      - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-      - mkdir -p ~/.ssh
-      - chmod 700 ~/.ssh
-      - pip3 install toml timeout_decorator
-      - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
-      - echo "$MULTINODE"
-      - echo "$PARENT_PIPELINE_ID"
+  before_script:
+    # Setup and add SSH_PRIVATE_KEY to ssh agent
+    - "which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - pip3 install toml timeout_decorator
+    - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
+    - echo "$MULTINODE"
+    - echo "$PARENT_PIPELINE_ID"
 
 deploy:<RELEASE_NAME>:
-    stage: <RELEASE_NAME>
-    script:
-        - echo "Deployment of <RELEASE_NAME> release"
+  stage: <RELEASE_NAME>
+  script:
+    - echo "Deployment of <RELEASE_NAME> release"
 
 create_virtual_machines:
-    stage: reprovision_servers
-    extends:
-        - .base_setup
-    image: utsaics/maas:2.8
-    script:
-        - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-    rules:
-        - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
-        - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
-        - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
-    artifacts:
-        paths:
-            - MULTINODE.env
+  stage: reprovision_servers
+  extends:
+    - .base_setup
+  image: utsaics/maas:2.8
+  script:
+    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
+  artifacts:
+    paths:
+      - MULTINODE.env
 
 reprovision_servers:
-    stage: reprovision_servers
-    extends:
-        - .base_setup
-    image: utsaics/maas:2.8
-    script:
-        - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-    rules:
-        - if: '$MULTINODE == "" || $MULTINODE == null'
-          when: never
-        - if: '$REPROVISION_SERVERS == "false"'
-          when: never
-        - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE != "" || $MULTINODE != null)'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE != "" || $MULTINODE != null)'
-        - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
-        - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
-
+  stage: reprovision_servers
+  extends:
+    - .base_setup
+  image: utsaics/maas:2.8
+  script:
+    - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '$MULTINODE == "" || $MULTINODE == null'
+      when: never
+    - if: '$REPROVISION_SERVERS == "false"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE != "" || $MULTINODE != null)'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE != "" || $MULTINODE != null)'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
+    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
 bootstrap_networking:
-    stage: bootstrap_networking
-    extends:
-        - .base_setup
-    script:
-        # Configure the networking and bridge for openstack.
-        - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+  stage: bootstrap_networking
+  extends:
+    - .base_setup
+  script:
+    # Configure the networking and bridge for openstack.
+    - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
 cleanup:
-    stage: cleanup
-    extends:
-        - .base_setup
-    script:
-        # Prepare a clean environment - cleanup servers to be used for deploy
-        # Ensure there is no ceph and openstack deployment on the servers
-        - python3 -u deploy.py cleanup --config "$MULTINODE"
-    rules:
-        - if: '$REPROVISION_SERVERS == "true"'
-          when: never
-        - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
+  stage: cleanup
+  extends:
+    - .base_setup
+  script:
+    # Prepare a clean environment - cleanup servers to be used for deploy
+    # Ensure there is no ceph and openstack deployment on the servers
+    - python3 -u deploy.py cleanup --config "$MULTINODE"
+  rules:
+    - if: '$REPROVISION_SERVERS == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
 
 reboot_servers:
-    stage: reboot_servers
-    extends:
-        - .base_setup
-    script:
-        # Restart the nodes
-        # Verify that the servers are up and online.
-        - python3 -u deploy.py reboot_servers --config "$MULTINODE"
-    rules:
-        - if: '$REPROVISION_SERVERS == "true"'
-          when: never
-        - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
-        - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-        - if: '$CI_PIPELINE_SOURCE == "schedule"'
-        - if: '$CI_PIPELINE_SOURCE == "web"'
+  stage: reboot_servers
+  extends:
+    - .base_setup
+  script:
+    # Restart the nodes
+    # Verify that the servers are up and online.
+    - python3 -u deploy.py reboot_servers --config "$MULTINODE"
+  rules:
+    - if: '$REPROVISION_SERVERS == "true"'
+      when: never
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
 
 bootstrap:openstack:
-    stage: bootstrap_openstack
-    extends:
-        - .base_setup
-    script:
-        # Run bootstrap across the servers for installing the pre-reqs for openstack
-        - |
-           if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
-             python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-           else
-             python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
-           fi
+  stage: bootstrap_openstack
+  extends:
+    - .base_setup
+  script:
+    # Run bootstrap across the servers for installing the pre-reqs for openstack
+    - |
+      if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
+        python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+      else
+        python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
+      fi
 
 ceph:deploy:
-    stage: pre_deploy
-    extends:
-        - .base_setup
-    script:
-        # This stage will only run if RAID is NOT enabled.
-        # Run bootstrap across the servers for installing the pre-reqs for CEPH
-        - python3 -u deploy.py bootstrap_ceph --config "$MULTINODE"
-        # Deploy ceph on target servers using cephadm
-        # Configure kolla options for ceph
-        - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
+  stage: pre_deploy
+  extends:
+    - .base_setup
+  script:
+    # This stage will only run if RAID is NOT enabled.
+    # Run bootstrap across the servers for installing the pre-reqs for CEPH
+    - python3 -u deploy.py bootstrap_ceph --config "$MULTINODE"
+    # Deploy ceph on target servers using cephadm
+    # Configure kolla options for ceph
+    - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
 
 openstack:pull:
-    stage: pre_deploy
-    extends:
-        - .base_setup
-    retry: 2
-    script:
-        # Pull openstack kolla images
-        - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
+  stage: pre_deploy
+  extends:
+    - .base_setup
+  retry: 2
+  script:
+    # Pull openstack kolla images
+    - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
 
 deploy:openstack:
-    stage: deploy
-    extends:
-        - .base_setup
-    script:
-        # Deploy openstack on target servers using kolla
-        # 1. Run Kolla pre-setup
-        # 2. Run Kolla deploy
-        - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+  stage: deploy
+  extends:
+    - .base_setup
+  script:
+    # Deploy openstack on target servers using kolla
+    # 1. Run Kolla pre-setup
+    # 2. Run Kolla deploy
+    - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
 post_deploy:openstack:
-    stage: post_deploy
-    extends:
-        - .base_setup
-    script:
-        # Setup the openstack cloud with public network, images, flavors etc.
-        - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
+  stage: post_deploy
+  extends:
+    - .base_setup
+  script:
+    # Setup the openstack cloud with public network, images, flavors etc.
+    - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
 test:setup:
-    stage: test_setup
-    extends:
-        - .base_setup
-    script:
-        - python3 -u deploy.py test_setup --config "$MULTINODE"
+  stage: test_setup
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py test_setup --config "$MULTINODE"
 
 test:refstack:
-    stage: test_refstack
-    extends:
-        - .base_setup
-    script:
-        # Run refstack tests to ensure that the openstack deploy on target servers is functional
-        - python3 -u deploy.py test_refstack --config "$MULTINODE"
-    after_script:
-        - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
-        # Setup and add SSH_PRIVATE_KEY to ssh agent
-        - eval $(ssh-agent -s)
-        - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-        # Copy over the test output files
-        - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/refstack-client/.tempest/.stestr/0*"
-    artifacts:
-        paths:
-            - ./0
-            - ./0.json
-        when: always
+  stage: test_refstack
+  extends:
+    - .base_setup
+  script:
+    # Run refstack tests to ensure that the openstack deploy on target servers is functional
+    - python3 -u deploy.py test_refstack --config "$MULTINODE"
+  after_script:
+    - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
+    # Setup and add SSH_PRIVATE_KEY to ssh agent
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    # Copy over the test output files
+    - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/refstack-client/.tempest/.stestr/0*"
+  artifacts:
+    paths:
+      - ./0
+      - ./0.json
+    when: always
 
 test:stress:
-    stage: test_stress
-    extends:
-        - .base_setup
-    script:
-        - python3 -u deploy.py test_stress --config "$MULTINODE"
-    rules:
-        - if: '$CI_PIPELINE_SOURCE == "master"'
-          allow_failure: true
+  stage: test_stress
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py test_stress --config "$MULTINODE"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "master"'
+      allow_failure: true
 
 sleep_on_failure:
-    stage: sleep_on_failure
-    tags:
-        - shell
-    script:
-        - for i in `seq $SLEEP_FAILURE_TIME -1 1` ; do echo -n "$i " ; sleep 1 ; done
-    rules:
-        - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-          when: on_failure
+  stage: sleep_on_failure
+  tags:
+    - shell
+  script:
+    - for i in `seq $SLEEP_FAILURE_TIME -1 1` ; do echo -n "$i " ; sleep 1 ; done
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: on_failure
 
 delete_virtual_machines:
-    stage: release_cidr
-    image: utsaics/maas:2.8
-    extends:
-        - .base_setup
-    script:
-        - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-    rules:
-        - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-          when: always
+  stage: release_cidr
+  image: utsaics/maas:2.8
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+      when: always

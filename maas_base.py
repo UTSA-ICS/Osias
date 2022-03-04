@@ -122,7 +122,7 @@ class MaasBase:
                     else:
                         continue
             if len(servers) > 0:
-                # This will slowly speed up the timer, reducing time as follows: [30, 23, 20, 18, 17, 16, 15, 15, 14]
+                # This will slowly speed up the timer, reducing time as follows: [30, 23, 20, 18, 17, 16, 15, 15, 14, ...]
                 ttime = int((30 / timer_loop_counter ** (1 / 3)))
                 print(f"Sleeping {ttime} seconds.")
                 time.sleep(ttime)
@@ -184,11 +184,9 @@ class MaasBase:
             print("No more valid IPs available")
             return 1
 
-    def release_ip_pool(self, vip: str, ips_needed: int):
-        self._run_maas_command(f"ipaddresses release ip={vip} | jq '.[] | {{}}'")
-        prefix = vip[: vip.rfind(".")]
-        first_ip = f"{prefix}.{int(vip.split('.')[-1]) - ips_needed + 1}"
-        self._run_maas_command(f"ipaddresses release ip={first_ip} | jq '.[] | {{}}'")
+    def release_ip_pool(self, *ips):
+        for ip in ips:
+            self._run_maas_command(f"ipaddresses release ip={ip} | jq '.[] | {{}}'")
 
     def set_machine_list(self):
         self.machine_list = self._find_machine_ids()
