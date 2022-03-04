@@ -478,7 +478,7 @@ def main():
                 ],
             )
         elif args.operation == "delete_virtual_machines":
-            if args.MAAS_URL and args.MAAS_API_KEY:                
+            if args.MAAS_URL and args.MAAS_API_KEY:
                 delete_virtual_machines(
                     VIP_ADDRESS,
                     POOL_START_IP,
