@@ -93,6 +93,7 @@ class MaasVirtual(MaasBase):
                 f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
             )
             server_list.append(server["system_id"])
+        
         machine_info = self._run_maas_command("machines read")
         self._waiting(server_list, "Ready")
         self._create_bridge_interface(

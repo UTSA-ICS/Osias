@@ -92,6 +92,7 @@ class MaasBase:
     def _waiting(self, server_list: list, desired_status: str):
         timer_loop_counter = 1
         servers = copy.deepcopy(server_list)
+        print(f"Waiting for {servers} to reach desired state, {desired_status}.")
         while len(servers) > 0:
             if len(servers) == 1:
                 read_cmd = f"machine read {servers[0]} | jq '"
@@ -101,7 +102,7 @@ class MaasBase:
             machine_info_list = [self._run_maas_command(f"{read_cmd}{fields}")]
             for server in servers[:]:
                 for machine in machine_info_list:
-                    if str(server) in machine["system_id"]:
+                    if server in machine["system_id"]:
                         current_status = machine["status_name"]
                         status_message = machine["status_message"]
                         print(
