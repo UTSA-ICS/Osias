@@ -2,7 +2,9 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  #interruptible: true
+  tags:
+    - docker-runner
 
 workflow:
   rules:
@@ -29,52 +31,29 @@ stages:
   - release_cidr
 
 .base_setup:
-  tags:
-    - docker-runner
   before_script:
-  # Setup and add SSH_PRIVATE_KEY to ssh agent
-  - 'which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )'
-  - eval $(ssh-agent -s)
-  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-  - mkdir -p ~/.ssh
-  - chmod 700 ~/.ssh
-  - pip3 install toml timeout_decorator
-  - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
-  - echo "$MULTINODE"
+    # Setup and add SSH_PRIVATE_KEY to ssh agent
+    - "which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )"
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - pip3 install toml timeout_decorator
+    - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
+    - echo "$MULTINODE"
+    - echo "$PARENT_PIPELINE_ID"
 
 deploy:<RELEASE_NAME>:
-    stage: <RELEASE_NAME>
-    script:
-        - echo "Deployment of <RELEASE_NAME> release"
-
-generate_cidr_for_virtual_machines:
-  stage: generate_cidr
-  tags:
-    - shell
+  stage: <RELEASE_NAME>
   script:
-    - if [[ -z "$VM_PROFILE" ]]; then echo "ERROR - VM_PROFILE is not set" && exit 1; fi
-    - cd test
-    - export VM_DEPLOYMENT_CIDR=$(./get_cidr.sh)
-    - echo "$VM_DEPLOYMENT_CIDR" > vm_deployment_cidr
-    - echo "Using CIDR [$VM_DEPLOYMENT_CIDR]"
-    - python3 -c "import json;import os;vm_profile=json.loads(os.getenv('VM_PROFILE'));vm_profile['vm_deployment_cidr']=os.getenv('VM_DEPLOYMENT_CIDR');vm_profile_file = open('vm_profile', 'w');vm_profile_file.write(json.dumps(vm_profile));vm_profile_file.close()"
-  artifacts:
-    paths:
-      - test/vm_deployment_cidr
-      - test/vm_profile
-    when: always
-  rules:
-    - if: '$MULTINODE == "" || $MULTINODE == null'
+    - echo "Deployment of <RELEASE_NAME> release"
 
 create_virtual_machines:
   stage: reprovision_servers
   extends:
-   - .base_setup
+    - .base_setup
   image: utsaics/maas:2.8
-  dependencies:
-    - generate_cidr_for_virtual_machines
   script:
-    - export VM_PROFILE=$(cat test/vm_profile)
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -101,7 +80,6 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
-
 
 bootstrap_networking:
   stage: bootstrap_networking
@@ -150,11 +128,11 @@ bootstrap:openstack:
   script:
     # Run bootstrap across the servers for installing the pre-reqs for openstack
     - |
-       if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
-         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-       else
-         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
-       fi
+      if [ -z "$DOCKER_REGISTRY_PASSWORD" ]; then
+        python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+      else
+        python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
+      fi
 
 ceph:deploy:
   stage: pre_deploy
@@ -249,21 +227,6 @@ delete_virtual_machines:
     - .base_setup
   script:
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-  rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
-      when: always
-
-release_cidr_for_virtual_machines:
-  stage: release_cidr
-  tags:
-    - shell
-  dependencies:
-    - generate_cidr_for_virtual_machines
-  script:
-    - VM_DEPLOYMENT_CIDR=$(cat test/vm_deployment_cidr)
-    - cd test
-    - ./release_cidr.sh $VM_DEPLOYMENT_CIDR
-    - echo "RELEASED $VM_DEPLOYMENT_CIDR"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always

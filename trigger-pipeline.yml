@@ -2,7 +2,9 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  #interruptible: true
+  tags:
+    - docker-runner
 
 workflow:
   rules:
@@ -12,42 +14,65 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-    - handle-yaml
-    - deploy
+  - prepare
+  - deploy
 
 handle-yaml:
-    stage: handle-yaml
-    needs:
-        - pipeline: $PARENT_PIPELINE_ID
-          job: generate_yaml_config
-    script:
-        - echo "This job only exists to handle the YAML"
-    artifacts:
-        paths:
-            - deploy*.yml
+  stage: prepare
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: generate_yaml_config
+  script:
+    - echo "This job only exists to handle the YAML"
+  artifacts:
+    paths:
+      - deploy*.yml
+
+tag_virtual_servers:
+  stage: prepare
+  image: utsaics/maas:2.8
+  before_script:
+    - pip3 install toml timeout_decorator
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  script:
+    - |
+      if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+      else
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+      fi
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
+    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
 
 deploy:<RELEASE_NAME>:
-    stage: deploy
-    trigger:
-        include:
-            - artifact: deploy-<RELEASE_NAME>.yml
-              job: handle-yaml
-        strategy: depend
-    variables:
-        VM_PROFILE: <RELEASE_VM_PROFILE>
-        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
-        DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+  stage: deploy
+  trigger:
+    include:
+      - artifact: deploy-<RELEASE_NAME>.yml
+        job: handle-yaml
+    strategy: depend
+  variables:
+    VM_PROFILE: <RELEASE_VM_PROFILE>
+    REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+    DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+    PARENT_PIPELINE_ID: "$PARENT_PIPELINE_ID"
 
 deploy:<PREVIOUS_RELEASE_NAME>:
-    stage: deploy
-    trigger:
-        include:
-            - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
-              job: handle-yaml
-        strategy: depend
-    variables:
-        VM_PROFILE: "$VM_PROFILE_PREVIOUS_RELEASE"
-        REPROVISION_SERVERS: "$REPROVISION_SERVERS"
-        DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
-    rules:
-        - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'
+  stage: deploy
+  trigger:
+    include:
+      - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
+        job: handle-yaml
+    strategy: depend
+  variables:
+    VM_PROFILE: "$VM_PROFILE_PREVIOUS_RELEASE"
+    REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+    DOCKER_REGISTRY_PASSWORD: "$DOCKER_REGISTRY_PASSWORD"
+    PARENT_PIPELINE_ID: "$PARENT_PIPELINE_ID"
+  rules:
+    - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'

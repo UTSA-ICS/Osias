@@ -34,9 +34,10 @@ VM_Profile = {
     "HDD3": 10,
     "HDD4": 10,
     "Internal_CIDR": "192.168.1.0/24",
-    "Data_CIDR": "",
+    "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
-    "vm_deployment_cidr": "",
+    "VM_DEPLOYMENT_CIDR": "10.245.121.0/24",
+    "IPs_NEEDED": 8,
 }
 
 SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena"]
@@ -108,7 +109,7 @@ STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
     "victoria": "3.62",
     "wallaby": "3.64",
-    "xena": "3.66",
+    "xena": "3.68",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
@@ -120,5 +121,5 @@ PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
     "victoria": "1.36",
     "wallaby": "1.36",
-    "xena": "1.38",
+    "xena": "1.39",
 }
