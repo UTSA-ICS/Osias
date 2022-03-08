@@ -2,15 +2,17 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  interruptible: true
+  #interruptible: true
+  tags:
+    - docker-runner
 
 variables:
-    DEPLOY_MULTIPLE_RELEASES:
-        value: "true"
-        description: Flag for deployment of multiple releases or one release.
-    SLEEP_FAILURE_TIME:
-        value: "3600"
-        description: Pipeline sleep time for failure scenarios
+  DEPLOY_MULTIPLE_RELEASES:
+    value: "true"
+    description: Flag for deployment of multiple releases or one release.
+  SLEEP_FAILURE_TIME:
+    value: "3600"
+    description: Pipeline sleep time for failure scenarios
 
 workflow:
   rules:
@@ -20,45 +22,42 @@ workflow:
 
 stages:
   - static_analysis
+  - tag_virtual_servers
   - generate_yaml
   - deploy_pipeline
 
 shellcheck:
   stage: static_analysis
   image: pipelinecomponents/shellcheck:latest
-  tags:
-    - docker-runner
   script:
     - |
       find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
       xargs -0 -r -n1 shellcheck -e SC1091 -e SC2024 --color
 
 python_black:
-    stage: static_analysis
-    image:
-      name: cytopia/black
-      entrypoint: ["/bin/ash", "-c"]
-    tags:
-    - docker-runner
-    script:
-        - python3 -m black --check --diff --color .
+  stage: static_analysis
+  image:
+    name: cytopia/black
+    entrypoint: ["/bin/ash", "-c"]
+  script:
+    - python3 -m black --check --diff --color .
 
 generate_yaml_config:
-    stage: generate_yaml
-    script:
-        - bash generate_yml.sh > release-test.yml
-    artifacts:
-        paths:
-            - release-test.yml
-            - deploy*.yml
+  stage: generate_yaml
+  script:
+    - bash generate_yml.sh > release-test.yml
+  artifacts:
+    paths:
+      - release-test.yml
+      - deploy*.yml
 
 release_testing:
-    stage: deploy_pipeline
-    trigger:
-        include:
-            - artifact: release-test.yml
-              job: generate_yaml_config
-        strategy: depend
-    variables:
-        DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
-        PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  stage: deploy_pipeline
+  trigger:
+    include:
+      - artifact: release-test.yml
+        job: generate_yaml_config
+    strategy: depend
+  variables:
+    DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID

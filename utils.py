@@ -4,7 +4,6 @@ import toml
 import subprocess
 from ssh_tool import ssh_tool
 from itertools import islice
-import osias_variables
 
 
 class parser:
@@ -65,27 +64,10 @@ def convert_to_list(parm):
     return parm
 
 
-def merge_dictionaries(default_dictionary, user_input_dictionary, path=None):
+def merge_dictionaries(default_dictionary, user_input_dictionary):
     """Merges user_input_dictionary into default dictionary;
     default values will be overwritten by users input."""
     return {**default_dictionary, **user_input_dictionary}
-
-
-def merge_nested_dictionaries(a, b, path=None):
-    """Merge nested dictionaries where the value is also a dictionary"""
-    if path is None:
-        path = []
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge_nested_dictionaries(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass
-            else:
-                raise Exception("Conflict at %s" % ".".join(path + [str(key)]))
-        else:
-            a[key] = b[key]
-    return a
 
 
 def create_ssh_client(target_node):
@@ -159,10 +141,10 @@ def create_multinode(input_dictionary, optional_variables):
             public = value[1]["public"]
             data = value[1]["data"]
             multinode += f"""
-    [{label}.{i}]
-        public = \"{public}\"
-        private = \"{internal}\"
-        data = \"{data}\""""
+\t[{label}.{i}]
+\t\tpublic = \"{public}\"
+\t\tprivate = \"{internal}\"
+\t\tdata = \"{data}\""""
     for label in secondary_labels:
         multinode += f"\n[{label}]"
         for i, (k, v) in enumerate(input_dictionary.items()):
@@ -170,10 +152,10 @@ def create_multinode(input_dictionary, optional_variables):
             public = v["public"]
             data = v["data"]
             multinode += f"""
-    [{label}.{i}]
-        public = \"{public}\"
-        private = \"{internal}\"
-        data = \"{data}\""""
+\t[{label}.{i}]
+\t\tpublic = \"{public}\"
+\t\tprivate = \"{internal}\"
+\t\tdata = \"{data}\""""
     for label in monitor_label:
         multinode += f"\n[{label}]"
         for i, (k, v) in enumerate(monitor_item):
@@ -181,12 +163,12 @@ def create_multinode(input_dictionary, optional_variables):
             public = v["public"]
             data = v["data"]
             multinode += f"""
-    [{label}.{i}]
-        public = \"{public}\"
-        private = \"{internal}\"
-        data = \"{data}\""""
+\t[{label}.{i}]
+\t\tpublic = \"{public}\"
+\t\tprivate = \"{internal}\"
+\t\tdata = \"{data}\""""
 
-    multinode += f"\n[variables]\n\t[variables.0]\n"
+    multinode += "\n[variables]\n\t[variables.0]\n"
     multinode += f"\t\t{optional_variables}"
     return multinode
 

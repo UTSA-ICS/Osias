@@ -1,7 +1,5 @@
 #!/usr/bin/python3
 
-from ipaddress import IPv4Network
-import osias_variables
 import ast
 
 
@@ -19,23 +17,17 @@ def setup_kolla_configs(
     vip_address,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
-    if vm_cidr:
-        kolla_external_vip_address = str(list(IPv4Network(vm_cidr))[-1])
-        VIP_SUFFIX = kolla_external_vip_address.split(".")[-1]
-        if VIP_SUFFIX == "255":
-            print(
-                "\n\nWARNING: You are setting the VIP address to the network address, VIP is being reassigned to 254\n\n"
-            )
-            VIP_SUFFIX = "254"
-            kolla_external_vip_address = str(list(IPv4Network(vm_cidr))[-2])
-        kolla_internal_vip_address = ".".join((internal_subnet, VIP_SUFFIX))
-        SUFFIX = VIP_SUFFIX
-    else:
-        external_subnet = ".".join((servers_public_ip[0].split(".")[:3]))
-        VIP_ADDRESS_SUFFIX = vip_address.split(".")[-1]
-        kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
-        kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
-        SUFFIX = VIP_ADDRESS_SUFFIX
+    VIP_SUFFIX = vip_address.split(".")[-1]
+    if VIP_SUFFIX == "255":
+        print(
+            "\n\nWARNING: You are setting the VIP address to the network address, VIP is being reassigned to 254\n\n"
+        )
+        VIP_SUFFIX = "254"
+    external_subnet = ".".join((servers_public_ip[0].split(".")[:3]))
+    VIP_ADDRESS_SUFFIX = vip_address.split(".")[-1]
+    kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
+    kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+    SUFFIX = VIP_ADDRESS_SUFFIX
 
     if docker_registry:
         docker = f"""
@@ -119,7 +111,7 @@ enable_haproxy: "yes"
             network_interface = "br0"
             ha_options = """
 # If vip's don't match, disabling haproxy will fail deployment
-enable_haproxy: "no"  
+enable_haproxy: "no"
     """
 
     globals_file = f"""
