@@ -46,10 +46,6 @@ generate_yaml_config:
   stage: generate_yaml
   script:
     - bash generate_yml.sh > release-test.yml
-    - if [ -f $MULTINODE || $MULTINODE=="\$MULTINODE" ]; then export MULTINODE=""; fi
-    - echo "$MULTINODE"
-  variables:
-    MULTINODE: $MULTINODE
   artifacts:
     paths:
       - release-test.yml
@@ -64,7 +60,6 @@ release_testing:
     strategy: depend
   variables:
     DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
-    MULTINODE: $MULTINODE
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
     VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
