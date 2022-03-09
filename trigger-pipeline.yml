@@ -24,7 +24,9 @@ handle-yaml:
       job: generate_yaml_config
   script:
     - echo "This job only exists to handle the YAML"
-    - echo "MULTINODE- <$MULTINODE>"
+    - echo "MULTINODE-"
+    - echo "$MULTINODE"
+    - echo "END"
   artifacts:
     paths:
       - deploy*.yml
@@ -36,6 +38,10 @@ tag_virtual_servers:
     - pip3 install toml timeout_decorator
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+    VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
+    VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
+    VM_PROFILE: $VM_PROFILE
+    MULTINODE: $MULTINODE
   script:
     - |
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
