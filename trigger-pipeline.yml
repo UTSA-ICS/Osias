@@ -24,9 +24,6 @@ handle-yaml:
       job: generate_yaml_config
   script:
     - echo "This job only exists to handle the YAML"
-    - echo "MULTINODE-"
-    - echo "$MULTINODE"
-    - echo "END"
   artifacts:
     paths:
       - deploy*.yml

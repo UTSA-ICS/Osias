@@ -48,6 +48,8 @@ generate_yaml_config:
     - bash generate_yml.sh > release-test.yml
     - if [ -f $MULTINODE ]; then export MULTINODE=""; fi
     - echo "$MULTINODE"
+  variables:
+    MULTINODE: $MULTINODE
   artifacts:
     paths:
       - release-test.yml
