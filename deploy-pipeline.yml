@@ -89,7 +89,7 @@ bootstrap_networking:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
-.cleanup:
+cleanup:
   stage: cleanup
   extends:
     - .base_setup
@@ -105,7 +105,7 @@ bootstrap_networking:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-.reboot_servers:
+reboot_servers:
   stage: reboot_servers
   extends:
     - .base_setup
@@ -121,7 +121,7 @@ bootstrap_networking:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-.bootstrap:openstack:
+bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
     - .base_setup
@@ -134,7 +134,7 @@ bootstrap_networking:
         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
       fi
 
-.ceph:deploy:
+ceph:deploy:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -146,7 +146,7 @@ bootstrap_networking:
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
 
-.openstack:pull:
+openstack:pull:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -165,7 +165,7 @@ bootstrap_networking:
     # 2. Run Kolla deploy
     - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
-.post_deploy:openstack:
+post_deploy:openstack:
   stage: post_deploy
   extends:
     - .base_setup
@@ -173,14 +173,14 @@ bootstrap_networking:
     # Setup the openstack cloud with public network, images, flavors etc.
     - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
-.test:setup:
+test:setup:
   stage: test_setup
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
-.test:refstack:
+test:refstack:
   stage: test_refstack
   extends:
     - .base_setup
@@ -200,7 +200,7 @@ bootstrap_networking:
       - ./0.json
     when: always
 
-.test:stress:
+test:stress:
   stage: test_stress
   extends:
     - .base_setup
@@ -210,7 +210,7 @@ bootstrap_networking:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-.sleep_on_failure:
+sleep_on_failure:
   stage: sleep_on_failure
   tags:
     - shell
