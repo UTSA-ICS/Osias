@@ -64,7 +64,7 @@ create_virtual_machines:
     paths:
       - MULTINODE.env
 
-.reprovision_servers:
+reprovision_servers:
   stage: reprovision_servers
   extends:
     - .base_setup
@@ -81,7 +81,7 @@ create_virtual_machines:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
-.bootstrap_networking:
+bootstrap_networking:
   stage: bootstrap_networking
   extends:
     - .base_setup
