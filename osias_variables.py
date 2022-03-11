@@ -109,7 +109,7 @@ STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
     "victoria": "3.62",
     "wallaby": "3.64",
-    "xena": "3.68",
+    "xena": "3.66",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
