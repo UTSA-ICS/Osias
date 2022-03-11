@@ -116,6 +116,8 @@ class MaasBase:
                             servers.remove(server)
                             break
                         elif current_status == "Failed deployment":
+                            self._run_maas_command(f"machine release {server}")
+                            self._waiting([server], "Ready")
                             print("STATE: Re-deploying.")
                             self.deploy([server])
                         elif current_status == "Failed commissioning":

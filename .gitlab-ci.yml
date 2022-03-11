@@ -2,7 +2,7 @@ default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
-  #interruptible: true
+  interruptible: true
   tags:
     - docker-runner
 
@@ -46,10 +46,14 @@ generate_yaml_config:
   stage: generate_yaml
   script:
     - bash generate_yml.sh > release-test.yml
+    - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
   artifacts:
     paths:
       - release-test.yml
       - deploy*.yml
+    reports:
+      dotenv: build.env
+
 
 release_testing:
   stage: deploy_pipeline
@@ -61,3 +65,6 @@ release_testing:
   variables:
     DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+    VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
+    VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
+    MULTINODE: $MULTINODE
