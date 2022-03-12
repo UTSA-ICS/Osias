@@ -56,3 +56,11 @@ openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --
 openstack router create --enable --project "${TENANT}" pub-router
 openstack router set pub-router --external-gateway public
 openstack router add subnet pub-router private_subnet
+
+if sudo ceph -s; then
+  echo "Ceph is installed, creating endpoints..."
+  VIP_IP=$(openstack endpoint list -f value -c URL --service nova --interface admin | cut -f3 -d/ | cut -f1 -d:)
+  openstack endpoint create --region RegionOne swift  public "http://$VIP_IP:8080/swift/v1"
+  openstack endpoint create --region RegionOne swift  admin "http://$VIP_IP:8080/swift/v1"
+  openstack endpoint create --region RegionOne swift  internal "http://$VIP_IP:8080/swift/v1"
+fi

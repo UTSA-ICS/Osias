@@ -68,5 +68,9 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 #sudo sed -i $'s/\t//g' /etc/kolla/config/gnocchi/ceph.conf
 #sudo sed -i $'s/\t//g' /etc/kolla/config/gnocchi/ceph.client.gnocchi.keyring
 
+# Get Swift ready
+sudo ceph orch apply rgw osiasswift
+sudo ceph dashboard set-rgw-api-ssl-verify False
+
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
