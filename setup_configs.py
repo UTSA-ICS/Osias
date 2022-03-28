@@ -60,6 +60,17 @@ cinder_backup_driver: "ceph"
 
 nova_backend_ceph: "yes"
 #gnocchi_backend_storage: "ceph"
+
+# Swift options:
+enable_ceph_rgw: true # Feature from Xena onwards
+enable_swift: "no"
+enable_swift_s3api: "no"
+ceph_rgw_external_fqdn: "10.245.121.40"
+ceph_rgw_internal_fqdn: "10.245.121.40"
+ceph_rgw_port: 10001
+ceph_rgw_swift_compatibility: true
+ceph_rgw_swift_account_in_url: true
+enable_ceph_rgw_loadbalancer: false
 """
     else:
         print("Implementing STORAGE without CEPH")
