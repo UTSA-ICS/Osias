@@ -28,6 +28,7 @@ def setup_kolla_configs(
     kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
     kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
     SUFFIX = VIP_ADDRESS_SUFFIX
+    CEPH_IP = ".".join((external_subnet, controller_nodes[0].split(".")[-1]))
 
     if docker_registry:
         docker = f"""
@@ -63,13 +64,21 @@ nova_backend_ceph: "yes"
 
 # Swift options:
 enable_ceph_rgw: true # Feature from Xena onwards
-enable_swift: "no"
+enable_swift: "no" # Feature for swift on disk, not through ceph.
 enable_swift_s3api: "no"
-ceph_rgw_external_fqdn: "10.245.121.40"
-ceph_rgw_internal_fqdn: "10.245.121.40"
+ceph_rgw_external_fqdn: "{CEPH_IP}"
+ceph_rgw_internal_fqdn: "{CEPH_IP}"
 ceph_rgw_port: 10001
+
 ceph_rgw_swift_compatibility: true
+# enable/disable complete RadosGW compatibility with Swift API. 
+# This should match the configuration used by Ceph RadosGW.
+
 ceph_rgw_swift_account_in_url: true
+# By default, the RadosGW endpoint URL does not include the project (account) ID. 
+# This prevents cross-project and public object access. 
+# This can be resolved by setting ceph_rgw_swift_account_in_url to true
+
 enable_ceph_rgw_loadbalancer: false
 """
     else:
