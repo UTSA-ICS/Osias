@@ -46,7 +46,7 @@ docker_registry_username: "{docker_registry_username}"
             ceph = False
     if ceph:
         print("Implementing STORAGE with CEPH")
-        storage = """
+        storage = f"""
 glance_backend_ceph: "yes"
 glance_backend_file: "no"
 #glance_backend_swift: "no"
