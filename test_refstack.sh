@@ -11,7 +11,7 @@ TEMPEST_VERSION=$3
 REFSTACK_TEST_VERSION=$4
 PYTHON_VERSION=$5
 
-openstack role create ResellerAdmin
+# openstack role create ResellerAdmin
 
 openstack user create swiftop --password a_big_secret
 openstack project create --enable openstack

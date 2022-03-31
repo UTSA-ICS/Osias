@@ -64,11 +64,14 @@ nova_backend_ceph: "yes"
 
 # Swift options:
 enable_ceph_rgw: true # Feature from Xena onwards
+# This sets up the endpoints, etc.
+
 enable_swift: "no" # Feature for swift on disk, not through ceph.
 enable_swift_s3api: "no"
 ceph_rgw_external_fqdn: "{CEPH_IP}"
 ceph_rgw_internal_fqdn: "{CEPH_IP}"
-ceph_rgw_port: 10001
+ceph_rgw_port: 6780
+enable_ceph_rgw_keystone: false
 
 ceph_rgw_swift_compatibility: true
 # enable/disable complete RadosGW compatibility with Swift API. 

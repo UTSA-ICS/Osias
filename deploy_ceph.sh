@@ -26,6 +26,32 @@ sudo rbd pool init vms
 #sudo ceph osd pool create metrics
 #sudo rbd pool init metrics
 
+# Get Swift ready
+sudo ceph orch apply rgw osiasswift --port=6780
+sudo ceph dashboard set-rgw-api-ssl-verify False
+ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
+
+sudo tee -a /etc/ceph/ceph.conf > /dev/null << EOF
+
+[client.radosgw.gateway]
+rgw keystone api version = 3
+rgw keystone url = https://$internal_url:35357
+# rgw keystone admin token = {keystone admin token}
+# rgw keystone admin token path = {path to keystone admin token} #preferred
+# rgw keystone token cache size = {number of tokens to cache}
+rgw keystone accepted roles = admin, _member_
+rgw keystone implicit tenants =  true # {true for private tenant for each new user}
+rgw keystone admin user = ceph_rgw
+rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml ceph_rgw_keystone_password {keystone service tenant user password}
+# rgw keystone admin tenant = {keystone service tenant name}
+rgw keystone admin project = service
+rgw keystone admin domain = default
+EOF
+
+# Adopt new ceph configs and output bad configs
+sudo ceph config assimilate-conf -i /etc/ceph/ceph.conf -o /tmp/bad.conf
+
 # Get cinder and cinder-backup ready
 sudo mkdir -p /etc/kolla/config/cinder/cinder-backup
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
@@ -67,10 +93,6 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 #sudo ceph auth get-or-create client.gnocchi mon 'profile rbd' osd 'profile rbd pool=metrics' mgr 'profile rbd pool=metrics' > /etc/kolla/config/gnocchi/ceph.client.gnocchi.keyring
 #sudo sed -i $'s/\t//g' /etc/kolla/config/gnocchi/ceph.conf
 #sudo sed -i $'s/\t//g' /etc/kolla/config/gnocchi/ceph.client.gnocchi.keyring
-
-# Get Swift ready
-sudo ceph orch apply rgw osiasswift --port=6780
-sudo ceph dashboard set-rgw-api-ssl-verify False
 
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
