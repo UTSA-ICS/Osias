@@ -28,8 +28,8 @@ sudo rbd pool init vms
 
 # Get Swift ready
 sudo ceph orch apply rgw osiasswift --port=6780
-sudo ceph dashboard set-rgw-api-ssl-verify False
-ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+sudo ceph dashboard set-rgw-api-ssl-verify False 
+ceph_rgw_pass=$( grep keystone_admin_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # ceph_rgw_keystone_password?
 internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
 
 sudo tee -a /etc/ceph/ceph.conf > /dev/null << EOF
@@ -40,13 +40,14 @@ rgw keystone url = https://$internal_url:35357
 # rgw keystone admin token = {keystone admin token}
 # rgw keystone admin token path = {path to keystone admin token} #preferred
 # rgw keystone token cache size = {number of tokens to cache}
-rgw keystone accepted roles = admin, _member_
-rgw keystone implicit tenants =  true # {true for private tenant for each new user}
-rgw keystone admin user = ceph_rgw
-rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml ceph_rgw_keystone_password {keystone service tenant user password}
 # rgw keystone admin tenant = {keystone service tenant name}
+rgw keystone accepted roles = admin, _member_, member
+rgw keystone implicit tenants =  true # {true for private tenant for each new user}
+rgw keystone admin user = admin #ceph_rgw
+rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml
 rgw keystone admin project = service
 rgw keystone admin domain = default
+rgw s3 auth use keystone = true
 EOF
 
 # Adopt new ceph configs and output bad configs
