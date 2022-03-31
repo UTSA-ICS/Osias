@@ -184,11 +184,12 @@ def bootstrap_openstack(
         )
     else:
         utils.run_script_on_server(
+            "setup_certificates.sh", servers_public_ip[0], args=[servers_public_ip]
+        )
+
+    utils.run_script_on_server(
         "setup_certificates.sh", servers_public_ip[0], args=[servers_public_ip]
     )
-
-
-    utils.run_script_on_server("setup_certificates.sh", servers_public_ip[0], args=[servers_public_ip])
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
 
