@@ -71,7 +71,7 @@ enable_swift_s3api: "no"
 ceph_rgw_external_fqdn: "{CEPH_IP}"
 ceph_rgw_internal_fqdn: "{CEPH_IP}"
 ceph_rgw_port: 6780
-enable_ceph_rgw_keystone: false
+enable_ceph_rgw_keystone: true
 
 ceph_rgw_swift_compatibility: true
 # enable/disable complete RadosGW compatibility with Swift API. 
