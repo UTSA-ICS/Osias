@@ -27,7 +27,7 @@ sudo rbd pool init vms
 #sudo rbd pool init metrics
 
 # Get Swift ready
-sudo ceph orch apply rgw osiasswift
+sudo ceph orch apply rgw osiasswift --port=6780 # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False 
 ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # keystone_admin_password
 internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
