@@ -34,6 +34,7 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 
 sudo tee -a /etc/ceph/ceph.conf > /dev/null << EOF
 
+# https://docs.ceph.com/en/latest/radosgw/keystone/#integrating-with-openstack-keystone
 [client.radosgw.gateway]
 rgw keystone api version = 3
 rgw keystone url = https://$internal_url:35357
@@ -42,11 +43,13 @@ rgw keystone url = https://$internal_url:35357
 # rgw keystone token cache size = {number of tokens to cache}
 # rgw keystone admin tenant = {keystone service tenant name}
 rgw keystone accepted roles = admin, _member_, member
-rgw keystone implicit tenants =  true # {true for private tenant for each new user}
+# rgw keystone implicit tenants =  swift  # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
 rgw keystone admin user = ceph_rgw # admin
 rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml
 rgw keystone admin project = service
 rgw keystone admin domain = default
+rgw swift account in url = true
+rgw_keystone_verify_ssl = false
 # rgw s3 auth use keystone = true
 EOF
 

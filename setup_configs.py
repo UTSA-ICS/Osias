@@ -28,7 +28,8 @@ def setup_kolla_configs(
     kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
     kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
     SUFFIX = VIP_ADDRESS_SUFFIX
-    CEPH_IP = ".".join((external_subnet, controller_nodes[0].split(".")[-1]))
+    PUBLIC_CEPH_IP = ".".join((external_subnet, controller_nodes[0].split(".")[-1]))
+    INTERNAL_CEPH_IP = ".".join((internal_subnet, controller_nodes[0].split(".")[-1]))
 
     if docker_registry:
         docker = f"""
@@ -68,8 +69,8 @@ enable_ceph_rgw: true # Feature from Xena onwards
 
 enable_swift: "no" # Feature for swift on disk, not through ceph.
 enable_swift_s3api: "no"
-ceph_rgw_external_fqdn: "{CEPH_IP}"
-ceph_rgw_internal_fqdn: "{CEPH_IP}"
+ceph_rgw_external_fqdn: "{PUBLIC_CEPH_IP}"
+ceph_rgw_internal_fqdn: "{INTERNAL_CEPH_IP}"
 ceph_rgw_port: 6780
 enable_ceph_rgw_keystone: true
 

@@ -15,7 +15,10 @@ PYTHON_VERSION=$5
 openstack user create swiftop --password a_big_secret
 openstack project create --enable openstack
 
-openstack role create ResellerAdmin
+if ! openstack role list -c Name -f value | grep -q 'ResellerAdmin'; then
+   openstack role create ResellerAdmin
+fi
+
 openstack role add Member --user swiftop --project openstack
 openstack role add ResellerAdmin --user swiftop --project openstack
 
