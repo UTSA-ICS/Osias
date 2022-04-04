@@ -187,7 +187,7 @@ check_service() {
     service="$1"
     shift
     string="$*"
-    if [ -z "${string##*$service*}" ] ;then
+    if [ -z "${string##*"$service"*}" ] ;then
         echo "$service = True" >> tempest.conf
     else
         echo "$service = False" >> tempest.conf
