@@ -41,16 +41,21 @@ rgw keystone url = https://$internal_url:35357
 # rgw keystone admin token = {keystone admin token}
 # rgw keystone admin token path = {path to keystone admin token} #preferred
 # rgw keystone token cache size = {number of tokens to cache}
-# rgw keystone admin tenant = {keystone service tenant name}
+rgw keystone admin tenant = service # {keystone service tenant name}
 rgw keystone accepted roles = admin, _member_, member
-# rgw keystone implicit tenants =  swift  # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
+rgw keystone implicit tenants =  true  # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
 rgw keystone admin user = ceph_rgw # admin
 rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml
 rgw keystone admin project = service
 rgw keystone admin domain = default
 rgw swift account in url = true
 rgw_keystone_verify_ssl = false
-# rgw s3 auth use keystone = true
+rgw content length compat: true
+rgw enable apis: swift, s3, admin
+rgw keystone accepted admin roles: admin
+rgw keystone revocation interval: 900
+rgw s3 auth use keystone: true
+rgw swift versioning enabled: true
 EOF
 
 # Adopt new ceph configs and output bad configs
