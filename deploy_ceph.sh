@@ -32,34 +32,31 @@ sudo ceph dashboard set-rgw-api-ssl-verify False
 ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # keystone_admin_password
 internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
 
-sudo tee -a /etc/ceph/ceph.conf > /dev/null << EOF
-
 # https://docs.ceph.com/en/latest/radosgw/keystone/#integrating-with-openstack-keystone
-[client.radosgw.gateway]
-rgw keystone api version = 3
-rgw keystone url = https://$internal_url:35357
-# rgw keystone admin token = {keystone admin token}
-# rgw keystone admin token path = {path to keystone admin token} #preferred
-# rgw keystone token cache size = {number of tokens to cache}
-rgw keystone admin tenant = service # {keystone service tenant name}
-rgw keystone accepted roles = admin, _member_, member
-rgw keystone implicit tenants =  true  # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
-rgw keystone admin user = ceph_rgw # admin
-rgw keystone admin password = $ceph_rgw_pass # Got from the passwords.yml
-rgw keystone admin project = service
-rgw keystone admin domain = default
-rgw swift account in url = true
-rgw_keystone_verify_ssl = false
-rgw content length compat: true
-rgw enable apis: swift, s3, admin
-rgw keystone accepted admin roles: admin
-rgw keystone revocation interval: 900
-rgw s3 auth use keystone: true
-rgw swift versioning enabled: true
-EOF
+sudo ceph config set client.radosgw.gateway rgw_keystone_api_version 3
+sudo ceph config set client.radosgw.gateway rgw_keystone_url https://"$internal_url":35357
+# sudo ceph config set client.radosgw.gateway rgw_keystone_admin_token {keystone_admin_token}
+# sudo ceph config set client.radosgw.gateway rgw_keystone_admin_token_path {path_to_keystone_admin_token}_#preferred
+# sudo ceph config set client.radosgw.gateway rgw_keystone_token_cache_size {number_of_tokens_to_cache}
+sudo ceph config set client.radosgw.gateway rgw_keystone_admin_tenant service # {keystone service tenant name}
+sudo ceph config set client.radosgw.gateway rgw_keystone_accepted_roles admin,_member_,member
+sudo ceph config set client.radosgw.gateway rgw_keystone_implicit_tenants true # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
+sudo ceph config set client.radosgw.gateway rgw_keystone_admin_user ceph_rgw # admin
+sudo ceph config set client.radosgw.gateway rgw_keystone_admin_password "$ceph_rgw_pass" # Got from the passwords.yml
+sudo ceph config set client.radosgw.gateway rgw_keystone_admin_project service
+sudo ceph config set client.radosgw.gateway rgw_keystone_admin_domain default
+sudo ceph config set client.radosgw.gateway rgw_swift_account_in_url true
+sudo ceph config set client.radosgw.gateway rgw_keystone_verify_ssl false
+sudo ceph config set client.radosgw.gateway rgw_content_length_compat true
+sudo ceph config set client.radosgw.gateway rgw_enable_apis "swift, s3, admin"
+sudo ceph config set client.radosgw.gateway rgw_keystone_accepted_admin_roles admin
+sudo ceph config set client.radosgw.gateway rgw_keystone_revocation_interval 900
+sudo ceph config set client.radosgw.gateway rgw_s3_auth_use_keystone true
+sudo ceph config set client.radosgw.gateway rgw_swift_versioning_enabled true
 
-# Adopt new ceph configs and output bad configs
-sudo ceph config assimilate-conf -i /etc/ceph/ceph.conf -o /tmp/bad.conf
+# Redeploy your rgw daemon
+sudo ceph orch apply rgw osiasswift --port=6780
+sudo ceph orch apply mgr "$HOSTNAME" # Sometimes active manager is removed, this resets it.
 
 # Get cinder and cinder-backup ready
 sudo mkdir -p /etc/kolla/config/cinder/cinder-backup
