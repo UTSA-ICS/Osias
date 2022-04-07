@@ -121,6 +121,9 @@ enable_haproxy: "yes"
                 fqdn = "{{ kolla_external_vip_address }}"
         except ValueError:
             print(f"fqdn is {fqdn}")
+    else:
+        if fqdn is None:
+            fqdn = "{{ kolla_external_vip_address }}"
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
