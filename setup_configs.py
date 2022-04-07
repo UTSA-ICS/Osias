@@ -119,7 +119,7 @@ enable_haproxy: "yes"
         try:
             if ast.literal_eval(fqdn) is None:
                 fqdn = "{{ kolla_external_vip_address }}"
-        except ValueError:
+        except (ValueError, SyntaxError):
             print(f"fqdn is {fqdn}")
     else:
         if fqdn is None:
