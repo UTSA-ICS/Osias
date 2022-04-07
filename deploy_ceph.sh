@@ -27,7 +27,7 @@ sudo rbd pool init vms
 #sudo rbd pool init metrics
 
 # Get Swift ready
-sudo ceph orch apply rgw osiasswift # --port=6780 # Default port results in port conflict and fails.
+sudo ceph orch apply rgw osiasswift --port=7480 # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False 
 ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # keystone_admin_password
 internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
@@ -54,7 +54,7 @@ sudo ceph config set client.radosgw.gateway rgw_s3_auth_use_keystone true
 sudo ceph config set client.radosgw.gateway rgw_swift_versioning_enabled true
 
 # Redeploy your rgw daemon
-sudo ceph orch apply rgw osiasswift # --port=6780
+sudo ceph orch apply rgw osiasswift --port=7480 # default is 6780
 sudo ceph orch apply mgr "$HOSTNAME" # Sometimes active manager is removed, this resets it.
 
 # Get cinder and cinder-backup ready
@@ -101,3 +101,4 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
+sudo ceph status

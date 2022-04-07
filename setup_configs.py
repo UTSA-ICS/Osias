@@ -15,6 +15,7 @@ def setup_kolla_configs(
     vm_cidr,
     ceph,
     vip_address,
+    fqdn,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
@@ -69,18 +70,18 @@ enable_ceph_rgw: true # Feature from Xena onwards
 
 enable_swift: "no" # Feature for swift on disk, not through ceph.
 enable_swift_s3api: "no"
-ceph_rgw_external_fqdn: "{PUBLIC_CEPH_IP}"
-ceph_rgw_internal_fqdn: "{INTERNAL_CEPH_IP}"
-ceph_rgw_port: 6780
+#ceph_rgw_external_fqdn: "{PUBLIC_CEPH_IP}"
+#ceph_rgw_internal_fqdn: "{INTERNAL_CEPH_IP}"
+#ceph_rgw_port: 6780
 enable_ceph_rgw_keystone: true
 
 ceph_rgw_swift_compatibility: true
-# enable/disable complete RadosGW compatibility with Swift API. 
+# enable/disable complete RadosGW compatibility with Swift API.
 # This should match the configuration used by Ceph RadosGW.
 
 ceph_rgw_swift_account_in_url: true
-# By default, the RadosGW endpoint URL does not include the project (account) ID. 
-# This prevents cross-project and public object access. 
+# By default, the RadosGW endpoint URL does not include the project (account) ID.
+# This prevents cross-project and public object access.
 # This can be resolved by setting ceph_rgw_swift_account_in_url to true
 
 enable_ceph_rgw_loadbalancer: false
@@ -114,6 +115,12 @@ nova_backend_ceph: "no"
     ha_options = """
 enable_haproxy: "yes"
 """
+    if isinstance(fqdn, str):
+        try:
+            if ast.literal_eval(fqdn) is None:
+                fqdn = "{{ kolla_external_vip_address }}"
+        except ValueError:
+            print(f"fqdn is {fqdn}")
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
@@ -174,6 +181,7 @@ enable_mariabackup: "no"
 # Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
 #enable_masakari: "yes"
 #enable_central_logging: "yes"
+kolla_external_fqdn: "{fqdn}"
 __EOF__
 """
 

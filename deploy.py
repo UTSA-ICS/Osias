@@ -148,6 +148,7 @@ def bootstrap_openstack(
     ansible_version,
     ceph,
     vip_address,
+    fqdn,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -168,6 +169,7 @@ def bootstrap_openstack(
         vm_cidr,
         ceph,
         vip_address,
+        fqdn,
     )
     utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
@@ -353,6 +355,7 @@ def main():
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
+        FQDN = config.get_variables(variable="FQDN")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
@@ -419,6 +422,7 @@ def main():
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
                 VIP_ADDRESS,
+                FQDN,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
