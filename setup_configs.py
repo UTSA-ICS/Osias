@@ -232,10 +232,8 @@ sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
         get_remote_hosts_names = f"""
 declare -a array=({CONTROLLER_SSH_NODES})
 
-# get length of an array
 arraylength=${#array[@]}
 
-# use for loop to read all values and indexes
 for (( i=0; i<arraylength; i++ ));
 do
   export HOST"$i"="$(ssh "${array[$i]}" cat /proc/sys/kernel/hostname)"
