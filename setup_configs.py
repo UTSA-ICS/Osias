@@ -69,10 +69,10 @@ enable_ceph_rgw: true # Feature from Xena onwards
 # This sets up the endpoints, etc.
 
 enable_swift: "no" # Feature for swift on disk, not through ceph.
-enable_swift_s3api: "no"
+enable_swift_s3api: "yes"
 #ceph_rgw_external_fqdn: "{PUBLIC_CEPH_IP}"
 #ceph_rgw_internal_fqdn: "{INTERNAL_CEPH_IP}"
-#ceph_rgw_port: 6780
+ceph_rgw_port: 7480
 enable_ceph_rgw_keystone: true
 
 ceph_rgw_swift_compatibility: true
@@ -84,7 +84,17 @@ ceph_rgw_swift_account_in_url: true
 # This prevents cross-project and public object access.
 # This can be resolved by setting ceph_rgw_swift_account_in_url to true
 
-enable_ceph_rgw_loadbalancer: false
+enable_ceph_rgw_loadbalancer: true
+ceph_rgw_hosts:
+  - host: {HOST0}
+    ip: {controller_nodes[0]}
+    port: 7480
+  - host: {HOST1}
+    ip: {controller_nodes[1]}
+    port: 7480
+  - host: {HOST2}
+    ip: {controller_nodes[2]}
+    port: 7480
 """
     else:
         print("Implementing STORAGE without CEPH")
@@ -217,12 +227,33 @@ sed -i 's/^monitoring01/{MONITORING_NODES}/' multinode
 sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
 
 """
+    if ceph:
+        CONTROLLER_SSH_NODES = " ".join(controller_nodes)
+        get_remote_hosts_names = f"""
+declare -a array=({CONTROLLER_SSH_NODES})
 
+# get length of an array
+arraylength=${#array[@]}
+
+# use for loop to read all values and indexes
+for (( i=0; i<arraylength; i++ ));
+do
+  export HOST"$i"="$(ssh "${array[$i]}" cat /proc/sys/kernel/hostname)"
+done
+
+echo "HOST0 = $HOST0"
+echo "HOST1 = $HOST1"
+echo "HOST2 = $HOST2"
+
+"""
+    else:
+        get_remote_hosts_names = ""
     with open("configure_kolla.sh", "w") as f:
         f.write("#!/bin/bash")
         f.write("\n\n")
         f.write("set -euxo pipefail")
         f.write("\n\n")
+        f.write(get_remote_hosts_names)
         f.write(globals_file)
         f.write("\n\n")
         f.write(multinode_file)
