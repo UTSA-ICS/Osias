@@ -86,13 +86,13 @@ ceph_rgw_swift_account_in_url: true
 
 enable_ceph_rgw_loadbalancer: true
 ceph_rgw_hosts:
-  - host: {HOST0}
+  - host: $HOST0
     ip: {controller_nodes[0]}
     port: 7480
-  - host: {HOST1}
+  - host: $HOST1
     ip: {controller_nodes[1]}
     port: 7480
-  - host: {HOST2}
+  - host: $HOST2
     ip: {controller_nodes[2]}
     port: 7480
 """
@@ -227,25 +227,23 @@ sed -i 's/^monitoring01/{MONITORING_NODES}/' multinode
 sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
 
 """
+
+    get_remote_hosts_names = ""
     if ceph:
         CONTROLLER_SSH_NODES = " ".join(controller_nodes)
+        first_line = "declare -a array=({CONTROLLER_SSH_NODES})".format(
+            CONTROLLER_SSH_NODES=CONTROLLER_SSH_NODES
+        )
         get_remote_hosts_names = f"""
-declare -a array=({CONTROLLER_SSH_NODES})
-
-arraylength=${#array[@]}
+{first_line}
+arraylength=${{array[@]}}
 
 for (( i=0; i<arraylength; i++ ));
 do
-  export HOST"$i"="$(ssh "${array[$i]}" cat /proc/sys/kernel/hostname)"
+  export HOST"$i"="$(ssh "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
 done
+        """
 
-echo "HOST0 = $HOST0"
-echo "HOST1 = $HOST1"
-echo "HOST2 = $HOST2"
-
-"""
-    else:
-        get_remote_hosts_names = ""
     with open("configure_kolla.sh", "w") as f:
         f.write("#!/bin/bash")
         f.write("\n\n")
