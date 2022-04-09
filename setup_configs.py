@@ -231,16 +231,15 @@ sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
     get_remote_hosts_names = ""
     if ceph:
         CONTROLLER_SSH_NODES = " ".join(controller_nodes)
-        first_line = "declare -a array=({CONTROLLER_SSH_NODES})".format(
-            CONTROLLER_SSH_NODES=CONTROLLER_SSH_NODES
-        )
+        second_line = "arraylength=${#{array[@]}}"
         get_remote_hosts_names = f"""
-{first_line}
-arraylength=${{array[@]}}
+declare -a array=({CONTROLLER_SSH_NODES})
+{second_line}
+
 
 for (( i=0; i<arraylength; i++ ));
 do
-  export HOST"$i"="$(ssh "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
+  export HOST"$i"="$(ssh  -o StrictHostKeyChecking=no "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
 done
         """
 
