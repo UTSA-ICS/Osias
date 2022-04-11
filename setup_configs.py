@@ -72,7 +72,7 @@ enable_swift: "no" # Feature for swift on disk, not through ceph.
 enable_swift_s3api: "yes"
 #ceph_rgw_external_fqdn: "{PUBLIC_CEPH_IP}"
 #ceph_rgw_internal_fqdn: "{INTERNAL_CEPH_IP}"
-ceph_rgw_port: 7480
+#ceph_rgw_port: 7480 # Leave commented, else HAProxy fails on deploy
 enable_ceph_rgw_keystone: true
 
 ceph_rgw_swift_compatibility: true
@@ -239,7 +239,7 @@ declare -a array=({CONTROLLER_SSH_NODES})
 
 for (( i=0; i<arraylength; i++ ));
 do
-  export HOST"$i"="$(ssh  -o StrictHostKeyChecking=no "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
+  declare HOST"$i"="$(ssh  -o StrictHostKeyChecking=no "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
 done
         """
 
