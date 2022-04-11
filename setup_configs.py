@@ -231,7 +231,7 @@ sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
     get_remote_hosts_names = ""
     if ceph:
         CONTROLLER_SSH_NODES = " ".join(controller_nodes)
-        second_line = "arraylength=${#{array[@]}}"
+        second_line = "arraylength=${#array[@]}"
         get_remote_hosts_names = f"""
 declare -a array=({CONTROLLER_SSH_NODES})
 {second_line}
