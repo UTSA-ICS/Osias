@@ -52,7 +52,7 @@ sudo ceph config set client.radosgw.gateway rgw_swift_account_in_url true
 sudo ceph config set client.radosgw.gateway rgw_swift_versioning_enabled true
 
 # Redeploy your rgw daemon
-sudo ceph orch apply rgw osiasswift --port=7480 --placement="3"# default is 6780
+sudo ceph orch apply rgw osiasswift --port=7480 --placement="3" # default is 6780
 sudo ceph orch apply mgr "$HOSTNAME" # Sometimes active manager is removed, this resets it.
 
 # Get cinder and cinder-backup ready
