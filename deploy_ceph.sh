@@ -38,7 +38,7 @@ sudo ceph -s
 WHO_IS=""
 while [ -z "$WHO_IS" ]
 do
-    WHO_IS=$(sudo ceph auth ls | grep client.rgw | grep client)
+    WHO_IS="$(sudo ceph auth ls | grep client.rgw | grep client)" || true
     echo "Waiting..."
     sleep 3
 done
