@@ -35,7 +35,14 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 
 # https://docs.ceph.com/en/latest/radosgw/keystone/#integrating-with-openstack-keystone
 sudo ceph -s
-WHO_IS=$(sudo ceph auth ls | grep client.rgw | grep client)
+WHO_IS=""
+while [ -z "$WHO_IS" ]
+do
+    declare WHO_IS=$(sudo ceph auth ls | grep client.rgw | grep client)
+    echo "Waiting..."
+    sleep 3
+done
+
 echo "RGW CLIENTS: $WHO_IS"
 HOSTNAMES=""
 for WHO in $WHO_IS; do
