@@ -171,13 +171,13 @@ def bootstrap_openstack(
         vip_address,
         fqdn,
     )
-    utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
         "bootstrap_ssh_access.sh",
         servers_public_ip,
         args=[ssh_priv_key, ssh_public_key],
     )
+    utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     if docker_registry_password:
         utils.run_script_on_server(
             "bootstrap_openstack.sh",

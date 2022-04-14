@@ -69,7 +69,7 @@ check_service() {
       do
         #url="$(echo "${line[1]}" | sed -e 's|v1|swift/v1|')"
         url="${line[1]//v1/swift\/v1}"
-        openstack endpoint set --url "'${url}'" "${line[0]}"
+        openstack endpoint set --url "${url}" "${line[0]}"
       done
     fi
 }
