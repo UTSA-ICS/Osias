@@ -27,7 +27,8 @@ sudo rbd pool init vms
 #sudo rbd pool init metrics
 
 # Get Swift ready
-sudo ceph orch apply rgw osiasswift --port=7480 --placement="3" # Default port results in port conflict and fails.
+NUM_OF_WHOS=3
+sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False 
 sudo ceph orch apply mgr "$HOSTNAME"
 ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # keystone_admin_password
@@ -40,13 +41,14 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 # Additionally, the name of all of the gateways need to be present.
 
 WHO_IS=""
-while [ -z "$WHO_IS" ]
+NUM_WHO_IS=$(echo $WHO_IS | wc -w)
+while [ "$NUM_WHO_IS" -ge "$NUM_OF_WHOS" ]
 do
-    WHO_IS="$(sudo ceph auth ls | grep client.rgw | grep client)" || true
+    WHO_IS="client.rgw.default $(sudo ceph auth ls | grep client.rgw | grep client)" || true
     echo "Waiting..."
     sleep 10
+    NUM_WHO_IS=$(echo $WHO_IS | wc -w)
 done
-WHO_IS="client.rgw.default $WHO_IS"
 
 echo "RGW CLIENTS: $WHO_IS"
 for WHO in $WHO_IS; do
@@ -71,7 +73,7 @@ done
 
 
 # Redeploy your rgw daemon
-sudo ceph orch apply rgw osiasswift --port=7480 --placement="3" # default is 6780
+sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # default is 6780
 HOSTNAMES=$(sudo ceph orch host ls | grep -v HOST | awk '{print $1}' | tr '\n' ',')
 sudo ceph orch apply mgr "$HOSTNAMES" # Add back-up mgr hosts
 
