@@ -41,13 +41,13 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 # Additionally, the name of all of the gateways need to be present.
 
 WHO_IS=""
-NUM_WHO_IS=$(echo $WHO_IS | wc -w)
+NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
 while [ "$NUM_WHO_IS" -ge "$NUM_OF_WHOS" ]
 do
     WHO_IS="client.rgw.default $(sudo ceph auth ls | grep client.rgw | grep client)" || true
     echo "Waiting..."
     sleep 10
-    NUM_WHO_IS=$(echo $WHO_IS | wc -w)
+    NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
 done
 
 echo "RGW CLIENTS: $WHO_IS"
