@@ -54,8 +54,8 @@ echo "RGW CLIENTS: $WHO_IS"
 for WHO in $WHO_IS; do
     sudo ceph config set "$WHO" rgw_keystone_api_version 3
     sudo ceph config set "$WHO" rgw_keystone_url https://"$internal_url":35357
-    sudo ceph config set "$WHO" rgw_keystone_accepted_admin_roles ResellerAdmin
-    sudo ceph config set "$WHO" rgw_keystone_accepted_roles "admin, _member_, member"
+    sudo ceph config set "$WHO" rgw_keystone_accepted_admin_roles "admin, ResellerAdmin"
+    sudo ceph config set "$WHO" rgw_keystone_accepted_roles "_member_, member, admin, ResellerAdmin"
     sudo ceph config set "$WHO" rgw_keystone_implicit_tenants true # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
     sudo ceph config set "$WHO" rgw_keystone_admin_user ceph_rgw # admin
     sudo ceph config set "$WHO" rgw_keystone_admin_password "$ceph_rgw_pass" # Got from the passwords.yml

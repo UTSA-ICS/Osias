@@ -46,7 +46,7 @@ cat > "$HOME"/accounts.yaml <<__EOF__
   - 'ResellerAdmin'
 __EOF__
 
-
+# https://docs.openstack.org/tempest/latest/sampleconf.html
 cat > "$HOME"/tempest.conf <<__EOF__
 [DEFAULT]
 debug = False
@@ -133,7 +133,7 @@ floating_network_name = $PUBLICNETWORKNAME
 
 [object-storage]
 region = $REGION
-operator_role = Member
+operator_role = member
 reseller_admin_role = ResellerAdmin
 endpoint_type = internal
 
