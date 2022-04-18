@@ -42,7 +42,7 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 
 WHO_IS=""
 NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
-while [ "$NUM_WHO_IS" -ge "$NUM_OF_WHOS" ]
+while [[ "$NUM_WHO_IS" -le "$NUM_OF_WHOS" ]]
 do
     WHO_IS="client.rgw.default $(sudo ceph auth ls | grep client.rgw | grep client)" || true
     echo "Waiting..."
