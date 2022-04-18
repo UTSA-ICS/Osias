@@ -73,7 +73,7 @@ done
 
 
 # Redeploy your rgw daemon
-sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # default is 6780
+sudo ceph orch restart rgw.osiasswift 
 HOSTNAMES=$(sudo ceph orch host ls | grep -v HOST | awk '{print $1}' | tr '\n' ',')
 sudo ceph orch apply mgr "$HOSTNAMES" # Add back-up mgr hosts
 
