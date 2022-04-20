@@ -45,6 +45,9 @@ source .venv/bin/activate
 #refstack-client test -c etc/tempest.conf -v -- --regex tempest.api.identity.v3.test_tokens.TokensV3Test.test_create_token
 wget "https://refstack.openstack.org/api/v1/guidelines/${REFSTACK_TEST_VERSION}/tests?target=platform&type=required&alias=true&flag=false" -O /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
 
+# Bug fix for failing test tempest.api.object_storage.test_container_quotas.ContainerQuotasTest.test_upload_too_many_objects
+sed -i 's/OverQuotaObject/QuotaExceeded/' /home/ubuntu/refstack-client/.tempest/tempest/api/object_storage/test_container_quotas.py
+
 # This is for the instance of an all-in-one deploy where there is no nested
 # virtualization is available and so no VMs can be created - hence the VM pool
 # is disabled. So skip the testcases that test for compute servers.
