@@ -45,9 +45,6 @@ source .venv/bin/activate
 #refstack-client test -c etc/tempest.conf -v -- --regex tempest.api.identity.v3.test_tokens.TokensV3Test.test_create_token
 wget "https://refstack.openstack.org/api/v1/guidelines/${REFSTACK_TEST_VERSION}/tests?target=platform&type=required&alias=true&flag=false" -O /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
 
-# Bug fix for failing test tempest.api.object_storage.test_container_quotas.ContainerQuotasTest.test_upload_too_many_objects
-sed -i 's/OverQuotaObject/QuotaExceeded/' /home/ubuntu/refstack-client/.tempest/tempest/api/object_storage/test_container_quotas.py
-
 # This is for the instance of an all-in-one deploy where there is no nested
 # virtualization is available and so no VMs can be created - hence the VM pool
 # is disabled. So skip the testcases that test for compute servers.
@@ -76,6 +73,13 @@ fi
 # Now run the refstack test using the refstack client. Return true so that the results can be analyzed if a run fails.
 refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
 
+echo "********************************"
+echo "* Enabling production settings *"
+echo "********************************"
+
+source swift_settings.sh 3
+
+# Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
 # If so then exit with 0 indicating passing tests.
 # We will continue to research a solution for this 1 failing test but until it is resolved
