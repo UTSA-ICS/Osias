@@ -104,7 +104,7 @@ else
     exit 1
 fi
 
-CEPH=$(grep "swift =" tempest.conf | awk -F= '{print $NF}')
+CEPH=$(grep "swift =" "$HOME"/refstack-client/etc/tempest.conf | awk -F= '{print $NF}')
 if [[ "$CEPH" == *"True"* ]]; then
     echo "###########################################"
     echo "#  Enabling production settings for ceph  #"
