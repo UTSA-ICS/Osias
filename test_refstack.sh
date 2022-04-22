@@ -77,7 +77,7 @@ echo "********************************"
 echo "* Enabling production settings *"
 echo "********************************"
 
-source swift_settings.sh 3
+source "$HOME"/swift_settings.sh 3
 
 # Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
