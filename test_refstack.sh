@@ -73,12 +73,6 @@ fi
 # Now run the refstack test using the refstack client. Return true so that the results can be analyzed if a run fails.
 refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
 
-echo "********************************"
-echo "* Enabling production settings *"
-echo "********************************"
-
-source "$HOME"/swift_settings.sh 3
-
 # Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
 # If so then exit with 0 indicating passing tests.
@@ -92,26 +86,33 @@ echo "Number of failure are -->> [$NUM_FAILURES]"
 if [[ $NUM_FAILURES -eq 1 ]]; then
     FAILURE=$(grep "failure:" "$FILENAME")
     if [[ "$FAILURE" =~ .*(tearDownClass).* ]] && [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
-        echo "###########################################"
-        echo "Expected unresolved failure - Force exit 0!"
-        echo "###########################################"
-        exit 0
+        MSG="Expected unresolved failure - Force exit 0!"
     else
         echo "###########################################"
-        echo "Unexpected error occurred!"
-        echo "ERROR!!!!"
+        echo "#       Unexpected error occurred!        #"
+        echo "#                ERROR!!!!                #"
         echo "###########################################"
         exit 1
     fi
 elif [[ $NUM_FAILURES -eq 0 ]]; then
-    echo "###########################################"
-    echo "All Tests Passed!"
-    echo "###########################################"
-    exit 0
+    MSG="#            All Tests Passed!            #"
 else
     echo "###########################################"
-    echo "More than 1 Testcase failed"
-    echo "ERROR!!!!"
+    echo "#       More than 1 Testcase failed       #"
+    echo "#                ERROR!!!!                #"
     echo "###########################################"
     exit 1
 fi
+
+CEPH=$(grep "swift =" tempest.conf | awk -F= '{print $NF}')
+if [[ "$CEPH" == *"True"* ]]; then
+    echo "###########################################"
+    echo "#  Enabling production settings for ceph  #"
+    echo "###########################################"
+    source "$HOME"/swift_settings.sh 3
+fi
+
+echo "###########################################"
+echo "$MSG"
+echo "###########################################"
+exit 0
