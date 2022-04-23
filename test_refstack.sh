@@ -86,7 +86,7 @@ echo "Number of failure are -->> [$NUM_FAILURES]"
 if [[ $NUM_FAILURES -eq 1 ]]; then
     FAILURE=$(grep "failure:" "$FILENAME")
     if [[ "$FAILURE" =~ .*(tearDownClass).* ]] && [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
-        MSG="Expected unresolved failure - Force exit 0!"
+        MSG="#   Expected unresolved failure - EXIT 0  #"
     else
         echo "###########################################"
         echo "#       Unexpected error occurred!        #"
@@ -104,15 +104,16 @@ else
     exit 1
 fi
 
-CEPH=$(grep "swift =" "$HOME"/refstack-client/etc/tempest.conf | awk -F= '{print $NF}')
-if [[ "$CEPH" == *"True"* ]]; then
+SWIFT=$(grep "swift =" "$HOME"/refstack-client/etc/tempest.conf | awk -F= '{print $NF}')
+if [[ "$SWIFT" == *"True"* ]]; then
     echo "###########################################"
-    echo "#  Enabling production settings for ceph  #"
+    echo "# Enabling production settings for swift  #"
     echo "###########################################"
     source "$HOME"/swift_settings.sh 3
 fi
 
 echo "###########################################"
 echo "$MSG"
+echo "#                 PASS!!!!                #"
 echo "###########################################"
 exit 0
