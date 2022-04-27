@@ -426,6 +426,7 @@ def main():
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
+                utils.copy_file_on_server("swift_settings.sh", servers_public_ip[0])
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             else:
                 print("'Deploy_Ceph' is skipped due to CEPH being DISABLED.")

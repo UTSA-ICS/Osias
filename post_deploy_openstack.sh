@@ -67,7 +67,6 @@ check_service() {
       echo "Updating swift endpoints to include 'http.../swift/v1/...'' instead of 'http.../v1/...'"
       openstack endpoint list -c URL -c ID -f value --service swift | while IFS=', ' read -r -a line
       do
-        #url="$(echo "${line[1]}" | sed -e 's|v1|swift/v1|')"
         url="${line[1]//v1/swift\/v1}"
         openstack endpoint set --url "${url}" "${line[0]}"
       done

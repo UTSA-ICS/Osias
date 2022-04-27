@@ -11,8 +11,6 @@ fi
 
 for server in $servers; do
   echo "copying to: $server"
-  ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$server" mkdir -p "$HOME"/certificates
-  scp -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/certificates/* "$server":"$HOME"/certificates
-  ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$server" sudo cp "$HOME"/certificates/*.crt /usr/local/share/ca-certificates/
-  ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$server" sudo update-ca-certificates
+  scp -pr -o StrictHostKeyChecking=no -o ConnectTimeout=10 /tmp/certificates "$server":"$HOME"/certificates
+  ssh -t -o StrictHostKeyChecking=no -o ConnectTimeout=10 "$server" sudo -- "sh -c 'cp $HOME/certificates/*.crt /usr/local/share/ca-certificates/ && update-ca-certificates'"
 done
