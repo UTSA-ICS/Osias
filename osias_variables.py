@@ -40,30 +40,34 @@ VM_Profile = {
     "IPs_NEEDED": 8,
 }
 
-SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena"]
+SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
     "ussuri": "3.6",
     "victoria": "3.8",
     "wallaby": "3.8",
     "xena": "3.8",
+    "yoga": "3.8",
 }
 ANSIBLE_MAX_VERSION = {
     "ussuri": "2.10",
     "victoria": "2.10",
     "wallaby": "3.0",
     "xena": "5.0",
+    "yoga": "5.0",
 }
 CEPH_VERSION = {
     "ussuri": "pacific",
     "victoria": "pacific",
     "wallaby": "pacific",
     "xena": "pacific",
+    "yoga": "pacific",
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
     "victoria": "focal hwe_kernel=hwe-20.04",
     "wallaby": "focal hwe_kernel=hwe-20.04",
     "xena": "focal hwe_kernel=hwe-20.04",
+    "yoga": "focal hwe_kernel=hwe-20.04",
 }
 
 # REFSTACK VARIABLES
@@ -80,46 +84,54 @@ REFSTACK_TEST_VERSION = {
     "victoria": "2021.11",
     "wallaby": "2021.11",
     "xena": "2021.11",
+    "yoga": "2021.11",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
     "victoria": "29.2.0",
     "wallaby": "29.1.0",
     "xena": "29.2.0",
+    "yoga": "30.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
     "victoria": "2.1",
     "wallaby": "2.1",
     "xena": "2.1",
+    "yoga": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
     "victoria": "2.87",
     "wallaby": "2.88",
     "xena": "2.90",
+    "yoga": "2.90",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
     "victoria": "3.0",
     "wallaby": "3.0",
     "xena": "3.0",
+    "yoga": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
     "victoria": "3.62",
     "wallaby": "3.64",
     "xena": "3.66",
+    "yoga": "3.68",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
     "victoria": "1.0",
     "wallaby": "1.0",
     "xena": "1.0",
+    "yoga": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
     "victoria": "1.36",
     "wallaby": "1.36",
     "xena": "1.39",
+    "yoga": "1.39",
 }
