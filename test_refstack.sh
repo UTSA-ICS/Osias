@@ -11,10 +11,14 @@ TEMPEST_VERSION=$3
 REFSTACK_TEST_VERSION=$4
 PYTHON_VERSION=$5
 
-openstack role create ResellerAdmin
 
 openstack user create swiftop --password a_big_secret
 openstack project create --enable openstack
+
+if ! openstack role list -c Name -f value | grep -q 'ResellerAdmin'; then
+   openstack role create ResellerAdmin
+fi
+
 openstack role add Member --user swiftop --project openstack
 openstack role add ResellerAdmin --user swiftop --project openstack
 
@@ -69,6 +73,7 @@ fi
 # Now run the refstack test using the refstack client. Return true so that the results can be analyzed if a run fails.
 refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
 
+# Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
 # If so then exit with 0 indicating passing tests.
 # We will continue to research a solution for this 1 failing test but until it is resolved
@@ -81,26 +86,34 @@ echo "Number of failure are -->> [$NUM_FAILURES]"
 if [[ $NUM_FAILURES -eq 1 ]]; then
     FAILURE=$(grep "failure:" "$FILENAME")
     if [[ "$FAILURE" =~ .*(tearDownClass).* ]] && [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
-        echo "###########################################"
-        echo "Expected unresolved failure - Force exit 0!"
-        echo "###########################################"
-        exit 0
+        MSG="#   Expected unresolved failure - EXIT 0  #"
     else
         echo "###########################################"
-        echo "Unexpected error occurred!"
-        echo "ERROR!!!!"
+        echo "#       Unexpected error occurred!        #"
+        echo "#                ERROR!!!!                #"
         echo "###########################################"
         exit 1
     fi
 elif [[ $NUM_FAILURES -eq 0 ]]; then
-    echo "###########################################"
-    echo "All Tests Passed!"
-    echo "###########################################"
-    exit 0
+    MSG="#            All Tests Passed!            #"
 else
     echo "###########################################"
-    echo "More than 1 Testcase failed"
-    echo "ERROR!!!!"
+    echo "#       More than 1 Testcase failed       #"
+    echo "#                ERROR!!!!                #"
     echo "###########################################"
     exit 1
 fi
+
+SWIFT=$(grep "swift =" "$HOME"/refstack-client/etc/tempest.conf | awk -F= '{print $NF}')
+if [[ "$SWIFT" == *"True"* ]]; then
+    echo "###########################################"
+    echo "# Enabling production settings for swift  #"
+    echo "###########################################"
+    source "$HOME"/swift_settings.sh 3
+fi
+
+echo "###########################################"
+echo "$MSG"
+echo "#                 PASS!!!!                #"
+echo "###########################################"
+exit 0

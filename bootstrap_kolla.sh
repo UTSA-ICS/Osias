@@ -30,6 +30,7 @@ host_key_checking=False
 pipelining=True
 forks=100
 interpreter_python=/usr/bin/python3
+timeout = 30 
 __EOF__
 
 # Configure kolla
