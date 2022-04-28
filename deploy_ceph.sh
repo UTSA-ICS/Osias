@@ -26,6 +26,9 @@ sudo rbd pool init vms
 #sudo ceph osd pool create metrics
 #sudo rbd pool init metrics
 
+# Enable swift
+source "$HOME"/swift_settings.sh 1
+
 # Get cinder and cinder-backup ready
 sudo mkdir -p /etc/kolla/config/cinder/cinder-backup
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
@@ -70,3 +73,4 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
+sudo ceph status

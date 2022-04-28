@@ -56,3 +56,21 @@ openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --
 openstack router create --enable --project "${TENANT}" pub-router
 openstack router set pub-router --external-gateway public
 openstack router add subnet pub-router private_subnet
+
+SERVICE_LIST="$(openstack service list)"
+
+check_service() {
+    service="$1"
+    shift
+    string="$*"
+    if [ -z "${string##*"$service"*}" ] ;then
+      echo "Updating swift endpoints to include 'http.../swift/v1/...'' instead of 'http.../v1/...'"
+      openstack endpoint list -c URL -c ID -f value --service swift | while IFS=', ' read -r -a line
+      do
+        url="${line[1]//v1/swift\/v1}"
+        openstack endpoint set --url "${url}" "${line[0]}"
+      done
+    fi
+}
+
+check_service "swift" "$SERVICE_LIST"

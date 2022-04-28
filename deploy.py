@@ -148,6 +148,7 @@ def bootstrap_openstack(
     ansible_version,
     ceph,
     vip_address,
+    fqdn,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -168,14 +169,15 @@ def bootstrap_openstack(
         vm_cidr,
         ceph,
         vip_address,
+        fqdn,
     )
-    utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
         "bootstrap_ssh_access.sh",
         servers_public_ip,
         args=[ssh_priv_key, ssh_public_key],
     )
+    utils.run_script_on_server("configure_kolla.sh", servers_public_ip[0])
     if docker_registry_password:
         utils.run_script_on_server(
             "bootstrap_openstack.sh",
@@ -184,6 +186,11 @@ def bootstrap_openstack(
         )
     else:
         utils.run_script_on_server("bootstrap_openstack.sh", servers_public_ip[0])
+
+    str_servers_public_ip = " ".join(servers_public_ip)
+    utils.run_script_on_server(
+        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_public_ip]
+    )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
 
@@ -348,6 +355,7 @@ def main():
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
+        FQDN = config.get_variables(variable="FQDN")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
@@ -414,9 +422,11 @@ def main():
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
                 VIP_ADDRESS,
+                FQDN,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
+                utils.copy_file_on_server("swift_settings.sh", servers_public_ip[0])
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             else:
                 print("'Deploy_Ceph' is skipped due to CEPH being DISABLED.")

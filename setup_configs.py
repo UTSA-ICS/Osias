@@ -15,6 +15,7 @@ def setup_kolla_configs(
     vm_cidr,
     ceph,
     vip_address,
+    fqdn,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
@@ -45,7 +46,7 @@ docker_registry_username: "{docker_registry_username}"
             ceph = False
     if ceph:
         print("Implementing STORAGE with CEPH")
-        storage = """
+        storage = f"""
 glance_backend_ceph: "yes"
 glance_backend_file: "no"
 #glance_backend_swift: "no"
@@ -60,6 +61,36 @@ cinder_backup_driver: "ceph"
 
 nova_backend_ceph: "yes"
 #gnocchi_backend_storage: "ceph"
+
+# Swift options:
+enable_ceph_rgw: true # Feature from Xena onwards
+# This sets up the endpoints, etc.
+
+enable_swift: "no" # Feature for swift on disk, not through ceph.
+enable_swift_s3api: "yes"
+#ceph_rgw_port: 7480 # Leave commented, else HAProxy fails on deploy
+enable_ceph_rgw_keystone: true
+
+ceph_rgw_swift_compatibility: true
+# enable/disable complete RadosGW compatibility with Swift API.
+# This should match the configuration used by Ceph RadosGW.
+
+ceph_rgw_swift_account_in_url: true
+# By default, the RadosGW endpoint URL does not include the project (account) ID.
+# This prevents cross-project and public object access.
+# This can be resolved by setting ceph_rgw_swift_account_in_url to true
+
+enable_ceph_rgw_loadbalancer: true
+ceph_rgw_hosts:
+  - host: $HOST0
+    ip: {controller_nodes[0]}
+    port: 7480
+  - host: $HOST1
+    ip: {controller_nodes[1]}
+    port: 7480
+  - host: $HOST2
+    ip: {controller_nodes[2]}
+    port: 7480
 """
     else:
         print("Implementing STORAGE without CEPH")
@@ -90,6 +121,15 @@ nova_backend_ceph: "no"
     ha_options = """
 enable_haproxy: "yes"
 """
+    if isinstance(fqdn, str):
+        try:
+            if ast.literal_eval(fqdn) is None:
+                fqdn = "{{ kolla_external_vip_address }}"
+        except (ValueError, SyntaxError):
+            print(f"fqdn is {fqdn}")
+    else:
+        if fqdn is None:
+            fqdn = "{{ kolla_external_vip_address }}"
     # Check if its a all in one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
@@ -150,6 +190,7 @@ enable_mariabackup: "no"
 # Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
 #enable_masakari: "yes"
 #enable_central_logging: "yes"
+kolla_external_fqdn: "{fqdn}"
 __EOF__
 """
 
@@ -183,11 +224,27 @@ sed -i 's/^storage01/{STORAGE_NODES}/g' multinode
 
 """
 
+    get_remote_hosts_names = ""
+    if ceph:
+        CONTROLLER_SSH_NODES = " ".join(controller_nodes)
+        second_line = "arraylength=${#array[@]}"
+        get_remote_hosts_names = f"""
+declare -a array=({CONTROLLER_SSH_NODES})
+{second_line}
+
+
+for (( i=0; i<arraylength; i++ ));
+do
+  declare HOST"$i"="$(ssh  -o StrictHostKeyChecking=no "${{array[$i]}}" cat /proc/sys/kernel/hostname)"
+done
+        """
+
     with open("configure_kolla.sh", "w") as f:
         f.write("#!/bin/bash")
         f.write("\n\n")
         f.write("set -euxo pipefail")
         f.write("\n\n")
+        f.write(get_remote_hosts_names)
         f.write(globals_file)
         f.write("\n\n")
         f.write(multinode_file)

@@ -14,6 +14,11 @@ if [[ "$OPENSTACK_RELEASE" == "ussuri" ]]; then
     kolla-ansible -i multinode bootstrap-servers
 fi
 
+echo "Entered globals.yml options:"
+echo "############################"
+grep "^[^#-]" /etc/kolla/globals.yml
+echo "############################"
+
 kolla-ansible -i multinode deploy
 kolla-ansible -i multinode post-deploy
 deactivate nondestructive
