@@ -182,6 +182,13 @@ openstack_cacert: "{{{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_e
 enable_mariabackup: "no"
 {ha_options}
 
+# Setup OpenStack Container service
+enable_zun: "yes"
+enable_kuryr: "yes"
+enable_etcd: "yes"
+docker_configure_for_zun: "yes"
+containerd_configure_for_zun: "yes"
+
 # Desired Global Options:
 #enable_neutron_metering: "yes"
 #enable_neutron_dvr: "yes"

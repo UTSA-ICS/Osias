@@ -49,7 +49,7 @@ if [ $# == 3 ]; then
   openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --allocation-pool start="${POOL_START}",end="${POOL_END}" --dns-nameserver "${DNS_IP}" --gateway "${POOL_GATEWAY}" --network public public_subnet
 else
   PUBLIC_NETWORK="192.168.1.0/24"
-  openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --dns-nameserver "${DNS_IP}" --network public public_subnet
+  openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --dns-nameserver "${DNS_IP}" --network public --no-dhcp public_subnet
 fi
 openstack network create --project "${TENANT}" private
 openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --dns-nameserver "${DNS_IP}" --network private private_subnet
@@ -74,3 +74,7 @@ check_service() {
 }
 
 check_service "swift" "$SERVICE_LIST"
+
+sudo docker pull cirros
+sudo docker save cirros | openstack image create cirros --public \
+  --container-format docker --disk-format raw
