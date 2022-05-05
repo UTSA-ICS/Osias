@@ -76,5 +76,4 @@ check_service() {
 check_service "swift" "$SERVICE_LIST"
 
 sudo docker pull cirros
-sudo docker save cirros | openstack image create cirros --public \
-  --container-format docker --disk-format raw
+sudo docker save cirros | openstack image create cirros --public --container-format docker --disk-format raw

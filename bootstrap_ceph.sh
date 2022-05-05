@@ -4,6 +4,7 @@ set -euxo pipefail
 
 MONITOR_IP=$1
 CEPH_RELEASE=$2
+CLUSTER_NETWORK="${MONITOR_IP%.*}.0/24"
 
 # Update to fetch the latest package index
 sudo apt-get update
@@ -22,7 +23,7 @@ sudo ./cephadm install ceph-common
 sudo ./cephadm install
 
 sudo mkdir -p /etc/ceph
-sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP"
+sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP" --cluster-network "$CLUSTER_NETWORK"
 
 # Turn on telemetry and accept Community Data License Agreement - Sharing
 sudo ceph telemetry on --license sharing-1-0

@@ -29,6 +29,13 @@ sudo rbd pool init vms
 # Enable swift
 source "$HOME"/swift_settings.sh 1
 
+# Enable hyper-converged ceph settings:
+# https://docs.ceph.com/en/quincy/cephadm/install/#enabling-osd-memory-autotuning
+sudo ceph config set mgr mgr/cephadm/autotune_memory_target_ratio 0.2
+sudo ceph config set osd osd_memory_target_autotune true
+sudo ceph orch restart osd.all-available-devices
+sudo ceph orch restart mgr
+
 # Get cinder and cinder-backup ready
 sudo mkdir -p /etc/kolla/config/cinder/cinder-backup
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
