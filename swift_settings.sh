@@ -52,3 +52,16 @@ done
 sudo ceph orch restart rgw.osiasswift
 HOSTNAMES=$(sudo ceph orch host ls | grep -v HOST | awk '{print $1}' | tr '\n' ',')
 sudo ceph orch apply mgr "$HOSTNAMES" # Add back-up mgr hosts
+
+STANDBY_MGRS=$(sudo ceph -s | grep -i "standbys" | cut -d':' -f3 | wc -w)
+NUM_HOSTNAMES=$(($(sudo ceph orch host ls | grep -v HOST | awk '{print $1}' | tr '\n' ' '| wc -w)-1))
+while : ; do
+    if [[ "$STANDBY_MGRS" -lt "$NUM_HOSTNAMES" ]]; then
+        echo "Waiting for MGRS to join - $STANDBY_MGRS of $NUM_HOSTNAMES"
+        STANDBY_MGRS=$(sudo ceph -s | grep -i "standbys" | cut -d':' -f3 | wc -w)
+    else
+        echo "ALL MGRS have joined"
+        break
+    fi    
+    sleep 5
+done
