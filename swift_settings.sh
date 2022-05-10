@@ -6,7 +6,15 @@ NUM_OF_WHOS=$1
 sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False
 sudo ceph orch apply mgr "$HOSTNAME"
-ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs ) # keystone_admin_password
+if grep -Fxq ceph_rgw_keystone_password /etc/kolla/passwords.yml
+then
+    ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+    rgw_keystone_admin_user="ceph_rgw"
+else
+    ceph_rgw_pass=$( grep keystone_admin_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+    rgw_keystone_admin_user="admin"
+fi
+
 internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
 
 # https://docs.ceph.com/en/latest/radosgw/keystone/#integrating-with-openstack-keystone
@@ -33,7 +41,7 @@ for WHO in $WHO_IS; do
     sudo ceph config set "$WHO" rgw_keystone_accepted_admin_roles "admin, ResellerAdmin"
     sudo ceph config set "$WHO" rgw_keystone_accepted_roles "_member_, member, admin, ResellerAdmin"
     sudo ceph config set "$WHO" rgw_keystone_implicit_tenants true # Implicitly create new users in their own tenant with the same name when authenticating via Keystone. Can be limited to s3 or swift only.
-    sudo ceph config set "$WHO" rgw_keystone_admin_user ceph_rgw # admin
+    sudo ceph config set "$WHO" rgw_keystone_admin_user "$rgw_keystone_admin_user"
     sudo ceph config set "$WHO" rgw_keystone_admin_password "$ceph_rgw_pass" # Got from the passwords.yml
     sudo ceph config set "$WHO" rgw_keystone_admin_project service
     sudo ceph config set "$WHO" rgw_keystone_admin_domain default
