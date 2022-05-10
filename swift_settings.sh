@@ -6,7 +6,7 @@ NUM_OF_WHOS=$1
 sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False
 sudo ceph orch apply mgr "$HOSTNAME"
-if grep -Fxq ceph_rgw_keystone_password /etc/kolla/passwords.yml
+if grep ceph_rgw_keystone_password /etc/kolla/passwords.yml
 then
     ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
     rgw_keystone_admin_user="ceph_rgw"
