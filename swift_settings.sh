@@ -19,7 +19,7 @@ WHO_IS=""
 NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
 while [[ "$NUM_WHO_IS" -lt "$NUM_OF_WHOS" ]]
 do
-    WHO_IS="$(sudo ceph auth ls | grep client.rgw | grep client)" || true
+    WHO_IS="$(sudo ceph auth ls | grep client.rgw | grep client)" || WHO_IS=""
     echo "Waiting..."
     sleep 10
     NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
