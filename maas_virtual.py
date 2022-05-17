@@ -110,7 +110,7 @@ class MaasVirtual(MaasBase):
             " "
         )[0]
         machines = self._run_maas_command(
-            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+            "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names,power_state:.power_state}' --compact-output"
         )
         ids = []
         machine_no = 0
@@ -120,6 +120,7 @@ class MaasVirtual(MaasBase):
                 and machine["pool_name"] == "virtual_machine_pool"
                 and machine["distro_series"] == distro
                 and machine["tag_names"].__contains__("openstack_ready")
+                and machine["power_state"] == "on"
                 and machine_no < no_of_vms
             ):
                 ids.append(machine["system_id"])
