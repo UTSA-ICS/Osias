@@ -61,8 +61,13 @@ class MaasVirtual(MaasBase):
                     print("There is sufficient cores")
                     if free_storage >= storage:
                         print("There is sufficient storage")
-                        print(pod["id"])
-                        return pod["id"]
+                        system_id = pod["host"]["system_id"]
+                        power_state = self._run_maas_command(
+                            f"machine read {system_id} | jq -r '(.power_state)'"
+                        )
+                        if power_state is "on":
+                            print(pod["id"])
+                            return pod["id"]
         return False
 
     def _set_interface(self, system, interface, cidr):
@@ -98,6 +103,9 @@ class MaasVirtual(MaasBase):
         self._waiting(server_list, "Ready")
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
+        )
+        self._run_maas_command(
+            f"tag update-nodes openstack_ready{''.join([' add=' + sub for sub in server_list])}"
         )
         return server_list
 
