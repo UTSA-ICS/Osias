@@ -63,9 +63,9 @@ class MaasVirtual(MaasBase):
                         print("There is sufficient storage")
                         system_id = pod["host"]["system_id"]
                         power_state = self._run_maas_command(
-                            f"machine read {system_id} | jq -r '(.power_state)'"
+                            f"machine read {system_id} | jq '{{power_state:.power_state}}' --compact-output"
                         )
-                        if power_state is "on":
+                        if power_state["power_state"] == "on":
                             print(pod["id"])
                             return pod["id"]
         return False
@@ -89,6 +89,10 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
+            osias_variables.VM_Profile.update(
+                (k, vm_profile[k])
+                for k in osias_variables.VM_Profile.keys() & vm_profile.keys()
+            )
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.VM_Profile['Data_CIDR']}"
         else:
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}"
