@@ -68,7 +68,7 @@ class MaasBase:
                                 & vm_profile.keys()
                             )
                         else:
-                            fixed_cidr = osias_variables.VM_Profile[cidr]                        
+                            fixed_cidr = osias_variables.VM_Profile[cidr]
 
                         for ip in ips:
                             if (
