@@ -182,7 +182,7 @@ class MaasVirtual(MaasBase):
                         ip_start = tag.split("-")[1].replace("_", ".")
                     if "ip_end" in tag:
                         ip_end = tag.split("-")[1].replace("_", ".")
-        dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
+        dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines), vm_profile)
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):

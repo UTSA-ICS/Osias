@@ -52,7 +52,7 @@ class MaasBase:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
 
-    def _parse_ip_types(self, machine_ids: list, machine_info: list):
+    def _parse_ip_types(self, machine_ids: list, machine_info: list, vm_profile=None):
         """Given a list of servers and machine info, return a parsed list of info."""
         results = {}
         for machine in machine_ids:
@@ -61,7 +61,15 @@ class MaasBase:
                     ips = info["ip_addresses"]
                     temp = {}
                     for cidr in ["Internal_CIDR", "Data_CIDR", "VM_DEPLOYMENT_CIDR"]:
-                        fixed_cidr = osias_variables.VM_Profile[cidr]
+                        if vm_profile:
+                            fixed_cidr = osias_variables.VM_Profile.update(
+                                (k, vm_profile[k])
+                                for k in osias_variables.VM_Profile.keys()
+                                & vm_profile.keys()
+                            )
+                        else:
+                            fixed_cidr = osias_variables.VM_Profile[cidr]                        
+
                         for ip in ips:
                             if (
                                 IPv4Address(ip) in IPv4Network(fixed_cidr)
