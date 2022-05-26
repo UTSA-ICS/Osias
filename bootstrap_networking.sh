@@ -52,3 +52,6 @@ sudo chmod +x /etc/rc.local
 sudo chmod 755 /etc/rc.local
 sudo chown root:root /etc/rc.local
 sudo /etc/rc.local
+
+sudo netplan apply
+sleep 5

@@ -50,5 +50,5 @@ done
 
 # Redeploy your rgw daemon
 sudo ceph orch restart rgw.osiasswift
-HOSTNAMES=$(sudo ceph orch host ls | grep -v HOST | awk '{print $1}' | tr '\n' ',')
+HOSTNAMES=$(sudo ceph orch host ls | grep -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | awk '{print $1}' | tr '\n' ',')
 sudo ceph orch apply mgr "$HOSTNAMES" # Add back-up mgr hosts
