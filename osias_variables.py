@@ -67,7 +67,7 @@ MAAS_VM_DISTRO = {
     "victoria": "focal hwe_kernel=hwe-20.04",
     "wallaby": "focal hwe_kernel=hwe-20.04",
     "xena": "focal hwe_kernel=hwe-20.04",
-    "yoga": "focal hwe_kernel=hwe-20.04",
+    "yoga": "jammy hwe_kernel=ga-22.04",
 }
 
 # REFSTACK VARIABLES
@@ -84,7 +84,7 @@ REFSTACK_TEST_VERSION = {
     "victoria": "2021.11",
     "wallaby": "2021.11",
     "xena": "2021.11",
-    "yoga": "2021.11",
+    "yoga": "2022.06",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
