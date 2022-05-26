@@ -67,7 +67,7 @@ MAAS_VM_DISTRO = {
     "victoria": "focal hwe_kernel=hwe-20.04",
     "wallaby": "focal hwe_kernel=hwe-20.04",
     "xena": "focal hwe_kernel=hwe-20.04",
-    "yoga": "jammy hwe_kernel=ga-22.04",
+    "yoga": "focal hwe_kernel=hwe-20.04",
 }
 
 # REFSTACK VARIABLES
