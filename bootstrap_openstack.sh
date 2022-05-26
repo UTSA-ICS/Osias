@@ -19,5 +19,8 @@ fi
 
 kolla-ansible -i multinode certificates
 
+# Necessary for Yoga onwards.
+kolla-ansible install-deps || true 
+
 # This bootstrap is necessary to prep for openstack deployment.
 kolla-ansible -i multinode bootstrap-servers

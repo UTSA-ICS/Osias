@@ -53,14 +53,14 @@ ANSIBLE_MAX_VERSION = {
     "victoria": "2.10",
     "wallaby": "3.0",
     "xena": "5.0",
-    "yoga": "5.0",
+    "yoga": "6",
 }
 CEPH_VERSION = {
     "ussuri": "pacific",
     "victoria": "pacific",
     "wallaby": "pacific",
     "xena": "pacific",
-    "yoga": "pacific",
+    "yoga": "quincy",
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
