@@ -12,9 +12,7 @@ sudo apt-get update
 curl --silent --remote-name --location https://github.com/ceph/ceph/raw/"$CEPH_RELEASE"/src/cephadm/cephadm
 chmod +x cephadm
 
-if [[ $(lsb_release -c | awk '{print $2}') != "jammy" ]]; then
-    sudo ./cephadm add-repo --release "$CEPH_RELEASE"
-fi
+sudo ./cephadm add-repo --release "$CEPH_RELEASE"
 
 # Update to fetch the package index for ceph added above
 sudo apt-get update
