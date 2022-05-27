@@ -24,13 +24,13 @@ deployment.
 
 - MAAS version: 2.8.2 - 3.1.0
 
-|      | Kolla   | Python |    OS |      Ansible |    Ceph |
-|----------|------|-----|--------------|---------|---------|
-| ussuri   | 10.x | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific |
-| victoria | 11.x | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific |
-| wallaby  | 12.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific |
-| xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific |
-| yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific |
+|      | Kolla   | Python |    OS |      Ansible |    Ceph | Swift |
+|----------|------|-----|--------------|---------|---------|-------|
+| ussuri   | 10.x | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific | No    |
+| victoria | 11.x | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific | No    |
+| wallaby  | 12.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific | No    |
+| xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
+| yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
 
 ## MaaS
 
@@ -98,7 +98,7 @@ This stage will only happen if you are not using MaaS.
 - Podman will be installed for cephadm
 - Cephadm will be configured to use control\[0\] node as the head node and will be deployed.
   - All of your ceph volumes and keyrings will be generated in this stage.
-  - Radosgw will be installed for swift API services.
+  - 1 Radosgw will be installed for swift API services.
 - Kolla pre-checks and kolla pull will both run.
 
 ### Deploy OpenStack
@@ -116,6 +116,7 @@ This stage will only happen if you are not using MaaS.
 
 - Refstack will be configured and run in the following stages.
   - `refstack-client test -c etc/tempest.conf -v --test-list "https://refstack.openstack.org/api/v1/guidelines/2020.11/tests?target=platform&type=required&alias=true&flag=false"`
+- If tests are successful, radosgw will be installed HA, 3+ nodes.
 
 ## Physical Architecture
 
