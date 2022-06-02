@@ -84,14 +84,14 @@ REFSTACK_TEST_VERSION = {
     "victoria": "2021.11",
     "wallaby": "2021.11",
     "xena": "2021.11",
-    "yoga": "2022.06",
+    "yoga": "2021.11",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
     "victoria": "29.2.0",
     "wallaby": "29.1.0",
     "xena": "29.2.0",
-    "yoga": "30.0.0",
+    "yoga": "30.1.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
