@@ -24,12 +24,13 @@ deployment.
 
 - MAAS version: 2.8.2 - 3.1.0
 
-|      | Kolla   | Python |    OS |      Ansible |    Ceph |
-|----------|------|-----|--------------|---------|---------|
-| ussuri   | 11.x | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific |
-| victoria | 12.x | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific |
-| wallaby  | 13.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific |
-| xena     | 14.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific |
+|      | Kolla   | Python |    OS |      Ansible |    Ceph | Swift |
+|----------|------|-----|--------------|---------|---------|-------|
+| ussuri   | 10.x | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific | No    |
+| victoria | 11.x | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific | No    |
+| wallaby  | 12.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific | No    |
+| xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
+| yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
 
 ## MaaS
 
@@ -97,6 +98,7 @@ This stage will only happen if you are not using MaaS.
 - Podman will be installed for cephadm
 - Cephadm will be configured to use control\[0\] node as the head node and will be deployed.
   - All of your ceph volumes and keyrings will be generated in this stage.
+  - 1 Radosgw will be installed for swift API services.
 - Kolla pre-checks and kolla pull will both run.
 
 ### Deploy OpenStack
@@ -114,6 +116,7 @@ This stage will only happen if you are not using MaaS.
 
 - Refstack will be configured and run in the following stages.
   - `refstack-client test -c etc/tempest.conf -v --test-list "https://refstack.openstack.org/api/v1/guidelines/2020.11/tests?target=platform&type=required&alias=true&flag=false"`
+- If tests are successful, radosgw will be installed HA, 3+ nodes.
 
 ## Physical Architecture
 
@@ -243,6 +246,7 @@ pool_start_ip so the whole block is reserved.
     # Optional variables
     DOCKER_REGISTRY = "<DOCKER IP>"
     DOCKER_REGISTRY_USERNAME = "<DOCKER REGISTRY USERNAME>"
+    FQDN = "<FULLY QUALIFIED DOMAIN NAME>"
 ```
 
 ### For development & MAAS created VM's
@@ -309,10 +313,9 @@ sourced, you can manually issue the commands from our gitlab-ci.yml file, for ex
 Also, it has been tested you can deploy our code inside a
 [LXD VM configured from MaaS](https://maas.io/docs/snap/2.9/ui/vm-host-networking#heading--lxd-setup).
 
-## TODO
-
 ### One Command, Complete Deployment
 
 To issue all of our deployment in one command for an all-in-one dev environment:
+All in one node may not fully test refstack components and will not install ceph.
 
-`source all_in_one_openstack_deployment.sh $OPENSTACK_RELEASE`
+./all_in_one_openstack_deployment.sh "$OPENSTACK_RELEASE" "$NODES_IP_ADDRESS"
