@@ -84,6 +84,10 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
+            osias_variables.VM_Profile.update(
+                (k, vm_profile[k])
+                for k in osias_variables.VM_Profile.keys() & vm_profile.keys()
+            )
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.VM_Profile['Data_CIDR']}"
         else:
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}"
@@ -99,6 +103,10 @@ class MaasVirtual(MaasBase):
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
+        self._run_maas_command(
+            f"tag update-nodes openstack_ready{''.join([' add=' + sub for sub in server_list])}"
+        )
+
         return server_list
 
     def find_virtual_machines_and_tag(
@@ -169,7 +177,9 @@ class MaasVirtual(MaasBase):
                         ip_start = tag.split("-")[1].replace("_", ".")
                     if "ip_end" in tag:
                         ip_end = tag.split("-")[1].replace("_", ".")
-        dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
+        dict_of_ids_and_ips = self._parse_ip_types(
+            list(ids), list(machines), vm_profile
+        )
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):
