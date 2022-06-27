@@ -63,7 +63,7 @@ class MaasVirtual(MaasBase):
                         print("There is sufficient storage")
                         print(pod["id"])
                         return pod["id"]
-        return False
+        raise Exception("KVM Host(s) do not have enough available resources.")
 
     def _set_interface(self, system, interface, cidr):
         self._run_maas_command(
