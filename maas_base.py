@@ -88,7 +88,7 @@ class MaasBase:
                                 ):
                                     label = "public"
                                 temp[label] = ip
-                    results[machine] = temp
+                        results[machine] = temp
             print(results)
             return results
         else:
