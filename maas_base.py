@@ -61,33 +61,28 @@ class MaasBase:
                     if machine == info["system_id"]:
                         ips = info["ip_addresses"]
                         temp = {}
-                        for cidr in [
-                            "Internal_CIDR",
-                            "Data_CIDR",
-                            "VM_DEPLOYMENT_CIDR",
-                        ]:
-                            fixed_cidr = osias_variables.VM_Profile.update(
-                                (k, vm_profile[k])
-                                for k in osias_variables.VM_Profile.keys()
-                                & vm_profile.keys()
-                            )
-                            for ip in ips:
-                                if (
-                                    IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                    and cidr == "Internal_CIDR"
-                                ):
-                                    label = "internal"
-                                if (
-                                    IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                    and cidr == "Data_CIDR"
-                                ):
-                                    label = "data"
-                                if (
-                                    IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                    and cidr == "VM_DEPLOYMENT_CIDR"
-                                ):
-                                    label = "public"
-                                temp[label] = ip
+                        osias_variables.VM_Profile.update(vm_profile.items())
+                        for ip in ips:
+                            if (
+                                IPv4Address(ip)
+                                in IPv4Network(
+                                    osias_variables.VM_Profile["Internal_CIDR"]
+                                )
+                            ):
+                                label = "internal"
+                            if (
+                                IPv4Address(ip)
+                                in IPv4Network(osias_variables.VM_Profile["Data_CIDR"])
+                            ):
+                                label = "data"
+                            if (
+                                IPv4Address(ip)
+                                in IPv4Network(
+                                    osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"]
+                                )
+                            ):
+                                label = "public"
+                            temp[label] = ip
                         results[machine] = temp
             print(results)
             return results
