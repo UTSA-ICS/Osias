@@ -63,23 +63,16 @@ class MaasBase:
                         temp = {}
                         osias_variables.VM_Profile.update(vm_profile.items())
                         for ip in ips:
-                            if (
-                                IPv4Address(ip)
-                                in IPv4Network(
-                                    osias_variables.VM_Profile["Internal_CIDR"]
-                                )
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["Internal_CIDR"]
                             ):
                                 label = "internal"
-                            if (
-                                IPv4Address(ip)
-                                in IPv4Network(osias_variables.VM_Profile["Data_CIDR"])
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["Data_CIDR"]
                             ):
                                 label = "data"
-                            if (
-                                IPv4Address(ip)
-                                in IPv4Network(
-                                    osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"]
-                                )
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"]
                             ):
                                 label = "public"
                             temp[label] = ip
