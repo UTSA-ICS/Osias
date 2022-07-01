@@ -233,6 +233,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
+    osias_variables.VM_Profile.update(vm_profile.items())
     public_IP_pool = servers.get_ip_pool(
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
