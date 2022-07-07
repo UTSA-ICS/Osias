@@ -195,7 +195,9 @@ def bootstrap_openstack(
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
 
 
-def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
+def bootstrap_ceph(
+    servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR, CEPH_PUBLIC_CIDR
+):
     utils.run_script_on_server(
         "bootstrap_podman.sh",
         servers_public_ip,
@@ -203,7 +205,7 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
-        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR],
+        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR, CEPH_PUBLIC_CIDR],
     )
 
 
@@ -354,6 +356,7 @@ def main():
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_CIDR = config.get_variables(variable="VM_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
+        CEPH_PUBLIC_CIDR = config.get_variables(variable="Internal_CIDR")
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
@@ -405,7 +408,11 @@ def main():
         elif args.operation == "bootstrap_ceph":
             if ceph_enabled:
                 bootstrap_ceph(
-                    servers_public_ip, storage_nodes_data_ip, CEPH_RELEASE, DATA_CIDR
+                    servers_public_ip,
+                    storage_nodes_data_ip,
+                    CEPH_RELEASE,
+                    DATA_CIDR,
+                    CEPH_PUBLIC_CIDR,
                 )
             else:
                 print("'Bootstrap_Ceph' is skipped due to CEPH being DISABLED.")
@@ -534,7 +541,11 @@ def main():
             )
             if ceph_enabled:
                 bootstrap_ceph(
-                    servers_public_ip, storage_nodes_data_ip, CEPH_RELEASE, DATA_CIDR
+                    servers_public_ip,
+                    storage_nodes_data_ip,
+                    CEPH_RELEASE,
+                    DATA_CIDR,
+                    CEPH_PUBLIC_CIDR,
                 )
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
