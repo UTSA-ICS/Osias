@@ -195,8 +195,7 @@ def bootstrap_openstack(
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
 
 
-def bootstrap_ceph(
-    servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
+def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
     utils.run_script_on_server(
         "bootstrap_podman.sh",
         servers_public_ip,
@@ -360,7 +359,7 @@ def main():
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
-        
+
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
                 raise Exception(
