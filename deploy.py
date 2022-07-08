@@ -196,8 +196,7 @@ def bootstrap_openstack(
 
 
 def bootstrap_ceph(
-    servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR, CEPH_PUBLIC_CIDR
-):
+    servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
     utils.run_script_on_server(
         "bootstrap_podman.sh",
         servers_public_ip,
@@ -205,7 +204,7 @@ def bootstrap_ceph(
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
-        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR, CEPH_PUBLIC_CIDR],
+        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR],
     )
 
 
@@ -357,12 +356,11 @@ def main():
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_CIDR = config.get_variables(variable="VM_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
-        INTERNAL_CIDR = config.get_variables(variable="Internal_CIDR")
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
-
+        
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
                 raise Exception(
@@ -387,8 +385,6 @@ def main():
         MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
         CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
-        if not INTERNAL_CIDR:
-            INTERNAL_CIDR = osias_variables.VM_Profile["Internal_CIDR"]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -415,7 +411,6 @@ def main():
                     storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
-                    INTERNAL_CIDR,
                 )
             else:
                 print("'Bootstrap_Ceph' is skipped due to CEPH being DISABLED.")
@@ -548,7 +543,6 @@ def main():
                     storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
-                    INTERNAL_CIDR,
                 )
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
