@@ -4,8 +4,8 @@ set -euxo pipefail
 
 MONITOR_IP=$1
 CEPH_RELEASE=$2
-CLUSTER_NETWORK=$3
-CEPH_PUBLIC_CIDR=$4
+CLUSTER_NETWORK="${3:-''}"
+CEPH_PUBLIC_CIDR="${4:-''}"
 
 # Update to fetch the latest package index
 sudo apt-get update

@@ -356,7 +356,7 @@ def main():
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_CIDR = config.get_variables(variable="VM_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
-        CEPH_PUBLIC_CIDR = config.get_variables(variable="Internal_CIDR")
+        INTERNAL_CIDR = config.get_variables(variable="Internal_CIDR")
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
@@ -386,6 +386,8 @@ def main():
         MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
         CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
+        if not INTERNAL_CIDR:
+            INTERNAL_CIDR = osias_variables.VM_Profile["Internal_CIDR"]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -412,7 +414,7 @@ def main():
                     storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
-                    CEPH_PUBLIC_CIDR,
+                    INTERNAL_CIDR,
                 )
             else:
                 print("'Bootstrap_Ceph' is skipped due to CEPH being DISABLED.")
@@ -545,7 +547,7 @@ def main():
                     storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
-                    CEPH_PUBLIC_CIDR,
+                    INTERNAL_CIDR,
                 )
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
