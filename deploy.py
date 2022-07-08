@@ -285,6 +285,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
     optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
+    optional_vars["Internal_CIDR"] = vm_profile["Internal_CIDR"]
     multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
