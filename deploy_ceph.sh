@@ -60,6 +60,7 @@ source "$HOME"/swift_settings.sh 1
 services="$(sudo ceph orch ls | grep ago | awk '{print $1}')"
 for service in $services; do
   sudo ceph orch restart "$service"
+  sleep 2
 done
 sudo ceph crash archive-all  # Clear all health warnings.
 
