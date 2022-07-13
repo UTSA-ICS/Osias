@@ -43,7 +43,7 @@ source .venv/bin/activate
 
 # Sample for running a single testcase
 #refstack-client test -c etc/tempest.conf -v -- --regex tempest.api.identity.v3.test_tokens.TokensV3Test.test_create_token
-wget "https://refstack.openstack.org/api/v1/guidelines/${REFSTACK_TEST_VERSION}/tests?target=platform&type=required&alias=true&flag=false" -O /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
+wget "https://refstack.openstack.org/api/v1/guidelines/${REFSTACK_TEST_VERSION}/tests?target=platform&type=required&alias=true&flag=true" -O /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
 
 # This is for the instance of an all-in-one deploy where there is no nested
 # virtualization is available and so no VMs can be created - hence the VM pool
