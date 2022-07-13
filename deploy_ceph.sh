@@ -59,9 +59,9 @@ source "$HOME"/swift_settings.sh 1
 # Restart all services.
 services="$(sudo ceph orch ls | grep ago | awk '{print $1}')"
 for service in $services; do
-  sudo ceph orch restart "$service"
-  sleep 2
+  sudo ceph orch reconfig "$service"
 done
+sudo ceph config set mgr mgr/cephadm/config_checks_enabled true # Enable additional configuration checks.
 sudo ceph crash archive-all  # Clear all health warnings.
 
 # Get cinder and cinder-backup ready
