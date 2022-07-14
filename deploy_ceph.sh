@@ -56,13 +56,7 @@ sudo ceph config set global rbd_cache_writethrough_until_flush False
 # Enable swift
 source "$HOME"/swift_settings.sh 1
 
-# Restart all services.
-services="$(sudo ceph orch ls | grep ago | awk '{print $1}')"
-for service in $services; do
-  sudo ceph orch reconfig "$service"
-done
 sudo ceph config set mgr mgr/cephadm/config_checks_enabled true # Enable additional configuration checks.
-sudo ceph crash archive-all  # Clear all health warnings.
 
 # Get cinder and cinder-backup ready
 sudo mkdir -p /etc/kolla/config/cinder/cinder-backup
@@ -109,3 +103,10 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
 sudo ceph status
+
+# Restart all services.
+services="$(sudo ceph orch ls | grep ago | awk '{print $1}')"
+for service in $services; do
+  sudo ceph orch restart "$service"
+done
+sudo ceph crash archive-all  # Clear all health warnings.
