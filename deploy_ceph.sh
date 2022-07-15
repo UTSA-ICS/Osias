@@ -104,6 +104,22 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
 sudo ceph status
 
+#Add first 3 hosts as MGRs, verify that they are running.
+HOSTS="$(sudo ceph orch host ls -f plain | awk '{print $1;}' | sed '1d;5,$d')"
+APPLY_HOSTS="${HOSTS//[^a-zA-Z0-9-]/,}"
+sudo ceph orch apply mgr "$APPLY_HOSTS"
+while [[ -n "$HOSTS" ]]
+do
+   MGRS="$(sudo ceph -s | grep mgr:)"
+   for host in $HOSTS; do
+     if [[ $MGRS == *$host* ]]; then
+        HOSTS=${HOSTS//$host/}
+     fi
+   done
+   HOSTS="$(echo "$HOSTS" | awk NF)"
+   sleep 2
+done
+
 # Restart all services.
 services="$(sudo ceph orch ls | grep ago | awk '{print $1}')"
 for service in $services; do
