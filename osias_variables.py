@@ -27,7 +27,7 @@ example input:
 
 VM_Profile = {
     "Number_of_VM_Servers": 3,
-    "vCPU": 8,
+    "vCPU": 6,
     "RAM_in_MB": 16384,
     "HDD1": 60,
     "HDD2": 10,
