@@ -73,10 +73,7 @@ class MaasVirtual(MaasBase):
     def create_virtual_machine(self, vm_profile, num_VMs):
         # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
-            osias_variables.VM_Profile["HDD1"]
-            + osias_variables.VM_Profile["HDD2"]
-            + osias_variables.VM_Profile["HDD3"]
-            + osias_variables.VM_Profile["HDD4"]
+            osias_variables.VM_Profile["HDD1"] + osias_variables.VM_Profile["HDD2"]
         )
         pod_id = self._get_pod_id(
             total_storage,
