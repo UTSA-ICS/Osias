@@ -28,25 +28,13 @@ sudo rbd pool init vms
 
 # https://support.huaweicloud.com/intl/en-us/tngg-kunpengsdss/kunpengsdss-tngg.pdf
 # Set global settings
-sudo ceph config set global osd_pool_default_min_size 1  # Allow writing one copy in a degraded state, Default: 0
+# sudo ceph config set global osd_pool_default_min_size 1  # Allow writing one copy in a degraded state, Default: 0
 
 # Optimizing Compression Algorithm
-sudo ceph config set global bluestore_min_alloc_size_hdd 8192 # Change the value to 8KB to reduce the size of the compressed data and ensure the compression ratio, Default value: 32768
-
-
-# Set OSD settings
-OSD_WHO_IS="$(sudo ceph auth ls | grep 'osd.[0-9]')" || true
-echo "OSD Clients: $OSD_WHO_IS"
-for OSD in $OSD_WHO_IS; do
-    sudo ceph config set "$OSD" osd_max_write_size 512  # Maximum size (in MB) of data that can be written by an OSD at a time, Default: 90
-    sudo ceph config set "$OSD" osd_recovery_max_active 10  # Number of active restoration requests in the same period, Default: 3 for HDD, 10 for SSD
-    sudo ceph config set "$OSD" osd_max_backfills 4  # Maximum number of backfills allowed by an OSD, Default: 1
-    sudo ceph config set "$OSD" osd_map_cache_size 1024  # Size of the cache (in MB) that stores the OSD map, Default: 50
-    sudo ceph config set "$OSD" osd_recovery_op_priority 2  # Restoration priority. The value ranges from 1 to 63. A larger value indicates higher resource usage, Default: 3
-done
+# sudo ceph config set global bluestore_min_alloc_size_hdd 8192 # Change the value to 8KB to reduce the size of the compressed data and ensure the compression ratio, Default value: 32768
 
 # Set client settings
-sudo ceph config set global rbd_cache_writethrough_until_flush False
+#sudo ceph config set global rbd_cache_writethrough_until_flush False
 # Default: True
 # This parameter is used for compatibility with the virtio driver earlier than linux-2.6.32. 
 # It prevents the situation that data is written back when no flush request is sent. 
@@ -103,6 +91,17 @@ sudo sed -i $'s/\t//g' /etc/kolla/config/nova/ceph.client.cinder.keyring
 # Verify all permissions are correct.
 sudo chown -R ubuntu:ubuntu /etc/kolla/config/
 sudo ceph status
+
+# Set OSD settings
+#OSD_WHO_IS="$(sudo ceph auth ls | grep 'osd.[0-9]')" || true
+#echo "OSD Clients: $OSD_WHO_IS"
+#for OSD in $OSD_WHO_IS; do
+#    sudo ceph config set "$OSD" osd_max_write_size 512  # Maximum size (in MB) of data that can be written by an OSD at a time, Default: 90
+#    sudo ceph config set "$OSD" osd_recovery_max_active 10  # Number of active restoration requests in the same period, Default: 3 for HDD, 10 for SSD
+#    sudo ceph config set "$OSD" osd_max_backfills 4  # Maximum number of backfills allowed by an OSD, Default: 1
+#    sudo ceph config set "$OSD" osd_map_cache_size 1024  # Size of the cache (in MB) that stores the OSD map, Default: 50
+#    sudo ceph config set "$OSD" osd_recovery_op_priority 2  # Restoration priority. The value ranges from 1 to 63. A larger value indicates higher resource usage, Default: 3
+#done
 
 #Add first 3 hosts as MGRs, verify that they are running.
 HOSTS="$(sudo ceph orch host ls -f plain | awk '{print $1;}' | sed '1d;5,$d')"

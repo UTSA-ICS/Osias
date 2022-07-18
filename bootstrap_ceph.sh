@@ -5,7 +5,7 @@ set -euxo pipefail
 MONITOR_IP=$1
 CEPH_RELEASE=$2
 CLUSTER_NETWORK="${3:-''}"
-
+echo "$CLUSTER_NETWORK"
 # Update to fetch the latest package index
 sudo apt-get update
 
@@ -25,7 +25,7 @@ sudo ./cephadm install
 sudo mkdir -p /etc/ceph
 
 if [ $# == 3 ]; then
-  sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP" --cluster-network "$CLUSTER_NETWORK"
+  sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP" # --cluster-network "$CLUSTER_NETWORK"
 else
   sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP"
 fi

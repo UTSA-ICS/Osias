@@ -39,7 +39,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        OPENSTACK_RELEASE: ["victoria", "wallaby", "xena"]
+        OPENSTACK_RELEASE: ["victoria", "wallaby", "xena", "yoga"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
