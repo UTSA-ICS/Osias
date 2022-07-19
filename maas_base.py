@@ -82,10 +82,10 @@ class MaasBase:
         else:
             raise Exception("Logic Error: no vm_profile specified.")
 
-    def _release(self, server_list):
-        for machine in server_list[:]:
+    def _release(self):
+        for machine in self.machine_list[:]:
             self._run_maas_command(f"machine release {machine}")
-        self._waiting(server_list, "Ready")
+        self._waiting(self.machine_list, "Ready")
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):

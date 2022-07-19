@@ -215,10 +215,14 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
     utils.run_script_on_server("deploy_ceph.sh", servers_public_ip[0])
 
 
-def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
+def reprovision_servers(
+    maas_url, maas_api_key, servers_public_ip, distro, wipe_physical_servers
+):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
+    if ast.literal_eval(wipe_physical_servers):
+        servers._release()
     servers.deploy()
 
 
@@ -268,22 +272,13 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
     print(f"server_dict: {server_dict}")
 
-    optional_vars = {}
-    if vm_profile.get("DOCKER_REGISTRY_IP"):
-        optional_vars["DOCKER_REGISTRY"] = vm_profile["DOCKER_REGISTRY_IP"]
-        if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
-            optional_vars["DOCKER_REGISTRY_USERNAME"] = vm_profile[
-                "DOCKER_REGISTRY_USERNAME"
-            ]
-
+    optional_vars = vm_profile
     optional_vars["CEPH"] = CEPH
-    optional_vars["DNS_IP"] = vm_profile["DNS_IP"]
-    optional_vars["OPENSTACK_RELEASE"] = vm_profile["OPENSTACK_RELEASE"]
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
-    optional_vars["Internal_CIDR"] = vm_profile["Internal_CIDR"]
+    if vm_profile["VM_DEPLOYMENT_CIDR"]:
+        optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
     multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
@@ -359,6 +354,7 @@ def main():
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
+        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
@@ -392,7 +388,11 @@ def main():
         elif args.operation == "reprovision_servers":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 reprovision_servers(
-                    args.MAAS_URL, args.MAAS_API_KEY, servers_public_ip, MAAS_VM_DISTRO
+                    args.MAAS_URL,
+                    args.MAAS_API_KEY,
+                    servers_public_ip,
+                    MAAS_VM_DISTRO,
+                    WIPE_PHYSICAL_SERVERS,
                 )
             else:
                 raise Exception(
