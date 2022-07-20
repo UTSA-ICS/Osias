@@ -142,7 +142,7 @@ def bootstrap_openstack(
     docker_registry,
     docker_registry_username,
     docker_registry_password,
-    vm_cidr,
+    vm_deployment_cidr,
     python_version,
     openstack_release,
     ansible_version,
@@ -166,7 +166,7 @@ def bootstrap_openstack(
         servers_public_ip,
         docker_registry,
         docker_registry_username,
-        vm_cidr,
+        vm_deployment_cidr,
         ceph,
         vip_address,
         fqdn,
@@ -221,7 +221,7 @@ def reprovision_servers(
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
-    if ast.literal_eval(wipe_physical_servers):
+    if ast.literal_eval(wipe_physical_servers.title()):
         servers._release()
     servers.deploy()
 
@@ -277,8 +277,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    if vm_profile["VM_DEPLOYMENT_CIDR"]:
-        optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
     multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
@@ -348,7 +346,7 @@ def main():
             variable="DOCKER_REGISTRY_USERNAME"
         )
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
-        VM_CIDR = config.get_variables(variable="VM_CIDR")
+        VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
@@ -404,6 +402,10 @@ def main():
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
             bootstrap_networking(servers_public_ip)
         elif args.operation == "bootstrap_ceph":
+            if not isinstance(ceph_enabled, bool):
+                raise Exception(
+                    "ERROR: Unable to determine if ceph should be enabled or not, OSIAS multinode value should be a boolean of 'true' or 'false' without quotes."
+                )
             if ceph_enabled:
                 bootstrap_ceph(
                     servers_public_ip,
@@ -424,7 +426,7 @@ def main():
                 docker_registry,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_CIDR,
+                VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
@@ -532,7 +534,7 @@ def main():
                 docker_registry,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_CIDR,
+                VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
             )

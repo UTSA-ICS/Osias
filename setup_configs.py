@@ -12,7 +12,7 @@ def setup_kolla_configs(
     servers_public_ip,
     docker_registry,
     docker_registry_username,
-    vm_cidr,
+    vm_deployment_cidr,
     ceph,
     vip_address,
     fqdn,
