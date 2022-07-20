@@ -6,6 +6,10 @@ default:
   tags:
     - docker-runner
 
+include:
+  # Disallow merge request pipelines globally so we don't generate duplicate pipelines
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+
 variables:
   DEPLOY_MULTIPLE_RELEASES:
     value: "true"
