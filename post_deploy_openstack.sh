@@ -59,6 +59,7 @@ openstack router add subnet pub-router private_subnet
 
 SERVICE_LIST="$(openstack service list)"
 
+# check_service iterates through the services, finds the swift service url, checks if it is formatted correctly, if not, it will update it appropriately.
 check_service() {
     service="$1"
     shift
