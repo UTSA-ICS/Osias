@@ -66,9 +66,10 @@ release_testing:
       - artifact: release-test.yml
         job: generate_yaml_config
     strategy: depend
+    forward:
+      yaml_variables: true
+      pipeline_variables: true
   variables:
     DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
-    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
     VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
-    MULTINODE: $MULTINODE
