@@ -57,8 +57,6 @@ tag_virtual_servers:
 
 reprovision_servers:
   stage: prepare
-  extends:
-    - .base_setup
   image: utsaics/maas:2.8
   before_script:
     # Setup and add SSH_PRIVATE_KEY to ssh agent
