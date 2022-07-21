@@ -50,7 +50,8 @@ generate_yaml_config:
   stage: generate_yaml
   script:
     - bash generate_yml.sh > release-test.yml
-    - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
+    - if [ -z "$MULTINODE_CURRENT_RELEASE" ]; then echo MULTINODE_CURRENT_RELEASE="" >> build.env; fi
+    - if [ -z "$MULTINODE_PREVIOUS_RELEASE" ]; then echo MULTINODE_PREVIOUS_RELEASE="" >> build.env; fi
   artifacts:
     paths:
       - release-test.yml
@@ -71,4 +72,5 @@ release_testing:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
     VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
-    MULTINODE: $MULTINODE
+    MULTINODE_CURRENT_RELEASE: $MULTINODE_CURRENT_RELEASE
+    MULTINODE_PREVIOUS_RELEASE: $MULTINODE_PREVIOUS_RELEASE

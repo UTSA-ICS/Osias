@@ -16,7 +16,6 @@ workflow:
 stages:
   - <RELEASE_NAME>
   - generate_cidr
-  - reprovision_servers
   - bootstrap_networking
   - cleanup
   - reboot_servers
@@ -63,23 +62,6 @@ create_virtual_machines:
   artifacts:
     paths:
       - MULTINODE.env
-
-reprovision_servers:
-  stage: reprovision_servers
-  extends:
-    - .base_setup
-  image: utsaics/maas:2.8
-  script:
-    - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
-  rules:
-    - if: '$MULTINODE == "" || $MULTINODE == null'
-      when: never
-    - if: '$REPROVISION_SERVERS == "false"'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE != "" || $MULTINODE != null)'
-    - if: '$CI_PIPELINE_SOURCE == "push" && ($MULTINODE != "" || $MULTINODE != null)'
-    - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
-    - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
 bootstrap_networking:
   stage: bootstrap_networking
