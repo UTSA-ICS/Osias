@@ -6,6 +6,10 @@ default:
   tags:
     - docker-runner
 
+include:
+  # Disallow merge request pipelines globally so we don't generate duplicate pipelines
+  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+
 variables:
   DEPLOY_MULTIPLE_RELEASES:
     value: "true"
@@ -16,7 +20,7 @@ variables:
 
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 

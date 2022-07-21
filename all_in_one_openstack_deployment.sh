@@ -34,7 +34,7 @@ MY_IP="$2"
 [variables]
     [variables.0]
     CEPH = "False"
-    VM_CIDR = "${MY_IP}/32"
+    VM_DEPLOYMENT_CIDR = "${MY_IP}/32"
     VIP_ADDRESS = "${MY_IP}"
     VIP_IP = "${MY_IP}"
     POOL_START_IP = "${MY_IP}"

@@ -63,7 +63,7 @@ class MaasVirtual(MaasBase):
                         print("There is sufficient storage")
                         print(pod["id"])
                         return pod["id"]
-        return False
+        raise Exception("KVM Host(s) do not have enough available resources.")
 
     def _set_interface(self, system, interface, cidr):
         self._run_maas_command(
@@ -73,10 +73,7 @@ class MaasVirtual(MaasBase):
     def create_virtual_machine(self, vm_profile, num_VMs):
         # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
-            osias_variables.VM_Profile["HDD1"]
-            + osias_variables.VM_Profile["HDD2"]
-            + osias_variables.VM_Profile["HDD3"]
-            + osias_variables.VM_Profile["HDD4"]
+            osias_variables.VM_Profile["HDD1"] + osias_variables.VM_Profile["HDD2"]
         )
         pod_id = self._get_pod_id(
             total_storage,
@@ -84,13 +81,17 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["RAM_in_MB"],
         )
         if vm_profile["Data_CIDR"]:
+            osias_variables.VM_Profile.update(
+                (k, vm_profile[k])
+                for k in osias_variables.VM_Profile.keys() & vm_profile.keys()
+            )
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']};eno3:subnet_cidr={osias_variables.VM_Profile['Data_CIDR']}"
         else:
             interfaces = f"eno1:subnet_cidr={osias_variables.VM_Profile['Internal_CIDR']};eno2:subnet_cidr={osias_variables.VM_Profile['VM_DEPLOYMENT_CIDR']}"
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
-                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
+                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']}' interfaces='{interfaces}'"
             )
             server_list.append(server["system_id"])
 
@@ -99,6 +100,10 @@ class MaasVirtual(MaasBase):
         self._create_bridge_interface(
             server_list, osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"], machine_info
         )
+        self._run_maas_command(
+            f"tag update-nodes openstack_ready{''.join([' add=' + sub for sub in server_list])}"
+        )
+
         return server_list
 
     def find_virtual_machines_and_tag(
@@ -169,7 +174,9 @@ class MaasVirtual(MaasBase):
                         ip_start = tag.split("-")[1].replace("_", ".")
                     if "ip_end" in tag:
                         ip_end = tag.split("-")[1].replace("_", ".")
-        dict_of_ids_and_ips = self._parse_ip_types(list(ids), list(machines))
+        dict_of_ids_and_ips = self._parse_ip_types(
+            list(ids), list(machines), vm_profile
+        )
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
     def delete_virtual_machines(self, openstack_release, pipeline_id: int):

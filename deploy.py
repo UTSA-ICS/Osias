@@ -142,7 +142,7 @@ def bootstrap_openstack(
     docker_registry,
     docker_registry_username,
     docker_registry_password,
-    vm_cidr,
+    vm_deployment_cidr,
     python_version,
     openstack_release,
     ansible_version,
@@ -166,7 +166,7 @@ def bootstrap_openstack(
         servers_public_ip,
         docker_registry,
         docker_registry_username,
-        vm_cidr,
+        vm_deployment_cidr,
         ceph,
         vip_address,
         fqdn,
@@ -195,7 +195,7 @@ def bootstrap_openstack(
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
 
 
-def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release):
+def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
     utils.run_script_on_server(
         "bootstrap_podman.sh",
         servers_public_ip,
@@ -203,7 +203,7 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release):
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
-        args=[storage_nodes_data_ip[0], ceph_release],
+        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR],
     )
 
 
@@ -215,10 +215,14 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
     utils.run_script_on_server("deploy_ceph.sh", servers_public_ip[0])
 
 
-def reprovision_servers(maas_url, maas_api_key, servers_public_ip, distro):
+def reprovision_servers(
+    maas_url, maas_api_key, servers_public_ip, distro, wipe_physical_servers
+):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
+    if ast.literal_eval(wipe_physical_servers.title()):
+        servers._release()
     servers.deploy()
 
 
@@ -233,6 +237,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
+    osias_variables.VM_Profile.update(vm_profile.items())
     public_IP_pool = servers.get_ip_pool(
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
@@ -267,21 +272,11 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
     print(f"server_dict: {server_dict}")
 
-    optional_vars = {}
-    if vm_profile.get("DOCKER_REGISTRY_IP"):
-        optional_vars["DOCKER_REGISTRY"] = vm_profile["DOCKER_REGISTRY_IP"]
-        if vm_profile.get("DOCKER_REGISTRY_USERNAME"):
-            optional_vars["DOCKER_REGISTRY_USERNAME"] = vm_profile[
-                "DOCKER_REGISTRY_USERNAME"
-            ]
-
+    optional_vars = vm_profile
     optional_vars["CEPH"] = CEPH
-    optional_vars["DNS_IP"] = vm_profile["DNS_IP"]
-    optional_vars["OPENSTACK_RELEASE"] = vm_profile["OPENSTACK_RELEASE"]
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    optional_vars["VM_CIDR"] = vm_profile["VM_DEPLOYMENT_CIDR"]
     multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
@@ -351,11 +346,13 @@ def main():
             variable="DOCKER_REGISTRY_USERNAME"
         )
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
-        VM_CIDR = config.get_variables(variable="VM_CIDR")
+        VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
+        DATA_CIDR = config.get_variables(variable="Data_CIDR")
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
+        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
@@ -389,7 +386,11 @@ def main():
         elif args.operation == "reprovision_servers":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 reprovision_servers(
-                    args.MAAS_URL, args.MAAS_API_KEY, servers_public_ip, MAAS_VM_DISTRO
+                    args.MAAS_URL,
+                    args.MAAS_API_KEY,
+                    servers_public_ip,
+                    MAAS_VM_DISTRO,
+                    WIPE_PHYSICAL_SERVERS,
                 )
             else:
                 raise Exception(
@@ -401,8 +402,17 @@ def main():
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
             bootstrap_networking(servers_public_ip)
         elif args.operation == "bootstrap_ceph":
+            if not isinstance(ceph_enabled, bool):
+                raise Exception(
+                    "ERROR: Unable to determine if ceph should be enabled or not, OSIAS multinode value should be a boolean of 'true' or 'false' without quotes."
+                )
             if ceph_enabled:
-                bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, CEPH_RELEASE)
+                bootstrap_ceph(
+                    servers_public_ip,
+                    storage_nodes_data_ip,
+                    CEPH_RELEASE,
+                    DATA_CIDR,
+                )
             else:
                 print("'Bootstrap_Ceph' is skipped due to CEPH being DISABLED.")
         elif args.operation == "bootstrap_openstack":
@@ -416,7 +426,7 @@ def main():
                 docker_registry,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_CIDR,
+                VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
@@ -524,12 +534,17 @@ def main():
                 docker_registry,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_CIDR,
+                VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
             )
             if ceph_enabled:
-                bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, CEPH_RELEASE)
+                bootstrap_ceph(
+                    servers_public_ip,
+                    storage_nodes_data_ip,
+                    CEPH_RELEASE,
+                    DATA_CIDR,
+                )
                 deploy_ceph(servers_public_ip, storage_nodes_data_ip)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
             utils.run_script_on_server("deploy_openstack.sh", servers_public_ip[0])

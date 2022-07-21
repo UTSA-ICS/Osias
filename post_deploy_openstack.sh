@@ -59,17 +59,24 @@ openstack router add subnet pub-router private_subnet
 
 SERVICE_LIST="$(openstack service list)"
 
+# check_service iterates through the services, finds the swift service url, checks if it is formatted correctly, if not, it will update it appropriately.
 check_service() {
     service="$1"
     shift
     string="$*"
-    if [ -z "${string##*"$service"*}" ] ;then
-      echo "Updating swift endpoints to include 'http.../swift/v1/...'' instead of 'http.../v1/...'"
-      openstack endpoint list -c URL -c ID -f value --service swift | while IFS=', ' read -r -a line
-      do
-        url="${line[1]//v1/swift\/v1}"
-        openstack endpoint set --url "${url}" "${line[0]}"
+    if [ -z "${string##*"$service"*}" ] && [ "$service" == "swift" ] ;then
+      openstack endpoint list -c URL -c ID -f value --service "$service" | while IFS=', ' read -r -a line
+      do 
+        if [[ ${line[1]} != */swift/v1/* ]] ;then    
+          echo "Updating swift endpoints to include 'http.../swift/v1/...'' instead of 'http.../v1/...'"
+          url="${line[1]//v1/swift\/v1}"
+          openstack endpoint set --url "${url}" "${line[0]}"
+        else
+          echo "URL < ${line[1]} > is already correct"; 
+        fi
       done
+    else
+      echo "Service not found."
     fi
 }
 

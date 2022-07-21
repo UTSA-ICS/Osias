@@ -52,41 +52,40 @@ class MaasBase:
                 used_ips.append(f"{prefix}.{ip}")
         return used_ips
 
-    def _parse_ip_types(self, machine_ids: list, machine_info: list):
+    def _parse_ip_types(self, machine_ids: list, machine_info: list, vm_profile):
         """Given a list of servers and machine info, return a parsed list of info."""
         results = {}
-        for machine in machine_ids:
-            for info in machine_info:
-                if machine == info["system_id"]:
-                    ips = info["ip_addresses"]
-                    temp = {}
-                    for cidr in ["Internal_CIDR", "Data_CIDR", "VM_DEPLOYMENT_CIDR"]:
-                        fixed_cidr = osias_variables.VM_Profile[cidr]
+        if vm_profile:
+            for machine in machine_ids:
+                for info in machine_info:
+                    if machine == info["system_id"]:
+                        ips = info["ip_addresses"]
+                        temp = {}
+                        osias_variables.VM_Profile.update(vm_profile.items())
                         for ip in ips:
-                            if (
-                                IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr == "Internal_CIDR"
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["Internal_CIDR"]
                             ):
                                 label = "internal"
-                            if (
-                                IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr == "Data_CIDR"
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["Data_CIDR"]
                             ):
                                 label = "data"
-                            if (
-                                IPv4Address(ip) in IPv4Network(fixed_cidr)
-                                and cidr == "VM_DEPLOYMENT_CIDR"
+                            if IPv4Address(ip) in IPv4Network(
+                                osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"]
                             ):
                                 label = "public"
                             temp[label] = ip
-                    results[machine] = temp
-        print(results)
-        return results
+                        results[machine] = temp
+            print(results)
+            return results
+        else:
+            raise Exception("Logic Error: no vm_profile specified.")
 
-    def _release(self, server_list):
-        for machine in server_list[:]:
+    def _release(self):
+        for machine in self.machine_list[:]:
             self._run_maas_command(f"machine release {machine}")
-        self._waiting(server_list, "Ready")
+        self._waiting(self.machine_list, "Ready")
 
     @timeout_decorator.timeout(2500, timeout_exception=StopIteration)
     def _waiting(self, server_list: list, desired_status: str):
@@ -148,7 +147,6 @@ class MaasBase:
                 f"machine deploy {machine} distro_series={self.distro}"
             )
         machine_info = self._waiting(server_list[:], "Deployed")
-        return self._parse_ip_types(list(server_list), list(machine_info))
 
     def get_machines_info(self):
         return self._run_maas_command("machines read")
