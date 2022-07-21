@@ -75,12 +75,15 @@ jobs:
           echo 'MULTINODE<<EOF' >> $GITHUB_ENV
           echo "$MULTINODE" >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
+          echo "MY_IP=$MY_IP" >> $GITHUB_ENV
       - name: Bootstrap Networking
         run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
       - name: Bootstrap OpenStack
         run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
       - name: Deploy OpenStack
-        run: python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+        run: |
+          sudo sed -i "0,/$MY_IP/{s/$MY_IP/#$MY_IP/}" /etc/hosts
+          python3 -u deploy.py deploy_openstack --config "$MULTINODE"
       - name: Post Deploy OpenStack
         run: python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
       - name: Test Setup
