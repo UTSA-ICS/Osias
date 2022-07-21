@@ -33,6 +33,22 @@ jobs:
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
           source all_in_one_openstack_deployment.sh ${{ env.OPENSTACK_RELEASE }} "$MY_IP"
+          echo "$MULTINODE"
+      - name: Bootstrap Networking
+        run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+      - name: Bootstrap OpenStack
+        run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+      - name: Deploy OpenStack
+        run: python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+      - name: Post Deploy OpenStack
+        run: python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
+      - name: Test Setup
+        run: python3 -u deploy.py test_setup --config "$MULTINODE"
+      - name: Test RefStack
+        run: python3 -u deploy.py test_refstack --config "$MULTINODE"
+      - name: Setup tmate session
+        if: ${{ failure() }}
+        uses: mxschmitt/action-tmate@v3
 
   Ubuntu-20-Deploy-OpenStack:
     runs-on: ubuntu-20.04
@@ -54,6 +70,19 @@ jobs:
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
           source all_in_one_openstack_deployment.sh ${{ matrix.OPENSTACK_RELEASE }} "$MY_IP"
+          echo "$MULTINODE"
+      - name: Bootstrap Networking
+        run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+      - name: Bootstrap OpenStack
+        run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+      - name: Deploy OpenStack
+        run: python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+      - name: Post Deploy OpenStack
+        run: python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
+      - name: Test Setup
+        run: python3 -u deploy.py test_setup --config "$MULTINODE"
+      - name: Test RefStack
+        run: python3 -u deploy.py test_refstack --config "$MULTINODE"
       - name: Setup tmate session
         if: ${{ failure() }}
         uses: mxschmitt/action-tmate@v3

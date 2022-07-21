@@ -43,6 +43,8 @@ MY_IP="$2"
     OPENSTACK_RELEASE = "$OPENSTACK_RELEASE"
 EOM
 
+export MULTINODE="$MULTINODE"
+
 #
 # Create and configure ubuntu user if it does not exist
 #
@@ -65,10 +67,11 @@ fi
 # Deploy openstack using kolla
 #
 pip3 install toml timeout_decorator
-python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
-python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py test_setup --config "$MULTINODE"
-python3 -u deploy.py test_refstack --config "$MULTINODE"
+
+#
+#python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+#python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+#python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+#python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
+#python3 -u deploy.py test_setup --config "$MULTINODE"
+#python3 -u deploy.py test_refstack --config "$MULTINODE"
