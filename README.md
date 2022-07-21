@@ -258,7 +258,7 @@ We use a variable called VM_PROFILE which helps create the multinode file above 
 Below is the format needed:
 
 ```
-{"Data_CIDR": "{DATA CIDR IF USED}", "DNS_IP": "{DNS IP}", "Number_of_VM_Servers": 3, "OPENSTACK_RELEASE": "{OPENSTACK_RELEASE}", "CEPH": "{True|False}", "DOCKER_REGISTRY_IP": "<DOCKER IP>", "DOCKER_REGISTRY_USERNAME": "<DOCKER REGISTRY USERNAME>", "VM_CIDR" = "<POOL OF IP's served as the cidr >"}
+{"Data_CIDR": "{DATA CIDR IF USED}", "DNS_IP": "{DNS IP}", "Number_of_VM_Servers": 3, "OPENSTACK_RELEASE": "{OPENSTACK_RELEASE}", "CEPH": "{True|False}", "DOCKER_REGISTRY_IP": "<DOCKER IP>", "DOCKER_REGISTRY_USERNAME": "<DOCKER REGISTRY USERNAME>", "VM_DEPLOYMENT_CIDR" = "<POOL OF IP's served as the cidr >"}
 ```
 
 ### Globals file

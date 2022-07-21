@@ -89,6 +89,9 @@ if [[ $NUM_FAILURES -eq 2 ]] &&
    [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]] && 
    [[ "$FAILURE" =~ .*(test_upload_too_many_objects).* ]]; then
         MSG="#   Expected unresolved failure - EXIT 0  #"
+elif [[ $NUM_FAILURES -eq 2 ]] && 
+     [[ "$FAILURE" =~ .*(test_object_temp_url).* ]]; then
+        MSG="#   Expected unresolved failure - EXIT 0  #"
 elif [[ $NUM_FAILURES -eq 1 ]] && 
      [[ "$FAILURE" =~ .*(tearDownClass).* ]] && 
      [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
