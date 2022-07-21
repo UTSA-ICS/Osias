@@ -28,7 +28,7 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-      - name: Deploy OpenStack Release [${{ env.OPENSTACK_RELEASE }}]
+      - name: Setup and populate MULTINODE file for OpenStack Release [${{ env.OPENSTACK_RELEASE }}]
         run: |
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
@@ -37,9 +37,7 @@ jobs:
           echo "$MULTINODE" >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
       - name: Bootstrap Networking
-        run: |
-          echo "${{ env.MULTINODE }}"
-          python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+        run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
       - name: Bootstrap OpenStack
         run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
       - name: Deploy OpenStack
@@ -69,12 +67,14 @@ jobs:
       - name: Install python dependencies
         run: |
           python -m pip install --upgrade pip
-      - name: Deploy OpenStack Release [${{ matrix.OPENSTACK_RELEASE }}]
+      - name: Setup and populate MULTINODE file for OpenStack Release [${{ matrix.OPENSTACK_RELEASE }}]
         run: |
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
           source all_in_one_openstack_deployment.sh ${{ matrix.OPENSTACK_RELEASE }} "$MY_IP"
-          echo "::set-env name=MULTINODE::$MULTINODE"
+          echo 'MULTINODE<<EOF' >> $GITHUB_ENV
+          echo "$MULTINODE" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - name: Bootstrap Networking
         run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
       - name: Bootstrap OpenStack

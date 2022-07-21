@@ -64,14 +64,6 @@ if ! user_exists "ubuntu"; then
 fi
 
 #
-# Deploy openstack using kolla
+# Install required python packages
 #
 pip3 install toml timeout_decorator
-
-#
-#python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
-#python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-#python3 -u deploy.py deploy_openstack --config "$MULTINODE"
-#python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
-#python3 -u deploy.py test_setup --config "$MULTINODE"
-#python3 -u deploy.py test_refstack --config "$MULTINODE"
