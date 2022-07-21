@@ -33,7 +33,9 @@ jobs:
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
           source all_in_one_openstack_deployment.sh ${{ env.OPENSTACK_RELEASE }} "$MY_IP"
-          echo "MULTINODE=$MULTINODE" >> $GITHUB_ENV
+          echo 'MULTINODE<<EOF' >> $GITHUB_ENV
+          echo "$MULTINODE" >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
       - name: Bootstrap Networking
         run: |
           echo "${{ env.MULTINODE }}"
