@@ -221,7 +221,7 @@ def reprovision_servers(
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
-    if ast.literal_eval(wipe_physical_servers.title()):
+    if ast.literal_eval(str(wipe_physical_servers).title()):
         servers._release()
     servers.deploy()
 
