@@ -43,6 +43,8 @@ MY_IP="$2"
     OPENSTACK_RELEASE = "$OPENSTACK_RELEASE"
 EOM
 
+export MULTINODE="$MULTINODE"
+
 #
 # Create and configure ubuntu user if it does not exist
 #
@@ -60,15 +62,3 @@ if ! user_exists "ubuntu"; then
   echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > ubuntu
   sudo cp ubuntu /etc/sudoers.d/.
 fi
-
-#
-# Deploy openstack using kolla
-#
-pip3 install toml timeout_decorator
-python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
-python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
-python3 -u deploy.py test_setup --config "$MULTINODE"
-python3 -u deploy.py test_refstack --config "$MULTINODE"
