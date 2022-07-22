@@ -34,6 +34,8 @@ sudo ceph config set global bluestore_min_alloc_size_hdd 8192 # Change the value
 
 # Set client settings
 sudo ceph config set global rbd_cache_writethrough_until_flush False  # Default: True
+# Make ceph faster & safer to run
+sudo ceph config set global rbd_default_features layering,striping,exclusive-lock,object-map,fast-diff,deep-flatten
 # This parameter is used for compatibility with the virtio driver earlier than linux-2.6.32. 
 # It prevents the situation that data is written back when no flush request is sent. 
 # After this parameter is set, librbd processes I/Os in writethrough mode. 
