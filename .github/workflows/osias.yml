@@ -11,79 +11,44 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  Ubuntu-18-Deploy-OpenStack:
-    runs-on: ubuntu-18.04
-    strategy:
-      fail-fast: false
-      matrix:
-        OPENSTACK_RELEASE: ["ussuri"]
-    env:
-      OPENSTACK_RELEASE: ${{ matrix.OPENSTACK_RELEASE }}
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.6
-      - name: Install python dependencies
-        run: |
-          python -m pip install --upgrade pip
-      - name: Setup and populate MULTINODE file for OpenStack Release [${{ env.OPENSTACK_RELEASE }}]
-        run: |
-          public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
-          MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
-          source all_in_one_openstack_deployment.sh ${{ env.OPENSTACK_RELEASE }} "$MY_IP"
-          echo 'MULTINODE<<EOF' >> $GITHUB_ENV
-          echo "$MULTINODE" >> $GITHUB_ENV
-          echo 'EOF' >> $GITHUB_ENV
-      - name: Bootstrap Networking
-        run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
-      - name: Bootstrap OpenStack
-        run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
-      - name: Deploy OpenStack
-        run: python3 -u deploy.py deploy_openstack --config "$MULTINODE"
-      - name: Post Deploy OpenStack
-        run: python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
-      - name: Test Setup
-        run: python3 -u deploy.py test_setup --config "$MULTINODE"
-      - name: Test RefStack
-        run: python3 -u deploy.py test_refstack --config "$MULTINODE"
-      - name: Setup tmate session
-        if: ${{ failure() }}
-        uses: mxschmitt/action-tmate@v3
-
   Ubuntu-20-Deploy-OpenStack:
     runs-on: ubuntu-20.04
     strategy:
       fail-fast: false
       matrix:
-        OPENSTACK_RELEASE: ["victoria", "wallaby", "xena", "yoga"]
+        OPENSTACK_RELEASE: ["wallaby", "xena", "yoga"]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: Install python dependencies
+      - name: Install python dependencies/packages
         run: |
           python -m pip install --upgrade pip
+          pip3 install toml timeout_decorator
       - name: Setup and populate MULTINODE file for OpenStack Release [${{ matrix.OPENSTACK_RELEASE }}]
         run: |
+          #
+          # Get the Public interface and the IP address from it.
+          #
           public_interface=$(route -n | awk '$1 == "0.0.0.0" {print $8}')
           MY_IP=$(ip -o -4 addr list "${public_interface}" | awk '{print $4}' | cut -d/ -f1)
-          source all_in_one_openstack_deployment.sh ${{ matrix.OPENSTACK_RELEASE }} "$MY_IP"
+          source setup_multinode_and_configure_ubuntu_user.sh ${{ matrix.OPENSTACK_RELEASE }} "$MY_IP"
+          #
+          # Add the MULTINODE and MY_IP variables to GITHUB_ENV so other steps can access it
+          #
           echo 'MULTINODE<<EOF' >> $GITHUB_ENV
           echo "$MULTINODE" >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
           echo "MY_IP=$MY_IP" >> $GITHUB_ENV
+          sudo sed -i "0,/$MY_IP/{s/$MY_IP/#$MY_IP/}" /etc/hosts
       - name: Bootstrap Networking
         run: python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
       - name: Bootstrap OpenStack
         run: python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
       - name: Deploy OpenStack
-        run: |
-          sudo sed -i "0,/$MY_IP/{s/$MY_IP/#$MY_IP/}" /etc/hosts
-          python3 -u deploy.py deploy_openstack --config "$MULTINODE"
+        run: python3 -u deploy.py deploy_openstack --config "$MULTINODE"
       - name: Post Deploy OpenStack
         run: python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
       - name: Test Setup

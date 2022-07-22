@@ -62,8 +62,3 @@ if ! user_exists "ubuntu"; then
   echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > ubuntu
   sudo cp ubuntu /etc/sudoers.d/.
 fi
-
-#
-# Install required python packages
-#
-pip3 install toml timeout_decorator
