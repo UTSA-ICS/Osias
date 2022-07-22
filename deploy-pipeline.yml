@@ -194,6 +194,7 @@ test:stress:
 
 sleep_on_failure:
   stage: sleep_on_failure
+  retry: 3
   tags:
     - shell
   script:
@@ -205,6 +206,7 @@ sleep_on_failure:
 delete_virtual_machines:
   stage: release_cidr
   image: utsaics/maas:2.8
+  retry: 3
   extends:
     - .base_setup
   script:
