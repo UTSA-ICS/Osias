@@ -62,10 +62,10 @@ CEPH_VERSION = {
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
-    "victoria": "focal hwe_kernel=hwe-20.04",
-    "wallaby": "focal hwe_kernel=hwe-20.04",
-    "xena": "focal hwe_kernel=hwe-20.04",
-    "yoga": "focal hwe_kernel=hwe-20.04",
+    "victoria": "focal hwe_kernel=hwe-20.04-edge",
+    "wallaby": "focal hwe_kernel=hwe-20.04-edge",
+    "xena": "focal hwe_kernel=hwe-20.04-edge",
+    "yoga": "focal hwe_kernel=hwe-20.04-edge",
 }
 
 # REFSTACK VARIABLES
