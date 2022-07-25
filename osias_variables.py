@@ -61,11 +61,11 @@ CEPH_VERSION = {
     "yoga": "quincy",
 }
 MAAS_VM_DISTRO = {
-    "ussuri": "bionic hwe_kernel=hwe-18.04",
-    "victoria": "focal hwe_kernel=hwe-20.04",
-    "wallaby": "focal hwe_kernel=hwe-20.04",
-    "xena": "focal hwe_kernel=hwe-20.04",
-    "yoga": "focal hwe_kernel=hwe-20.04",
+    "ussuri": "bionic hwe_kernel=hwe-18.04-edge",
+    "victoria": "focal hwe_kernel=hwe-20.04-edge",
+    "wallaby": "focal hwe_kernel=hwe-20.04-edge",
+    "xena": "focal hwe_kernel=hwe-20.04-edge",
+    "yoga": "focal hwe_kernel=hwe-20.04-edge",
 }
 
 # REFSTACK VARIABLES
