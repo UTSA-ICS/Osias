@@ -62,9 +62,6 @@ delete_tags_and_ips:
     - pip3 install toml timeout_decorator
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
-  needs:
-    - pipeline: $PARENT_PIPELINE_ID
-      job: tag_virtual_servers
   script:
     - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
     - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
