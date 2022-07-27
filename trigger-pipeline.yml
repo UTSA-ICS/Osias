@@ -70,6 +70,8 @@ delete_tags_and_ips:
     - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
   rules:
     - when: on_failure
+    - when: manual
+      allow_failure: true
 
 deploy:<RELEASE_NAME>:
   stage: deploy
