@@ -179,26 +179,51 @@ class MaasVirtual(MaasBase):
         )
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
-    def delete_virtual_machines(self, openstack_release, pipeline_id: int):
-        machines = self._run_maas_command(
-            "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+    def delete_tags_and_ips(self, parent_project_pipeline_id):
+        defs = self._run_maas_command(
+            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names,distro_series:.distro_series, hwe_kernel:.hwe_kernel}} | select(.tag_names| contains([\"{parent_project_pipeline_id}\"]))'"
         )
-        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
-
-        machine_dict = {}
+        vips = []
+        starts = []
+        machine_ids = []
         tags = []
-        for machine in machines:
-            if machine["tag_names"].__contains__(pipeline_tag_name):
-                machine_dict[machine["system_id"]] = machine["distro_series"]
-                for tag in machine["tag_names"]:
-                    tags.append(tag) if tag not in tags else tags
-        for tag in tags:
-            self._run_maas_command(f"tag delete {tag}")
-        for k, v in machine_dict.items():
-            self._run_maas_command(f"machine release {k}")
-            self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
-            self._waiting([f"{k}"], "Ready")
-            self._run_maas_command(f"machine deploy {k} distro_series={v}")
+        distro = ""
+        hwe_kernel = ""
+        if defs:
+            for i in defs:
+                machine_ids.append(i["system_id"])
+                vips.append([s for s in i["tag_names"] if "vip" in s][0])
+                starts.append([s for s in i["tag_names"] if "start" in s][0])
+                vips = list(dict.fromkeys(vips))
+                starts = list(dict.fromkeys(starts))
+                tags = tags + i["tag_names"]
+                distro = i["distro_series"]
+                hwe_kernel = i["hwe_kernel"]
+            if len(vips) > 0:
+                vips = [s.replace("_", ".").split("-")[1] for s in vips]
+            if len(starts) > 0:
+                starts = [s.replace("_", ".").split("-")[1] for s in starts]
+            ips = vips + starts
+            tags = [*set(tags)]
+            distro = f"{distro} hwe_kernel={hwe_kernel}"
+            for tag in tags:
+                self._run_maas_command(f"tag delete {tag}")
+            for ip in ips:
+                self._run_maas_command(f"ipaddresses release ip={ip} force=true")
+            for machine_id in machine_ids:
+                self._run_maas_command(
+                    f"tag update-nodes openstack_ready add={machine_id}"
+                )
+        return machine_ids, distro
+
+    def delete_virtual_machines(self, machine_ids: list, distro: str):
+        for machine_id in machine_ids:
+            self._run_maas_command(f"machine release {machine_id}")
+            self._run_maas_command(f"tag update-nodes openstack_ready add={machine_id}")
+            self._waiting([f"{machine_id}"], "Ready")
+            self._run_maas_command(
+                f"machine deploy {machine_id} distro_series={distro}"
+            )
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name

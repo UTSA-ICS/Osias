@@ -104,6 +104,7 @@ def parse_args():
             "test_refstack",
             "test_stress",
             "delete_virtual_machines",
+            "delete_tags_and_ips",
             "complete_openstack_install",
             "copy_files",
             "run_command",
@@ -284,21 +285,25 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     f.close()
 
 
-def delete_virtual_machines(
-    vip_address,
-    pool_start_ip,
-    openstack_release,
+def delete_tags_and_ips(
     maas_url,
     maas_api_key,
 ):
     parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     if not parent_project_pipeline_id:
         raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
-    print("DELETING VIRTUAL MACHINES")
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_virtual.MaasVirtual(None)
-    servers.release_ip_pool(vip_address, pool_start_ip)
-    servers.delete_virtual_machines(openstack_release, parent_project_pipeline_id)
+    return servers.delete_tags_and_ips(parent_project_pipeline_id)
+
+
+def delete_virtual_machines(
+    maas_url,
+    maas_api_key,
+):
+    machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key)
+    servers = maas_virtual.MaasVirtual(None)
+    servers.delete_virtual_machines(machine_ids, distro)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -500,9 +505,6 @@ def main():
         elif args.operation == "delete_virtual_machines":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 delete_virtual_machines(
-                    VIP_ADDRESS,
-                    POOL_START_IP,
-                    OPENSTACK_RELEASE,
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
                 )
@@ -584,6 +586,18 @@ def main():
             raise Exception(
                 "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
                 + "If operation is specified as [reprovision_servers] then "
+                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+            )
+    elif args.operation == "delete_tags_and_ips":
+        if args.MAAS_URL and args.MAAS_API_KEY:
+            delete_tags_and_ips(
+                args.MAAS_URL,
+                args.MAAS_API_KEY,
+            )
+        else:
+            raise Exception(
+                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                + "If operation is specified as [delete_virtual_machines] then "
                 + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
             )
     elif args.operation == "run_command":

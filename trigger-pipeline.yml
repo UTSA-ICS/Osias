@@ -15,6 +15,7 @@ workflow:
 
 stages:
   - prepare
+  - cleanup
   - deploy
 
 handle-yaml:
@@ -53,6 +54,19 @@ tag_virtual_servers:
     - if: '$CI_PIPELINE_SOURCE == "push" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
+
+handle-yaml:
+  stage: cleanup
+  needs:
+    - pipeline: $PARENT_PIPELINE_ID
+      job: tag_virtual_servers
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  script:
+    - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
+    - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+  rules:
+    - when: on_failure
 
 deploy:<RELEASE_NAME>:
   stage: deploy

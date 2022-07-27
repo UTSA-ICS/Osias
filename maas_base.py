@@ -23,10 +23,19 @@ class MaasBase:
         try:
             return json.loads(result)
         except ValueError:
-            result = result.decode("utf-8")
-            result = result.rstrip()
-            result = result.replace("null", "'Null'")
-            result = [ast.literal_eval(i) for i in result.split("\n")]
+            # This is to fix a poorly formatted list of dictionaries
+            result = ast.literal_eval(
+                str(result)
+                .replace("}\\n{", "},{")
+                .replace("\\n", "")
+                .replace("b'", "[")
+                .replace("}'", "}]")
+            )
+            if not isinstance(result, list):
+                result = result.decode("utf-8")
+                result = result.rstrip()
+                result = result.replace("null", "'Null'")
+                result = [ast.literal_eval(i) for i in result.split("\n")]
             return result
 
     def _find_machine_ids(self):
@@ -185,8 +194,7 @@ class MaasBase:
                 ]
                 return ip_pool
         else:
-            print("No more valid IPs available")
-            return 1
+            raise Exception("ERROR: No more valid IPs available.")
 
     def release_ip_pool(self, *ips):
         for ip in ips:
