@@ -73,17 +73,13 @@ delete_tags_and_ips:
 
 deploy:<RELEASE_NAME>:
   stage: deploy
-  before_script:
-    - pip3 install toml
-    - if [ -z "$VM_PROFILE_CURRENT_RELEASE" ]; CEPH=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_CURRENT_RELEASE'));ceph=multi['CEPH'];print(ceph)"); fi
-    - if [ -z "$VM_PROFILE" ]; CEPH=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE'));ceph=multi['CEPH'];print(ceph)"); fi
   trigger:
     include:
       - artifact: deploy-<RELEASE_NAME>.yml
         job: handle-yaml
     strategy: depend
   variables:
-    CEPH: $CEPH
+    CEPH: <CEPH_CURRENT_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
     MULTINODE: $MULTINODE
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
@@ -92,16 +88,13 @@ deploy:<RELEASE_NAME>:
 
 deploy:<PREVIOUS_RELEASE_NAME>:
   stage: deploy
-  before_script:
-    - pip3 install toml
-    - if [ -z "$VM_PROFILE_PREVIOUS_RELEASE" ]; CEPH=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_PREVIOUS_RELEASE'));ceph=multi['CEPH'];print(ceph)"); fi
   trigger:
     include:
       - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
         job: handle-yaml
     strategy: depend
   variables:
-    CEPH: $CEPH
+    CEPH: <CEPH_PREVIOUS_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
     MULTINODE: $MULTINODE
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
