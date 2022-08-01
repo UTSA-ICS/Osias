@@ -42,7 +42,7 @@ stages:
     - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
     - echo "$MULTINODE"
     - echo "$PARENT_PIPELINE_ID"
-    - ceph=$(python3 -c "import os,toml; multi=toml.loads(os.getenv('MULTINODE'));ceph=multi['variables']['0']['CEPH'];print(ceph)")
+    - echo "$CEPH"
 
 deploy:<RELEASE_NAME>:
   stage: <RELEASE_NAME>
@@ -147,7 +147,7 @@ ceph:deploy:
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
   rules:
-    - if: '$ceph == "True"'
+    - if: '$CEPH == "True"'
 
 openstack:pull:
   stage: pre_deploy
