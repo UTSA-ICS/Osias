@@ -71,7 +71,6 @@ delete_tags_and_ips:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE_CURRENT_RELEASE != null'
       when: on_failure
 
-
 deploy:<RELEASE_NAME>:
   stage: deploy
   trigger:
