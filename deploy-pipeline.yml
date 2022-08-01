@@ -228,7 +228,7 @@ delete_virtual_machines:
   script:
     - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
-    - when: manual
-      allow_failure: true
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
+    - when: manual
+      allow_failure: true
