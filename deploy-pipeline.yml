@@ -147,7 +147,7 @@ ceph:deploy:
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
   rules:
-    - if: '$CEPH == "True"'
+    - if: '$CEPH == "true"'
 
 openstack:pull:
   stage: pre_deploy
