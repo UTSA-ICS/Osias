@@ -49,7 +49,7 @@ deploy:<RELEASE_NAME>:
   script:
     - echo "Deployment of <RELEASE_NAME> release"
 
-create_virtual_machines:
+create_osias_multinode_file:
   stage: reprovision_servers
   extends:
     - .base_setup
