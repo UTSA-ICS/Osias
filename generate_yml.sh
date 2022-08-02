@@ -44,4 +44,8 @@ else
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
 fi
 
+echo "Hullo ..here are the values"
+echo "CEPH previous --> [$ceph_previous_bool]"
+echo "CEPH current --> [$ceph_current_bool]"
+echo "Done"
 cat trigger-pipeline.yml
