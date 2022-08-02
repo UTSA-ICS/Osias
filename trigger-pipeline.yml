@@ -66,8 +66,6 @@ delete_tags_and_ips:
     - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
     - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
   rules:
-    - when: manual
-      allow_failure: true
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE_CURRENT_RELEASE != null'
       when: on_failure
 
