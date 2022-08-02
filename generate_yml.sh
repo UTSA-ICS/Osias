@@ -8,8 +8,8 @@ then
     ceph_current_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_CURRENT_RELEASE'));ceph=multi['CEPH'];print(ceph.lower())")
     ceph_previous_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_PREVIOUS_RELEASE'));ceph=multi['CEPH'];print(ceph.lower())")
     
-    sed -i "s/<CEPH_CURRENT_BOOL>/${ceph_current_bool}/g" trigger-pipeline.yml
-    sed -i "s/<CEPH_PREVIOUS_BOOL>/${ceph_previous_bool}/g" trigger-pipeline.yml
+    sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
+    sed -i "s/<CEPH_PREVIOUS_BOOL>/\"${ceph_previous_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE_CURRENT_RELEASE/g" trigger-pipeline.yml
     sed -i "s/<PREVIOUS_RELEASE_NAME>/${previous_release}/g" trigger-pipeline.yml
@@ -24,7 +24,7 @@ else
 
     ceph_current_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE'));ceph=multi['CEPH'];print(ceph.lower())")
     
-    sed -i "s/<CEPH_CURRENT_BOOL>/${ceph_current_bool}/g" trigger-pipeline.yml
+    sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${release}/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE/g" trigger-pipeline.yml
 
