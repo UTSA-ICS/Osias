@@ -185,14 +185,13 @@ class MaasVirtual(MaasBase):
         else:
             filters = f"{parent_project_pipeline_id}_{openstack_release}"
         defs = self._run_maas_command(
-            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names,distro_series:.distro_series, hwe_kernel:.hwe_kernel}} | select(.tag_names| contains([\"{filters}\"]))'"
+            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names}} | select(.tag_names| contains([\"{filters}\"]))'"
         )
         vips = []
         starts = []
         machine_ids = []
         tags = []
-        distro = ""
-        hwe_kernel = ""
+        distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
         if isinstance(defs, dict):
             defs = [defs]
         if defs:
@@ -203,15 +202,12 @@ class MaasVirtual(MaasBase):
                 vips = list(dict.fromkeys(vips))
                 starts = list(dict.fromkeys(starts))
                 tags = tags + i["tag_names"]
-                distro = i["distro_series"]
-                hwe_kernel = i["hwe_kernel"]
             if len(vips) > 0:
                 vips = [s.replace("_", ".").split("-")[1] for s in vips]
             if len(starts) > 0:
                 starts = [s.replace("_", ".").split("-")[1] for s in starts]
             ips = vips + starts
             tags = [*set(tags)]
-            distro = f"{distro} hwe_kernel={hwe_kernel}"
             for tag in tags:
                 self._run_maas_command(f"tag delete {tag}")
             for ip in ips:
