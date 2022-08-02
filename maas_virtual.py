@@ -179,9 +179,13 @@ class MaasVirtual(MaasBase):
         )
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
-    def delete_tags_and_ips(self, parent_project_pipeline_id):
+    def delete_tags_and_ips(self, parent_project_pipeline_id, openstack_release=None):
+        if openstack_release is None:
+            filters = str(parent_project_pipeline_id)
+        else:
+            filters = f"{parent_project_pipeline_id}_{openstack_release}"
         defs = self._run_maas_command(
-            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names,distro_series:.distro_series, hwe_kernel:.hwe_kernel}} | select(.tag_names| contains([\"{parent_project_pipeline_id}\"]))'"
+            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names,distro_series:.distro_series, hwe_kernel:.hwe_kernel}} | select(.tag_names| contains([\"{filters}\"]))'"
         )
         vips = []
         starts = []
@@ -189,6 +193,8 @@ class MaasVirtual(MaasBase):
         tags = []
         distro = ""
         hwe_kernel = ""
+        if isinstance(defs, dict):
+            defs = [defs]
         if defs:
             for i in defs:
                 machine_ids.append(i["system_id"])
