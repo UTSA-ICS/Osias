@@ -111,9 +111,8 @@ class MaasVirtual(MaasBase):
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
         release = vm_profile["OPENSTACK_RELEASE"]
-        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
-            " "
-        )[0]
+        distro_hwe = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
+        distro = distro_hwe.split(" ")[0]
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
@@ -133,7 +132,7 @@ class MaasVirtual(MaasBase):
             create_n_vms = int(no_of_vms - len(ids))
             print(f"Creating {create_n_vms} virtual machine...")
             machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
-            self.distro = distro
+            self.distro = distro_hwe
             self.deploy(server_list=machine_list)
             ids.extend(machine_list)
         tags = []
