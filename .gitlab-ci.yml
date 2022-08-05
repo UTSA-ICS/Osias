@@ -49,6 +49,7 @@ python_black:
 generate_yaml_config:
   stage: generate_yaml
   script:
+    - pip3 install toml
     - bash generate_yml.sh > release-test.yml
     - cat release-test.yml # For Debug purposes
     - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
