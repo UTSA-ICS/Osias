@@ -44,10 +44,10 @@ tag_virtual_servers:
   script:
     - |
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
           python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
       else
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
       fi
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -64,7 +64,7 @@ delete_tags_and_ips:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   script:
     - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
-    - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+    - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE_CURRENT_RELEASE != null'
       when: on_failure

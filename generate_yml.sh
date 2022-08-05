@@ -20,13 +20,24 @@ then
     cp deploy-pipeline.yml deploy-"${previous_release}".yml
     sed -i "s/<RELEASE_NAME>/${previous_release}/g" deploy-"${previous_release}".yml
 else
-    release=$(python3 -c "import json;import os;release=json.loads(os.getenv('VM_PROFILE'));print(release['OPENSTACK_RELEASE'])")
 
-    ceph_current_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE'));ceph=multi['CEPH'];print(ceph.lower())")
-    
+    if [[ -n "$MULTINODE" ]];
+    then
+        release=$(python3 -c "import os,toml; release=toml.loads(os.getenv('MULTINODE')); release=release['variables']['0']['OPENSTACK_RELEASE']; print(release.lower())")
+        ceph_current_bool=$(python3 -c "import os,toml; ceph_multi=toml.loads(os.getenv('MULTINODE')); ceph=ceph_multi['variables']['0']['CEPH']; print(str(ceph).lower())")
+        sed -i "s/<RELEASE_VM_PROFILE>/''/g" trigger-pipeline.yml
+    elif [[ -n "$VM_PROFILE" ]];
+    then
+        release=$(python3 -c "import json;import os;release=json.loads(os.getenv('VM_PROFILE'));print(release['OPENSTACK_RELEASE'])")
+        ceph_current_bool=$(python3 -c "import os,json; vm_profile=json.loads(os.getenv('VM_PROFILE')); ceph=vm_profile['CEPH']; print(ceph.lower())");
+        sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE/g" trigger-pipeline.yml
+    else
+        echo "ERROR: VM_PROFILE or MULTINODE variable need to exist."
+        exit 1
+    fi
+
     sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${release}/g" trigger-pipeline.yml
-    sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE/g" trigger-pipeline.yml
 
     cp deploy-pipeline.yml deploy-"${release}".yml
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
