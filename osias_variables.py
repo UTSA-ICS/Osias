@@ -103,7 +103,7 @@ NOVA_MAX_MICROVERSION = {
     "victoria": "2.87",
     "wallaby": "2.88",
     "xena": "2.90",
-    "yoga": "2.90",
+    "yoga": "2.92",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -117,7 +117,7 @@ STORAGE_MAX_MICROVERSION = {
     "victoria": "3.62",
     "wallaby": "3.64",
     "xena": "3.66",
-    "yoga": "3.68",
+    "yoga": "3.69",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
