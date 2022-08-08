@@ -31,6 +31,8 @@ VM_Profile = {
     "RAM_in_MB": 16384,
     "HDD1": 60,
     "HDD2": 10,
+    "HDD3": 10,
+    "HDD4": 10,
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
