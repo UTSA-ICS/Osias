@@ -15,6 +15,7 @@ workflow:
 
 stages:
   - prepare
+  - cleanup
   - deploy
 
 handle-yaml:
@@ -43,16 +44,30 @@ tag_virtual_servers:
   script:
     - |
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
           python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
       else
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" 
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
       fi
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "push" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE == "" || $MULTINODE == null)'
+
+delete_tags_and_ips:
+  stage: cleanup
+  image: utsaics/maas:2.8
+  before_script:
+    - pip3 install toml timeout_decorator
+  variables:
+    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
+  script:
+    - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
+    - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY"
+  rules:
+    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE_CURRENT_RELEASE != null'
+      when: on_failure
 
 deploy:<RELEASE_NAME>:
   stage: deploy
@@ -62,6 +77,7 @@ deploy:<RELEASE_NAME>:
         job: handle-yaml
     strategy: depend
   variables:
+    CEPH: <CEPH_CURRENT_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
     MULTINODE: $MULTINODE
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
@@ -76,6 +92,7 @@ deploy:<PREVIOUS_RELEASE_NAME>:
         job: handle-yaml
     strategy: depend
   variables:
+    CEPH: <CEPH_PREVIOUS_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
     MULTINODE: $MULTINODE
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
