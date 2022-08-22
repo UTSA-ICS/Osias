@@ -42,13 +42,14 @@ stages:
     - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
     - echo "$MULTINODE"
     - echo "$PARENT_PIPELINE_ID"
+    - echo "$CEPH"
 
 deploy:<RELEASE_NAME>:
   stage: <RELEASE_NAME>
   script:
     - echo "Deployment of <RELEASE_NAME> release"
 
-create_virtual_machines:
+create_osias_multinode_file:
   stage: reprovision_servers
   extends:
     - .base_setup
@@ -145,6 +146,8 @@ ceph:deploy:
     # Deploy ceph on target servers using cephadm
     # Configure kolla options for ceph
     - python3 -u deploy.py deploy_ceph --config "$MULTINODE"
+  rules:
+    - if: '$CEPH == "true"'
 
 openstack:pull:
   stage: pre_deploy
@@ -230,3 +233,5 @@ delete_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
+    - when: manual
+      allow_failure: true

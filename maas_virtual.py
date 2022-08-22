@@ -73,7 +73,10 @@ class MaasVirtual(MaasBase):
     def create_virtual_machine(self, vm_profile, num_VMs):
         # public_cidr = self._get_public_cidr(vm_profile["Public_VM_IP"])
         total_storage = (
-            osias_variables.VM_Profile["HDD1"] + osias_variables.VM_Profile["HDD2"]
+            osias_variables.VM_Profile["HDD1"]
+            + osias_variables.VM_Profile["HDD2"]
+            + osias_variables.VM_Profile["HDD3"]
+            + osias_variables.VM_Profile["HDD4"]
         )
         pod_id = self._get_pod_id(
             total_storage,
@@ -91,7 +94,7 @@ class MaasVirtual(MaasBase):
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
-                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']}' interfaces='{interfaces}'"
+                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
             )
             server_list.append(server["system_id"])
 
@@ -111,9 +114,8 @@ class MaasVirtual(MaasBase):
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
         release = vm_profile["OPENSTACK_RELEASE"]
-        distro = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]].split(
-            " "
-        )[0]
+        distro_hwe = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
+        distro = distro_hwe.split(" ")[0]
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
         )
@@ -133,7 +135,7 @@ class MaasVirtual(MaasBase):
             create_n_vms = int(no_of_vms - len(ids))
             print(f"Creating {create_n_vms} virtual machine...")
             machine_list = self.create_virtual_machine(vm_profile, create_n_vms)
-            self.distro = distro
+            self.distro = distro_hwe
             self.deploy(server_list=machine_list)
             ids.extend(machine_list)
         tags = []
@@ -179,26 +181,53 @@ class MaasVirtual(MaasBase):
         )
         return dict_of_ids_and_ips, vip, ip_end, ip_start
 
-    def delete_virtual_machines(self, openstack_release, pipeline_id: int):
-        machines = self._run_maas_command(
-            "machines read | jq '.[] | {system_id:.system_id,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
+    def delete_tags_and_ips(self, parent_project_pipeline_id, openstack_release=None):
+        if openstack_release is None:
+            filters = str(parent_project_pipeline_id)
+        else:
+            filters = f"{parent_project_pipeline_id}_{openstack_release}"
+        defs = self._run_maas_command(
+            f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names}} | select(.tag_names| contains([\"{filters}\"]))'"
         )
-        pipeline_tag_name = f"{pipeline_id}_{openstack_release}"
-
-        machine_dict = {}
+        vips = []
+        starts = []
+        machine_ids = []
         tags = []
-        for machine in machines:
-            if machine["tag_names"].__contains__(pipeline_tag_name):
-                machine_dict[machine["system_id"]] = machine["distro_series"]
-                for tag in machine["tag_names"]:
-                    tags.append(tag) if tag not in tags else tags
-        for tag in tags:
-            self._run_maas_command(f"tag delete {tag}")
-        for k, v in machine_dict.items():
-            self._run_maas_command(f"machine release {k}")
-            self._run_maas_command(f"tag update-nodes openstack_ready add={k}")
-            self._waiting([f"{k}"], "Ready")
-            self._run_maas_command(f"machine deploy {k} distro_series={v}")
+        distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
+        if isinstance(defs, dict):
+            defs = [defs]
+        if defs:
+            for i in defs:
+                machine_ids.append(i["system_id"])
+                vips.append([s for s in i["tag_names"] if "vip" in s][0])
+                starts.append([s for s in i["tag_names"] if "start" in s][0])
+                vips = list(dict.fromkeys(vips))
+                starts = list(dict.fromkeys(starts))
+                tags = tags + i["tag_names"]
+            if len(vips) > 0:
+                vips = [s.replace("_", ".").split("-")[1] for s in vips]
+            if len(starts) > 0:
+                starts = [s.replace("_", ".").split("-")[1] for s in starts]
+            ips = vips + starts
+            tags = [*set(tags)]
+            for tag in tags:
+                self._run_maas_command(f"tag delete {tag}")
+            for ip in ips:
+                self._run_maas_command(f"ipaddresses release ip={ip} force=true")
+            for machine_id in machine_ids:
+                self._run_maas_command(
+                    f"tag update-nodes openstack_ready add={machine_id}"
+                )
+        return machine_ids, distro
+
+    def delete_virtual_machines(self, machine_ids: list, distro: str):
+        for machine_id in machine_ids:
+            self._run_maas_command(f"machine release {machine_id}")
+            self._run_maas_command(f"tag update-nodes openstack_ready add={machine_id}")
+            self._waiting([f"{machine_id}"], "Ready")
+            self._run_maas_command(
+                f"machine deploy {machine_id} distro_series={distro}"
+            )
 
     def get_machines_interface_ip(
         self, server_list, machines_info, interface, interface_common_name

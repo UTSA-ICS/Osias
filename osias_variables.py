@@ -31,6 +31,8 @@ VM_Profile = {
     "RAM_in_MB": 16384,
     "HDD1": 60,
     "HDD2": 10,
+    "HDD3": 10,
+    "HDD4": 10,
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
@@ -62,10 +64,10 @@ CEPH_VERSION = {
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
-    "victoria": "focal hwe_kernel=hwe-20.04",
-    "wallaby": "focal hwe_kernel=hwe-20.04",
-    "xena": "focal hwe_kernel=hwe-20.04",
-    "yoga": "focal hwe_kernel=hwe-20.04",
+    "victoria": "focal hwe_kernel=hwe-20.04-edge",
+    "wallaby": "focal hwe_kernel=hwe-20.04-edge",
+    "xena": "focal hwe_kernel=hwe-20.04-edge",
+    "yoga": "focal hwe_kernel=hwe-20.04-edge",
 }
 
 # REFSTACK VARIABLES
@@ -103,7 +105,7 @@ NOVA_MAX_MICROVERSION = {
     "victoria": "2.87",
     "wallaby": "2.88",
     "xena": "2.90",
-    "yoga": "2.90",
+    "yoga": "2.92",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -117,7 +119,7 @@ STORAGE_MAX_MICROVERSION = {
     "victoria": "3.62",
     "wallaby": "3.64",
     "xena": "3.66",
-    "yoga": "3.68",
+    "yoga": "3.69",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
