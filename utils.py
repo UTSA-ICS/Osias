@@ -73,7 +73,6 @@ def merge_dictionaries(default_dictionary, user_input_dictionary):
 def create_ssh_client(target_node):
     client = ssh_tool("ubuntu", target_node)
     if not client.check_access():
-        print(f"Failed to connect to target node with IP {target_node} using SSH")
         raise Exception(
             f"ERROR: Failed to connect to target node with IP {target_node} using SSH"
         )

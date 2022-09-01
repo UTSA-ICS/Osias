@@ -233,5 +233,7 @@ delete_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
+    - if: $MULTINODE
+      when: never
     - when: manual
       allow_failure: true
