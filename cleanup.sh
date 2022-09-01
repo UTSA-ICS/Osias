@@ -6,13 +6,14 @@ function_name=$1
 
 function cleanup_master() {
     # Destroy openstack and delete images
-    cd /opt/kolla || exit
-    python3 -m venv venv
-    source venv/bin/activate
-    kolla-ansible -i multinode destroy --yes-i-really-really-mean-it --include-images
-    deactivate
-    sudo pip3 uninstall -qy python-openstackclient
-
+    if [ -d "/opt/kolla" ]; then
+        cd /opt/kolla || exi
+        python3 -m venv venv
+        source venv/bin/activate
+        kolla-ansible -i multinode destroy --yes-i-really-really-mean-it --include-images
+        deactivate
+        sudo pip3 uninstall -qy python-openstackclient
+    fi
     # Cleanup refstack
     cd ~ || exit
     sudo rm -fr refstack-client
@@ -21,12 +22,17 @@ function cleanup_master() {
     sudo rm -fr /etc/kolla /etc/ansible /opt/kolla
 
     # disable automatic creation of OSD on available devices
+    if [[ !  $(sudo ceph -s) ]]; then
+        echo "Ceph not installed"
+        exit 0
+    fi
+
     sudo ceph orch apply osd --all-available-devices --unmanaged=true
     # Now remove all of the OSDs
     osds=$(sudo ceph osd ls)
     for osd in $osds
     do
-        sudo ceph orch osd rm "$osd" --force           
+        sudo ceph orch osd rm "$osd" --force
     done
     # Get all the available hosts
     hosts=$(sudo ceph orch host ls |awk '{print $1}' |grep -v HOST)
@@ -104,7 +110,7 @@ function cleanup_storage_nodes() {
     done
     array=("${new_array[@]}")
     unset new_array
-    
+
     for device in "${array[@]}"
     do
         echo "INFO: Working working on device [$device]"
@@ -113,7 +119,7 @@ function cleanup_storage_nodes() {
         sudo partprobe || true
         sudo wipefs -af "$device"
     done
-    
+
     # remove all logical devices that use the /dev/mapper driver
     sudo dmsetup remove_all
 
