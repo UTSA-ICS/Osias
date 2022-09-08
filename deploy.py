@@ -88,7 +88,6 @@ def parse_args():
         "operation",
         type=str,
         choices=[
-            "cleanup",
             "reboot_servers",
             "reprovision_servers",
             "tag_virtual_servers",
@@ -122,19 +121,9 @@ def bootstrap_networking(servers_public_ip):
     utils.run_script_on_server("bootstrap_networking.sh", servers_public_ip)
 
 
-def cleanup(servers_public_ip, storage_nodes_public_ip):
-    utils.run_script_on_server(
-        "cleanup.sh", servers_public_ip[0], args=["cleanup_master"]
-    )
-    utils.run_script_on_server(
-        "cleanup.sh", storage_nodes_public_ip, args=["cleanup_storage_nodes"]
-    )
-    utils.run_script_on_server("cleanup.sh", servers_public_ip, args=["cleanup_nodes"])
-    utils.run_cmd_on_server("sudo -s rm -fr /home/ubuntu/*", servers_public_ip)
-
-
 def bootstrap_openstack(
     servers_public_ip,
+    servers_private_ip,
     controller_nodes,
     network_nodes,
     storage_nodes_private_ip,
@@ -188,9 +177,9 @@ def bootstrap_openstack(
     else:
         utils.run_script_on_server("bootstrap_openstack.sh", servers_public_ip[0])
 
-    str_servers_public_ip = " ".join(servers_public_ip)
+    str_servers_private_ip = " ".join(servers_private_ip)
     utils.run_script_on_server(
-        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_public_ip]
+        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_private_ip]
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
@@ -342,7 +331,8 @@ def main():
         )
         compute_nodes = config.get_server_ips(node_type="compute", ip_type="private")
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
-        servers_public_ip = config.get_all_public_ips()
+        servers_public_ip = config.get_all_ips_type("public")
+        servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
@@ -384,9 +374,7 @@ def main():
 
         cmd = "".join((args.operation, ".sh"))
 
-        if args.operation == "cleanup":
-            cleanup(servers_public_ip, storage_nodes_public_ip)
-        elif args.operation == "reprovision_servers":
+        if args.operation == "reprovision_servers":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 reprovision_servers(
                     args.MAAS_URL,
@@ -421,6 +409,7 @@ def main():
         elif args.operation == "bootstrap_openstack":
             bootstrap_openstack(
                 servers_public_ip,
+                servers_private_ip,
                 controller_nodes,
                 network_nodes,
                 storage_nodes_private_ip,
@@ -527,6 +516,7 @@ def main():
             utils.run_script_on_server("bootstrap_networking.sh", servers_public_ip)
             bootstrap_openstack(
                 servers_public_ip,
+                servers_private_ip,
                 controller_nodes,
                 network_nodes,
                 storage_nodes_private_ip,

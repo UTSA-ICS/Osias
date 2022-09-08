@@ -24,19 +24,19 @@ class parser:
                 return data["0"][variable]
         return None
 
-    def get_all_public_ips(self):
+    def get_all_ips_type(self, iptype):
         data = ["control", "network", "storage", "compute", "monitor"]
-        ALL_PUBLIC_IPS = []
+        ALL_IPS = []
         for my_node_type in data:
-            ips = parser.get_server_ips(self, node_type=my_node_type, ip_type="public")
-            ALL_PUBLIC_IPS.extend(ips)
-        ALL_PUBLIC_IPS = list(
-            (dict.fromkeys(ALL_PUBLIC_IPS))
+            ips = parser.get_server_ips(self, node_type=my_node_type, ip_type=iptype)
+            ALL_IPS.extend(ips)
+        ALL_IPS = list(
+            (dict.fromkeys(ALL_IPS))
         )  # remove duplicates from list
-        ALL_PUBLIC_IPS = list(
-            filter(None, ALL_PUBLIC_IPS)
+        ALL_IPS = list(
+            filter(None, ALL_IPS)
         )  # remove null values from list
-        return ALL_PUBLIC_IPS
+        return ALL_IPS
 
     def get_each_servers_ips(self):
         data = self.data.keys()
