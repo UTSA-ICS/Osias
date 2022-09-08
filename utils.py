@@ -30,12 +30,8 @@ class parser:
         for my_node_type in data:
             ips = parser.get_server_ips(self, node_type=my_node_type, ip_type=iptype)
             ALL_IPS.extend(ips)
-        ALL_IPS = list(
-            (dict.fromkeys(ALL_IPS))
-        )  # remove duplicates from list
-        ALL_IPS = list(
-            filter(None, ALL_IPS)
-        )  # remove null values from list
+        ALL_IPS = list((dict.fromkeys(ALL_IPS)))  # remove duplicates from list
+        ALL_IPS = list(filter(None, ALL_IPS))  # remove null values from list
         return ALL_IPS
 
     def get_each_servers_ips(self):
