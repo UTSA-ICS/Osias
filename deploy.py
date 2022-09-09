@@ -101,6 +101,7 @@ def parse_args():
             "post_deploy_openstack",
             "test_setup",
             "test_refstack",
+            "test_functionality",
             "test_stress",
             "delete_virtual_machines",
             "delete_tags_and_ips",
@@ -462,6 +463,10 @@ def main():
                         PYTHON_VERSION,
                     ],
                 )
+        elif args.operation == "test_functionality":
+            utils.run_script_on_server(
+                "test_basic_functionality.sh", servers_public_ip[0]
+            )
         elif args.operation == "test_setup":
             utils.run_script_on_server(
                 "test_setup.sh",
@@ -474,6 +479,10 @@ def main():
                     osias_variables.PLACEMENT_MIN_MICROVERSION[OPENSTACK_RELEASE],
                     osias_variables.PLACEMENT_MAX_MICROVERSION[OPENSTACK_RELEASE],
                     osias_variables.REFSTACK_TEST_IMAGE,
+                    osias_variables.UBUNTU_NAMES[0],
+                    osias_variables.UBUNTU_NAMES[1],
+                    osias_variables.UBUNTU_VERSIONS[0],
+                    osias_variables.UBUNTU_VERSIONS[1],
                 ],
             )
         elif args.operation in [
@@ -546,6 +555,9 @@ def main():
             )
             utils.run_script_on_server("test_setup.sh", servers_public_ip[0])
             utils.run_script_on_server("test_refstack.sh", servers_public_ip[0])
+            utils.run_script_on_server(
+                "test_basic_functionality.sh", servers_public_ip[0]
+            )
     elif args.operation == "create_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
             VM_PROFILE = utils.merge_dictionaries(

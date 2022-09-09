@@ -76,6 +76,8 @@ MAAS_VM_DISTRO = {
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
 # https://refstack.openstack.org/#/guidelines
+UBUNTU_NAMES = ["focal", "jammy"]
+UBUNTU_VERSIONS = ["20.04.4", "22.04"]
 REFSTACK_TEST_IMAGE = (
     "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img"
 )

@@ -171,6 +171,14 @@ test:refstack:
       - ./0.json
     when: always
 
+test:general_functionality:
+  stage: test_refstack
+  extends:
+    - .base_setup
+  script:
+    # Run refstack tests to ensure that the openstack deploy on target servers is functional
+    - python3 -u deploy.py test_functionality --config "$MULTINODE"
+
 test:stress:
   stage: test_stress
   extends:
