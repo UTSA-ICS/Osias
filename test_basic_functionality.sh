@@ -1,5 +1,12 @@
 #!/bin/bash
 
+set -euo pipefail
+
+# shellcheck source=/dev/null
+source "$HOME"/base_config.sh
+
+source /etc/kolla/admin-openrc.sh
+
 FIRST_NAME="John"
 LAST_NAME="Doe"
 USER_EMAIL_ADDRESS="John.Doe@organization.com"
