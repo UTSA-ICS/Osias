@@ -25,7 +25,7 @@ stages:
   - deploy
   - post_deploy
   - test_setup
-  - test_refstack
+  - test_verifications
   - test_stress
   - sleep_on_failure
   - release_cidr
@@ -152,7 +152,7 @@ test:setup:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
 test:refstack:
-  stage: test_refstack
+  stage: test_verifications
   extends:
     - .base_setup
   script:
@@ -172,11 +172,11 @@ test:refstack:
     when: always
 
 test:general_functionality:
-  stage: test_refstack
+  stage: test_verifications
   extends:
     - .base_setup
   script:
-    # Run refstack tests to ensure that the openstack deploy on target servers is functional
+    # Run basic tests to ensure that the openstack deploy on target servers is functional from outside of servers
     - python3 -u deploy.py test_functionality --config "$MULTINODE"
 
 test:stress:

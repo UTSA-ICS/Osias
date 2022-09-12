@@ -5,7 +5,20 @@ set -euo pipefail
 # shellcheck source=/dev/null
 source "$HOME"/base_config.sh
 
-source /etc/kolla/admin-openrc.sh
+if [ -f "/etc/kolla/admin-public-openrc.sh" ]; then source /etc/kolla/admin-public-openrc.sh
+    echo "admin-public-openrc.sh found"
+elif [ -f "admin-public-openrc.sh" ]; then source admin-public-openrc.sh
+    echo "admin-public-openrc.sh found"
+else echo "No openrc files found"
+    exit 1
+fi
+
+if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("openstackclient"))'; then
+    echo 'Openstack client found'
+else
+    echo "Openstack client not found"
+    pip3 install python-openstackclient
+fi
 
 FIRST_NAME="John"
 LAST_NAME="Doe"
@@ -23,8 +36,6 @@ KEYPAIR_NAME="$USER_NAME"_keypair
 ADMIN_KEYPAIR_NAME="admin_keypair"
 FLAVOR="cb1.medium"
 INSTANCE_NAME="TEST_INSTANCE"
-
-source /etc/kolla/admin-openrc.sh
 
 function create_project_and_user () {
     echo "INFO: CREATING GROUP"
@@ -80,12 +91,6 @@ function create_project_and_user () {
     echo "Username: $USER_NAME"
     echo "Password: $PASSWORD"
     echo "######################"
-    cat << EOF > "$USER_NAME"_rc.sh
-export OS_PROJECT_NAME="$USER_NAME"
-export OS_TENANT_NAME="$USER_NAME"
-export OS_USERNAME="$USER_NAME"
-export OS_PASSWORD="$PASSWORD"
-EOF
 }
 
 
@@ -161,7 +166,7 @@ function ssh_into_vm () {
                 $ssh_cmd "ping -c 4 google.com &> /dev/null && echo pass || echo fail"
                  break
             else
-                echo "VM not ready, waiting 5 seconds....."
+                echo "VM not ready, waiting 10 seconds....."
                 sleep 10
             fi
         i=$i+1
@@ -171,7 +176,6 @@ function delete_project_and_user () {
     openstack keypair delete "$ADMIN_KEYPAIR_NAME"
     rm "$KEYPAIR_NAME" || true
     rm "$ADMIN_KEYPAIR_NAME" || true
-    rm "$USER_NAME"_rc.sh || true
     openstack user delete "$USER_NAME"
     openstack project delete "$USER_NAME"
     mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
