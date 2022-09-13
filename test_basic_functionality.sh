@@ -3,7 +3,6 @@
 set -euo pipefail
 
 # shellcheck source=/dev/null
-source "$HOME"/base_config.sh
 
 if [ -f "/etc/kolla/admin-public-openrc.sh" ]; then source /etc/kolla/admin-public-openrc.sh
     echo "admin-public-openrc.sh found"
