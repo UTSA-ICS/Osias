@@ -109,7 +109,7 @@ function check_status () {
 function create_vms () {
     mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
     openstack keypair create  --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
-    chmod 600 ~/"$ADMIN_KEYPAIR_NAME"
+    chmod 600 "$ADMIN_KEYPAIR_NAME"
     mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
 
