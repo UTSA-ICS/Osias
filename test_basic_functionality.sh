@@ -34,7 +34,6 @@ ROUTER_NAME="$PROJECT_NAME"_Router
 KEYPAIR_NAME="$USER_NAME"_keypair
 ADMIN_KEYPAIR_NAME="admin_keypair"
 FLAVOR="cb1.medium"
-INSTANCE_NAME="TEST_INSTANCE"
 
 function create_project_and_user () {
     echo "INFO: CREATING GROUP"
@@ -114,36 +113,37 @@ function create_vms () {
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
 
     for compute_node in "${compute_nodes[@]}"; do
-        echo "Deploying server on $compute_node"
+        INSTANCE_NAME="TEST_INSTANCE_$(openssl rand -base64 3)"
+        echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server: $compute_node"
         openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$NETWORK_NAME" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
         FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
-        echo "Assigning public IP to server: $FLOATING_IP"
+        echo "INFO: Assigning public IP to VM, $INSTANCE_NAME: $FLOATING_IP"
         openstack server add floating ip "$INSTANCE_NAME" "$FLOATING_IP"
         while true ; do
-            echo "Checking status...."
-            STATUS_STATE=$(openstack server list -c Status --name $INSTANCE_NAME -f value)
+            echo "INFO: Checking $INSTANCE_NAME status...."
+            STATUS_STATE=$(openstack server list -c Status --name "$INSTANCE_NAME" -f value)
             STATUS_VALUE=$( check_status "$STATUS_STATE" )
             VALUE="${STATUS_VALUE: :1}"
             echo "$STATUS_VALUE"
 	    echo "$VALUE"
             case $VALUE in
                 1 ) exit 1;;
-		        2 ) TEST=$( ssh_into_vm $KEYPAIR_NAME "$FLOATING_IP")
+		        2 ) TEST=$( ssh_into_vm "$KEYPAIR_NAME" "$FLOATING_IP" "$INSTANCE_NAME")
 		            echo "$TEST"
 		            test_value="${TEST: -4}"
 		            if [ "$test_value" == "pass" ]; then
-        			    echo "PASS: SSH PASSES ON $compute_node!"
-                 	    echo "Deleting server $INSTANCE_NAME"
-                        openstack server delete $INSTANCE_NAME
+        			    echo "INFO: SUCCESS: SSH PASSES ON $compute_node with $INSTANCE_NAME!"
+                 	    echo "INFO: Deleting VM: $INSTANCE_NAME"
+                        openstack server delete "$INSTANCE_NAME"
                   	    openstack floating ip delete "$FLOATING_IP"
-                        echo "Delete complete"
+                        echo "INFO: Delete complete"
 	                else
 			            echo "ERROR: SSH FAILED!!!!"
 			            exit 1
 		            fi
                     break;;
                 3 ) sleep 1;;
-                * ) echo "Unkown Error"
+                * ) echo "ERROR: UNKNOWN ERROR"
 		            exit 1;;
             esac
             sleep 1
@@ -156,6 +156,7 @@ function ssh_into_vm () {
     i=0
     KEYPAIR_NAME=$1
     FLOATING_IP=$2
+    INSTANCE_NAME=$3
     ssh_cmd="ssh -i $ADMIN_KEYPAIR_NAME -o StrictHostKeyChecking=no -o BatchMode=yes -o ConnectTimeout=5 ubuntu@$FLOATING_IP"
     echo "$ssh_cmd"
     while [[ i -le 10 ]]; do
@@ -165,7 +166,7 @@ function ssh_into_vm () {
                 $ssh_cmd "ping -c 4 google.com &> /dev/null && echo pass || echo fail"
                  break
             else
-                echo "VM not ready, waiting 10 seconds....."
+                echo "INFO: VM, $INSTANCE_NAME, not ready, waiting 10 seconds....."
                 sleep 10
             fi
         i=$i+1
@@ -173,14 +174,14 @@ function ssh_into_vm () {
 }
 function delete_project_and_user () {
     openstack keypair delete "$ADMIN_KEYPAIR_NAME"
-    rm "$KEYPAIR_NAME" || true
     rm "$ADMIN_KEYPAIR_NAME" || true
     openstack user delete "$USER_NAME"
     openstack project delete "$USER_NAME"
     mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
     for port in "${port_list[@]}"; do
-        echo "Deleting port: $port"
+        echo "INFO: Deleting port: $port"
         openstack port delete "$port" || true
+        echo "INFO: Removing port from router."
         openstack router remove port "$USER_NAME"_Router "$port" || true
     done
     openstack subnet delete "$USER_NAME"_Subnet
