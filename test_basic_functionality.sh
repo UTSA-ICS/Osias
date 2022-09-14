@@ -179,10 +179,13 @@ function delete_project_and_user () {
     openstack project delete "$USER_NAME"
     mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
     for port in "${port_list[@]}"; do
-        echo "INFO: Deleting port: $port"
-        openstack port delete "$port" || true
-        echo "INFO: Removing port from router."
-        openstack router remove port "$USER_NAME"_Router "$port" || true
+        echo "INFO: Deleting or Removing Port: $port"
+        if openstack port delete "$port"; then
+            echo "INFO: Port Deleted: $port"
+        else
+            openstack router remove port "$USER_NAME"_Router "$port"
+            echo "INFO: Port Removed: $port."
+        fi
     done
     openstack subnet delete "$USER_NAME"_Subnet
     openstack router delete "$USER_NAME"_Router
