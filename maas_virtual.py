@@ -35,34 +35,52 @@ class MaasVirtual(MaasBase):
             self._run_maas_command(f"interface disconnect {server} eno3")
             self._set_interface(server, "eno3", osias_variables.VM_Profile["Data_CIDR"])
 
-    def _get_pod_id(self, storage, cores, memory):
+    def _get_pod_id(self, storage, cores, memory, num_VMs):
         pods = self._run_maas_command("pods read")
+        vms_needed = num_VMs
+        pods_needed = []
         print(
-            f"VM REQUIREMENTS: \n\tNEED STORAGE: {storage}\tCORES: {cores}\tMEMORY: {memory}"
+            f"VM REQUIREMENTS NEED: \n\t\tSTORAGE: {storage}\t\tCORES: {cores}\tMEMORY: {memory}"
         )
         for pod in pods:
-            free_memory = (
+            pod_free_memory = (
                 pod["memory_over_commit_ratio"] * pod["total"]["memory"]
                 - pod["used"]["memory"]
             )
-            free_cores = (
+            pod_free_cores = (
                 pod["cpu_over_commit_ratio"] * pod["total"]["cores"]
                 - pod["used"]["cores"]
             )
-            free_storage = int(
+            pod_free_storage = int(
                 (pod["total"]["local_storage"] - pod["used"]["local_storage"]) / 1048576
             )
             print(
-                f"POD {pod['id']} HAS: STORAGE: {free_storage}\tCORES: {free_cores}\tMEMORY: {free_memory}"
+                f"POD {pod['id']} HAS:\n\t\tSTORAGE: {pod_free_storage}\tCORES: {pod_free_cores}\tMEMORY: {pod_free_memory}"
             )
-            if free_memory >= memory:
-                print("There is sufficient memory")
-                if free_cores >= cores:
-                    print("There is sufficient cores")
-                    if free_storage >= storage:
-                        print("There is sufficient storage")
-                        print(pod["id"])
-                        return pod["id"]
+            max_pod_memory_supported = int(pod_free_memory // (memory * num_VMs))
+            max_pod_cores_supported = int(pod_free_cores // (cores * num_VMs))
+            max_pod_storage_supported = int(pod_free_storage // (storage * num_VMs))
+            print(
+                f"Max VMs supported:\n\t\tSTORAGE: {max_pod_storage_supported}\t\tCORES: {max_pod_cores_supported}\tMEMORY: {max_pod_memory_supported}"
+            )
+            max_vm_supported_in_pod = min(
+                min(
+                    max_pod_memory_supported,
+                    max_pod_cores_supported,
+                    max_pod_storage_supported,
+                ),
+                vms_needed,
+            )
+            max_vm_supported_in_pod = (
+                lambda max_vm_supported_in_pod: max_vm_supported_in_pod
+                if (max_vm_supported_in_pod >= 0)
+                else 0
+            )(max_vm_supported_in_pod)
+            print(f"Pod {pod['id']}, can support {max_vm_supported_in_pod} VM's.")
+            pods_needed.extend([pod["id"]] * int(max_vm_supported_in_pod))
+            if max_vm_supported_in_pod >= vms_needed:
+                return pods_needed
+            vms_needed -= max_vm_supported_in_pod
         raise Exception("KVM Host(s) do not have enough available resources.")
 
     def _set_interface(self, system, interface, cidr):
@@ -82,6 +100,7 @@ class MaasVirtual(MaasBase):
             total_storage,
             osias_variables.VM_Profile["vCPU"],
             osias_variables.VM_Profile["RAM_in_MB"],
+            num_VMs,
         )
         if vm_profile["Data_CIDR"]:
             osias_variables.VM_Profile.update(
@@ -94,7 +113,7 @@ class MaasVirtual(MaasBase):
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
-                f"vm-host compose {pod_id} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
+                f"vm-host compose {pod_id.pop()} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
             )
             server_list.append(server["system_id"])
 
