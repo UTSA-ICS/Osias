@@ -22,7 +22,7 @@ fi
 FIRST_NAME="John"
 LAST_NAME="Doe"
 USER_EMAIL_ADDRESS="John.Doe@organization.com"
-PASSWORD="$(openssl rand -base64 12)"
+PASSWORD="$(echo $RANDOM | md5sum | head -c 16; echo;)"
 firstletter=${FIRST_NAME:0:1}
 USER_NAME=$firstletter$LAST_NAME
 NAME="$FIRST_NAME $LAST_NAME"
@@ -113,7 +113,7 @@ function create_vms () {
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
 
     for compute_node in "${compute_nodes[@]}"; do
-        INSTANCE_NAME="TEST_INSTANCE_$(openssl rand -base64 3)"
+        INSTANCE_NAME="TEST_INSTANCE_$(echo $RANDOM | md5sum | head -c 5; echo;)"
         echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server: $compute_node"
         openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$NETWORK_NAME" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
         FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
