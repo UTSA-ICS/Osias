@@ -88,7 +88,6 @@ def parse_args():
         "operation",
         type=str,
         choices=[
-            "cleanup",
             "reboot_servers",
             "reprovision_servers",
             "tag_virtual_servers",
@@ -102,6 +101,7 @@ def parse_args():
             "post_deploy_openstack",
             "test_setup",
             "test_refstack",
+            "test_functionality",
             "test_stress",
             "delete_virtual_machines",
             "delete_tags_and_ips",
@@ -122,19 +122,9 @@ def bootstrap_networking(servers_public_ip):
     utils.run_script_on_server("bootstrap_networking.sh", servers_public_ip)
 
 
-def cleanup(servers_public_ip, storage_nodes_public_ip):
-    utils.run_script_on_server(
-        "cleanup.sh", servers_public_ip[0], args=["cleanup_master"]
-    )
-    utils.run_script_on_server(
-        "cleanup.sh", storage_nodes_public_ip, args=["cleanup_storage_nodes"]
-    )
-    utils.run_script_on_server("cleanup.sh", servers_public_ip, args=["cleanup_nodes"])
-    utils.run_cmd_on_server("sudo -s rm -fr /home/ubuntu/*", servers_public_ip)
-
-
 def bootstrap_openstack(
     servers_public_ip,
+    servers_private_ip,
     controller_nodes,
     network_nodes,
     storage_nodes_private_ip,
@@ -188,9 +178,9 @@ def bootstrap_openstack(
     else:
         utils.run_script_on_server("bootstrap_openstack.sh", servers_public_ip[0])
 
-    str_servers_public_ip = " ".join(servers_public_ip)
+    str_servers_private_ip = " ".join(servers_private_ip)
     utils.run_script_on_server(
-        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_public_ip]
+        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_private_ip]
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
@@ -342,7 +332,8 @@ def main():
         )
         compute_nodes = config.get_server_ips(node_type="compute", ip_type="private")
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
-        servers_public_ip = config.get_all_public_ips()
+        servers_public_ip = config.get_all_ips_type("public")
+        servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
@@ -384,9 +375,7 @@ def main():
 
         cmd = "".join((args.operation, ".sh"))
 
-        if args.operation == "cleanup":
-            cleanup(servers_public_ip, storage_nodes_public_ip)
-        elif args.operation == "reprovision_servers":
+        if args.operation == "reprovision_servers":
             if args.MAAS_URL and args.MAAS_API_KEY:
                 reprovision_servers(
                     args.MAAS_URL,
@@ -421,6 +410,7 @@ def main():
         elif args.operation == "bootstrap_openstack":
             bootstrap_openstack(
                 servers_public_ip,
+                servers_private_ip,
                 controller_nodes,
                 network_nodes,
                 storage_nodes_private_ip,
@@ -473,6 +463,11 @@ def main():
                         PYTHON_VERSION,
                     ],
                 )
+        elif args.operation == "test_functionality":
+            client = utils.create_ssh_client(servers_public_ip[0])
+            client.scp_from("/etc/kolla/admin-public-openrc.sh")
+            client.scp_from("/etc/kolla/certificates/ca/root.crt")
+            utils.run_cmd("source test_basic_functionality.sh")
         elif args.operation == "test_setup":
             utils.run_script_on_server(
                 "test_setup.sh",
@@ -485,6 +480,10 @@ def main():
                     osias_variables.PLACEMENT_MIN_MICROVERSION[OPENSTACK_RELEASE],
                     osias_variables.PLACEMENT_MAX_MICROVERSION[OPENSTACK_RELEASE],
                     osias_variables.REFSTACK_TEST_IMAGE,
+                    osias_variables.UBUNTU_NAMES[0],
+                    osias_variables.UBUNTU_NAMES[1],
+                    osias_variables.UBUNTU_VERSIONS[0],
+                    osias_variables.UBUNTU_VERSIONS[1],
                 ],
             )
         elif args.operation in [
@@ -527,6 +526,7 @@ def main():
             utils.run_script_on_server("bootstrap_networking.sh", servers_public_ip)
             bootstrap_openstack(
                 servers_public_ip,
+                servers_private_ip,
                 controller_nodes,
                 network_nodes,
                 storage_nodes_private_ip,
@@ -556,6 +556,9 @@ def main():
             )
             utils.run_script_on_server("test_setup.sh", servers_public_ip[0])
             utils.run_script_on_server("test_refstack.sh", servers_public_ip[0])
+            utils.run_script_on_server(
+                "test_basic_functionality.sh", servers_public_ip[0]
+            )
     elif args.operation == "create_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
             VM_PROFILE = utils.merge_dictionaries(

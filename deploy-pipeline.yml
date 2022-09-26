@@ -25,7 +25,7 @@ stages:
   - deploy
   - post_deploy
   - test_setup
-  - test_refstack
+  - test_verifications
   - test_stress
   - sleep_on_failure
   - release_cidr
@@ -90,38 +90,6 @@ bootstrap_networking:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
 
-cleanup:
-  stage: cleanup
-  extends:
-    - .base_setup
-  script:
-    # Prepare a clean environment - cleanup servers to be used for deploy
-    # Ensure there is no ceph and openstack deployment on the servers
-    - python3 -u deploy.py cleanup --config "$MULTINODE"
-  rules:
-    - if: '$REPROVISION_SERVERS == "true"'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-
-reboot_servers:
-  stage: reboot_servers
-  extends:
-    - .base_setup
-  script:
-    # Restart the nodes
-    # Verify that the servers are up and online.
-    - python3 -u deploy.py reboot_servers --config "$MULTINODE"
-  rules:
-    - if: '$REPROVISION_SERVERS == "true"'
-      when: never
-    - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-
 bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
@@ -184,7 +152,7 @@ test:setup:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
 test:refstack:
-  stage: test_refstack
+  stage: test_verifications
   extends:
     - .base_setup
   script:
@@ -202,6 +170,14 @@ test:refstack:
       - ./0
       - ./0.json
     when: always
+
+test:general_functionality:
+  stage: test_verifications
+  extends:
+    - .base_setup
+  script:
+    # Run basic tests to ensure that the openstack deploy on target servers is functional from outside of servers
+    - python3 -u deploy.py test_functionality --config "$MULTINODE"
 
 test:stress:
   stage: test_stress
@@ -233,5 +209,7 @@ delete_virtual_machines:
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
+    - if: $MULTINODE
+      when: never
     - when: manual
       allow_failure: true
