@@ -10,6 +10,10 @@ STORAGE_MAX_MICROVERSION=$4
 PLACEMENT_MIN_MICROVERSION=$5
 PLACEMENT_MAX_MICROVERSION=$6
 REFSTACK_TEST_IMAGE=$7
+UBUNTU1_NAME=$8
+UBUNTU2_NAME=$9
+UBUNTU1_VERSION=${10}
+UBUNTU2_VERSION=${11}
 
 # Copy files necessary for both:
 sudo cp /etc/kolla/certificates/ca/root.crt "$HOME"/root.crt
@@ -21,6 +25,20 @@ openstack flavor create --id 100 --vcpus 1 --ram 256 --disk 1 ref.nano
 openstack flavor create --id 101 --vcpus 2 --ram 512 --disk 2 ref.micro
 
 wget "$REFSTACK_TEST_IMAGE" -O /tmp/CirrOS.img
+
+DATE=$(date '+%Y-%m-%d')
+
+UBUNTU1_URL="http://cloud-images.ubuntu.com/$UBUNTU1_NAME/current/$UBUNTU1_NAME-server-cloudimg-amd64.img"
+UBUNTU2_URL="http://cloud-images.ubuntu.com/$UBUNTU2_NAME/current/$UBUNTU2_NAME-server-cloudimg-amd64.img"
+
+echo "Downloading Ubuntu $UBUNTU1_VERSION ($UBUNTU1_NAME) Image"
+wget "$UBUNTU1_URL" -O Ubuntu"$UBUNTU1_NAME"-"$DATE".img
+
+echo "Downloading Ubuntu $UBUNTU2_VERSION ($UBUNTU2_NAME) Image"
+wget "$UBUNTU2_URL" -O Ubuntu"$UBUNTU2_NAME"-"$DATE".img
+
+openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64  Ubuntu_"$UBUNTU1_VERSION"_LTS
+openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU2_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU2_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU2_VERSION"_LTS
 openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS"
 openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS-2"
 

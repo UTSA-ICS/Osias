@@ -24,6 +24,18 @@ sudo chown "$USER":"$USER" /etc/kolla/admin-openrc.sh
 echo "export OS_CACERT=/etc/kolla/certificates/ca/root.crt" >> /etc/kolla/admin-openrc.sh
 source /etc/kolla/admin-openrc.sh
 
+# Create public endpoint openrc file for access outside of server.
+sudo touch /etc/kolla/admin-public-openrc.sh
+sudo chown "$USER":"$USER" /etc/kolla/admin-public-openrc.sh
+ENDPOINT=$(openstack endpoint list --service identity --interface public -c URL -f value)
+grep -vwE "(OS_INTERFACE|OS_AUTH_URL|OS_ENDPOINT_TYPE|OS_CACERT)" /etc/kolla/admin-openrc.sh > /etc/kolla/admin-public-openrc.sh
+{
+echo "export OS_AUTH_URL=$ENDPOINT"
+echo "export OS_INTERFACE=public"
+echo "export OS_ENDPOINT_TYPE=publicURL"
+echo "export OS_CACERT=root.crt"
+} >> /etc/kolla/admin-public-openrc.sh
+
 openstack flavor create --id 1 --vcpus 1 --ram 2048 --disk 20 gp1.small
 openstack flavor create --id 2 --vcpus 2 --ram 4096 --disk 20 gp1.medium
 openstack flavor create --id 3 --vcpus 4 --ram 9216 --disk 20 gp1.large
