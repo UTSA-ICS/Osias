@@ -24,6 +24,12 @@ class parser:
                 return data["0"][variable]
         return None
 
+    def get_kolla_configs(self):
+        if "osias_kolla_imports" in self.data:
+            data = self.data.get("osias_kolla_imports")
+            return data["0"]["kolla"]
+        return None
+
     def get_all_ips_type(self, iptype):
         data = ["control", "network", "storage", "compute", "monitor"]
         ALL_IPS = []
