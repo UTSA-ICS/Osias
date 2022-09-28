@@ -140,6 +140,7 @@ def bootstrap_openstack(
     ceph,
     vip_address,
     fqdn,
+    osias_kolla_imports,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -161,6 +162,7 @@ def bootstrap_openstack(
         ceph,
         vip_address,
         fqdn,
+        osias_kolla_imports,
     )
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
@@ -339,6 +341,7 @@ def main():
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
         )
+        osias_kolla_imports = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
@@ -426,6 +429,7 @@ def main():
                 ceph_enabled,
                 VIP_ADDRESS,
                 FQDN,
+                osias_kolla_imports,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
