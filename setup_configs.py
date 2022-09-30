@@ -16,7 +16,6 @@ def setup_kolla_configs(
     ceph,
     vip_address,
     fqdn,
-    osias_kolla_imports,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
@@ -154,8 +153,6 @@ enable_haproxy: "yes"
 # If vip's don't match, disabling haproxy will fail deployment
 enable_haproxy: "no"
     """
-    if not osias_kolla_imports:
-        osias_kolla_imports = ""
 
     globals_file = f"""
 # Globals file is completely commented out besides these variables.
@@ -180,8 +177,6 @@ openstack_cacert: "{{{{ '/etc/pki/tls/certs/ca-bundle.crt' if kolla_enable_tls_e
 {storage}
 
 {docker}
-
-{osias_kolla_imports}
 
 # Recommended Global Options:
 enable_mariabackup: "no"

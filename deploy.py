@@ -3,7 +3,6 @@
 import argparse
 import ast
 import os
-
 import toml
 
 import maas_base
@@ -186,6 +185,9 @@ def bootstrap_openstack(
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
+    if osias_kolla_imports:
+        utils.create_kolla_config_files(osias_kolla_imports)
+        utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
 def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):

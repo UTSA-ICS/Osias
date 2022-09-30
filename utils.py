@@ -1,14 +1,18 @@
 #!/usr/bin/python3
 
-import toml
 import subprocess
-from ssh_tool import ssh_tool
 from itertools import islice
+from pathlib import Path
+
+import toml
+
+from ssh_tool import ssh_tool
 
 
 class parser:
     def __init__(self, config):
         self.data = toml.loads(config)
+        self.kolla_configs = {}
 
     def get_server_ips(self, node_type, ip_type):
         data = self.data.get(node_type)
@@ -25,10 +29,36 @@ class parser:
         return None
 
     def get_kolla_configs(self):
-        if "osias_kolla_imports" in self.data:
-            data = self.data.get("osias_kolla_imports")
-            return data["0"]["kolla"]
+        if "etc" in self.data:
+            data = self.data.get("etc")
+            results = {}
+            results = self.find_strings(data, data)
+            return results
         return None
+
+    def find_paths(self, nested_dict, value, prepath=()):
+        def yielder(nested_dict, value, prepath=()):
+            for k, v in nested_dict.items():
+                path = prepath + (k,)
+                if v == value:  # found value
+                    path = ("/etc", *path)
+                    dest = "/".join(path)
+                    yield dest
+                elif hasattr(v, "items"):  # v is a dict
+                    yield from yielder(v, value, path)
+
+        return list(yielder(nested_dict, value, prepath=()))
+
+    def find_strings(self, nested_dict, orig_dict):
+        for key, value in nested_dict.items():
+            if isinstance(value, dict):
+                self.find_strings(value, orig_dict)
+            if isinstance(value, str):
+                x = *self.find_paths(orig_dict, value), value
+                for i in range(len(x)):
+                    if i != len(x) - 1:
+                        self.kolla_configs[x[i]] = x[len(x) - 1]
+        return self.kolla_configs
 
     def get_all_ips_type(self, iptype):
         data = ["control", "network", "storage", "compute", "monitor"]
@@ -126,6 +156,20 @@ def run_cmd(command, test=True, output=True):
     if output:
         print(f"\nCommand Output: \n{stdout.decode()}\n")
     return stdout
+
+
+def create_kolla_config_files(data: dict):
+    with open("write_kolla_configs.sh", "w") as f:
+        f.write("#!/bin/bash")
+        f.write("\n\n")
+        f.write("set -euxo pipefail")
+        f.write("\n\n")
+        for file_location, file_contents in data.items():
+            directory = Path(result_location).parent
+            f.write(f"mkdir -p {directory}/ && touch {file_location}\n")
+            f.write(f"cat >> {file_location} << __EOF__\n")
+            f.write(f"{file_contents}")
+            f.write("__EOF__\n")
 
 
 def create_multinode(input_dictionary, optional_variables):
