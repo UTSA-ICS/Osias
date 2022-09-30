@@ -161,7 +161,6 @@ def bootstrap_openstack(
         ceph,
         vip_address,
         fqdn,
-        osias_kolla_imports,
     )
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
