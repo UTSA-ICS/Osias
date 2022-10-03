@@ -165,7 +165,7 @@ def create_kolla_config_files(data: dict):
         f.write("set -euxo pipefail")
         f.write("\n\n")
         for file_location, file_contents in data.items():
-            directory = Path(result_location).parent
+            directory = Path(file_location).parent
             f.write(f"mkdir -p {directory}/ && touch {file_location}\n")
             f.write(f"cat >> {file_location} << __EOF__\n")
             f.write(f"{file_contents}")
