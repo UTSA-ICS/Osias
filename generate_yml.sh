@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -euxo pipefail
+# set -euxo pipefail
 
 if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]];
 then
@@ -25,7 +25,7 @@ else
 
     if [[ -n "$MULTINODE" ]];
     then
-        python3 -c "import os,toml; print(os.getenv('MULTINODE'))"
+        # python3 -c "import os,toml; print(os.getenv('MULTINODE'))"
         release=$(python3 -c "import os,toml; release=toml.loads(os.getenv('MULTINODE')); release=release['variables']['0']['OPENSTACK_RELEASE']; print(release.lower())")
         ceph_current_bool=$(python3 -c "import os,toml; ceph_multi=toml.loads(os.getenv('MULTINODE')); ceph=ceph_multi['variables']['0']['CEPH']; print(str(ceph).lower())")
         sed -i "s/<RELEASE_VM_PROFILE>/''/g" trigger-pipeline.yml
