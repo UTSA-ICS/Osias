@@ -344,7 +344,7 @@ def main():
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
         )
-        osias_kolla_imports = config.get_kolla_configs()
+        OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
@@ -432,7 +432,7 @@ def main():
                 ceph_enabled,
                 VIP_ADDRESS,
                 FQDN,
-                osias_kolla_imports,
+                OSIAS_KOLLA_IMPORTS,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
@@ -545,6 +545,11 @@ def main():
                 VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
+                ANSIBLE_MAX_VERSION,
+                ceph_enabled,
+                VIP_ADDRESS,
+                FQDN,
+                OSIAS_KOLLA_IMPORTS,
             )
             if ceph_enabled:
                 bootstrap_ceph(
