@@ -31,6 +31,7 @@ class parser:
     def get_kolla_configs(self):
         if "etc" in self.data:
             data = self.data.get("etc")
+            print(f"data: {data}")
             results = {}
             results = self.find_strings(data, data)
             print(f"internal kolla configs: {results}")
