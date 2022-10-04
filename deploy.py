@@ -185,6 +185,7 @@ def bootstrap_openstack(
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
     if osias_kolla_imports:
+        print("Creating & importing unique kolla configs.")
         utils.create_kolla_config_files(osias_kolla_imports)
         utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
