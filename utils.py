@@ -33,6 +33,7 @@ class parser:
             data = self.data.get("etc")
             results = {}
             results = self.find_strings(data, data)
+            print(f"internal kolla configs: {results}")
             return results
         return None
 

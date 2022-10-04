@@ -345,6 +345,7 @@ def main():
             variable="DOCKER_REGISTRY_USERNAME"
         )
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
+        print(f"OSIAS_KOLLA_IMPORTS: {OSIAS_KOLLA_IMPORTS}")
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
