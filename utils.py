@@ -168,7 +168,7 @@ def create_kolla_config_files(data: dict):
             directory = Path(file_location).parent
             f.write(f"mkdir -p {directory}/ && touch {file_location}\n")
             f.write(f"cat >> {file_location} << __EOF__\n")
-            f.write(f"{file_contents}")
+            f.write(f"{file_contents}\n")
             f.write("__EOF__\n")
 
 
