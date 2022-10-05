@@ -4,7 +4,7 @@ import subprocess
 from itertools import islice
 from pathlib import Path
 
-import toml
+import yaml
 
 from ssh_tool import ssh_tool
 
@@ -12,7 +12,7 @@ from ssh_tool import ssh_tool
 class parser:
     def __init__(self, config):
         print(f"\n\nCONFIG: {config}\n\n")
-        self.data = toml.loads(config)
+        self.data = yaml.safe_load(config)
         print(f"self.data = {self.data}\n\n")
         self.kolla_configs = {}
 
