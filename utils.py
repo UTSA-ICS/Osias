@@ -11,7 +11,9 @@ from ssh_tool import ssh_tool
 
 class parser:
     def __init__(self, config):
+        print(f"\n\nCONFIG: {config}\n\n")
         self.data = toml.loads(config)
+        print(f"self.data = {self.data}\n\n")
         self.kolla_configs = {}
 
     def get_server_ips(self, node_type, ip_type):

@@ -141,6 +141,7 @@ def bootstrap_openstack(
     fqdn,
     osias_kolla_imports,
 ):
+    """
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
     utils.run_script_on_server(
@@ -184,11 +185,12 @@ def bootstrap_openstack(
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
+    """
     print(f"osias kolla imports: {osias_kolla_imports}")
     if osias_kolla_imports:
         print("Creating & importing unique kolla configs.")
         utils.create_kolla_config_files(osias_kolla_imports)
-        utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
+    # utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
 def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):

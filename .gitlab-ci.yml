@@ -54,6 +54,7 @@ generate_yaml_config:
     - bash generate_yml.sh > release-test.yml
     - cat release-test.yml # For Debug purposes
     - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
+    - python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
   artifacts:
     paths:
       - release-test.yml

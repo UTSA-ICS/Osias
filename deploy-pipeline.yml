@@ -16,6 +16,7 @@ workflow:
 stages:
   - <RELEASE_NAME>
   - generate_cidr
+  - test_multinode
   - reprovision_servers
   - bootstrap_networking
   - cleanup
@@ -48,6 +49,12 @@ deploy:<RELEASE_NAME>:
   stage: <RELEASE_NAME>
   script:
     - echo "Deployment of <RELEASE_NAME> release"
+
+test_multinode:
+  stage: test_multinode
+  script:
+    - python3 -u deploy.py bootstrap_openstack --config "$MULTINODE"
+    - exit 1
 
 create_osias_multinode_file:
   stage: reprovision_servers
