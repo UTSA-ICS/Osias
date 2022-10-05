@@ -39,7 +39,7 @@ stages:
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
-    - pip3 install PyYAML timeout_decorator
+    - pip3 install PyYAML timeout_decorator toml
     - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
     - echo "$MULTINODE"
     - echo "$PARENT_PIPELINE_ID"

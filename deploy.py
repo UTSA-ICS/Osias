@@ -3,6 +3,7 @@
 import argparse
 import ast
 import os
+import yaml
 import toml
 
 import maas_base
