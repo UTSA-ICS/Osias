@@ -49,7 +49,7 @@ python_black:
 generate_yaml_config:
   stage: generate_yaml
   script:
-    - pip3 install PyYAML timeout_decorator
+    - pip3 install PyYAML timeout_decorator toml
     - echo "$MULTINODE"
     - export MULTINODE="${MULTINODE}\n"
     - bash generate_yml.sh > release-test.yml
