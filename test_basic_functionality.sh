@@ -19,6 +19,8 @@ else
     pip3 install python-openstackclient
 fi
 
+pip3 install importlib-metadata==4.13.0  # Fix AttributeError: 'EntryPoints' object has no attribute 'items' from 5.0.0 upgrade.
+
 FIRST_NAME="John"
 LAST_NAME="Doe"
 USER_EMAIL_ADDRESS="John.Doe@organization.com"
