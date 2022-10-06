@@ -4,7 +4,7 @@ import subprocess
 from itertools import islice
 from pathlib import Path
 
-import yaml 
+import yaml
 import toml
 
 from ssh_tool import ssh_tool
@@ -14,7 +14,7 @@ class parser:
     def __init__(self, config):
         print(f"\n\nCONFIG: {config}\n\n")
         self.data = yaml.safe_load(config)
-        #self.data = toml.loads(config)
+        # self.data = toml.loads(config)
         print(f"self.data = {self.data}\n\n")
         self.kolla_configs = {}
 
@@ -24,7 +24,6 @@ class parser:
         ips = []
         for myips in data:
             ips.append(myips[ip_type])
-        print(f"get_server_ips: {ips}\nip_type: {ip_type}\n" )
         return ips
 
     def get_variables(self, variable):
@@ -95,11 +94,8 @@ class parser:
         data = self.data[node_type]
         print(f"BOOL DATA: {data}")
         for item in data:
-            #for key, value in item.items():
             print(f"{item[ip_type]}")
             return bool(item[ip_type])
-            #    print(f"value?: {value}")
-            #    return bool(value[ip_type])
 
 
 def convert_to_list(parm):
