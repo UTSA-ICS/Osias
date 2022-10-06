@@ -5,22 +5,17 @@ from itertools import islice
 from pathlib import Path
 
 import yaml
-import toml
 
 from ssh_tool import ssh_tool
 
 
 class parser:
     def __init__(self, config):
-        print(f"\n\nCONFIG: {config}\n\n")
         self.data = yaml.safe_load(config)
-        # self.data = toml.loads(config)
-        print(f"self.data = {self.data}\n\n")
         self.kolla_configs = {}
 
     def get_server_ips(self, node_type, ip_type):
         data = self.data[node_type]
-        print(f"DATA: {data}")
         ips = []
         for myips in data:
             ips.append(myips[ip_type])
@@ -36,10 +31,8 @@ class parser:
     def get_kolla_configs(self):
         if "etc" in self.data:
             data = self.data["etc"]
-            print(f"data: {data}")
             results = {}
             results = self.find_strings(data, data)
-            print(f"internal kolla configs: {results}")
             return results
         return None
 

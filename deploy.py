@@ -4,7 +4,6 @@ import argparse
 import ast
 import os
 import yaml
-import toml
 
 import maas_base
 import maas_virtual
@@ -41,7 +40,7 @@ def parse_args():
         "--config",
         type=str,
         required=False,
-        help="The config file in toml format defining all servers and their IPs",
+        help="The config file in yaml format defining all servers and their IPs",
     )
     parser.add_argument(
         "--file_path",
@@ -142,7 +141,6 @@ def bootstrap_openstack(
     fqdn,
     osias_kolla_imports,
 ):
-    """
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
     utils.run_script_on_server(
@@ -186,12 +184,11 @@ def bootstrap_openstack(
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
-    """
     print(f"osias kolla imports: {osias_kolla_imports}")
     if osias_kolla_imports:
         print("Creating & importing unique kolla configs.")
         utils.create_kolla_config_files(osias_kolla_imports)
-    # utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
+    utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
 def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
@@ -276,7 +273,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
+    multinode = utils.create_multinode(server_dict, toml.dump(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
     f.write(f"{multinode}")
