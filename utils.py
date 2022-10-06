@@ -4,7 +4,8 @@ import subprocess
 from itertools import islice
 from pathlib import Path
 
-import yaml
+import yaml 
+import toml
 
 from ssh_tool import ssh_tool
 
@@ -13,26 +14,29 @@ class parser:
     def __init__(self, config):
         print(f"\n\nCONFIG: {config}\n\n")
         self.data = yaml.safe_load(config)
+        #self.data = toml.loads(config)
         print(f"self.data = {self.data}\n\n")
         self.kolla_configs = {}
 
     def get_server_ips(self, node_type, ip_type):
-        data = self.data.get(node_type)
+        data = self.data[node_type]
+        print(f"DATA: {data}")
         ips = []
-        for myips in data.values():
+        for myips in data:
             ips.append(myips[ip_type])
+        print(f"get_server_ips: {ips}\nip_type: {ip_type}\n" )
         return ips
 
     def get_variables(self, variable):
         if "variables" in self.data:
-            data = self.data.get("variables")
-            if variable in data["0"]:
-                return data["0"][variable]
+            data = self.data["variables"]
+            if variable in data:
+                return data[variable]
         return None
 
     def get_kolla_configs(self):
         if "etc" in self.data:
-            data = self.data.get("etc")
+            data = self.data["etc"]
             print(f"data: {data}")
             results = {}
             results = self.find_strings(data, data)
@@ -87,9 +91,15 @@ class parser:
         return SERVERS
 
     def bool_check_ips_exist(self, node_type, ip_type):
-        data = self.data.get(node_type)
-        for key, value in data.items():
-            return bool(value[ip_type])
+        print(f"node_type: {node_type}\nip_type: {ip_type}")
+        data = self.data[node_type]
+        print(f"BOOL DATA: {data}")
+        for item in data:
+            #for key, value in item.items():
+            print(f"{item[ip_type]}")
+            return bool(item[ip_type])
+            #    print(f"value?: {value}")
+            #    return bool(value[ip_type])
 
 
 def convert_to_list(parm):
