@@ -51,7 +51,7 @@ generate_yaml_config:
   script:
     - pip3 install PyYAML
     - echo "$MULTINODE"
-    - export MULTINODE="${MULTINODE}\n"
+    - export MULTINODE="${MULTINODE}"
     - bash generate_yml.sh > release-test.yml
     - cat release-test.yml # For Debug purposes
     - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
