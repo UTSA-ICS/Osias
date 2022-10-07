@@ -68,7 +68,7 @@ class parser:
             ALL_IPS.extend(ips)
         ALL_IPS = list((dict.fromkeys(ALL_IPS)))  # remove duplicates from list
         ALL_IPS = list(filter(None, ALL_IPS))  # remove null values from list
-        
+
         if not ALL_IPS and iptype != "data":
             raise Exception(f"{iptype} IPs are not set, empty list.")
         return ALL_IPS
