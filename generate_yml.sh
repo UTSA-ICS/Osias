@@ -4,7 +4,6 @@
 
 if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]];
 then
-    echo "Deploying multiple OpenStack releases."
     current_release=$(python3 -c "import json; import os; release=json.loads(os.getenv('VM_PROFILE_CURRENT_RELEASE')); print(release['OPENSTACK_RELEASE'])")
     previous_release=$(python3 -c "import json; import os; release=json.loads(os.getenv('VM_PROFILE_PREVIOUS_RELEASE')); print(release['OPENSTACK_RELEASE'])")
 
@@ -26,8 +25,6 @@ else
 
     if [[ -n "$MULTINODE" ]];
     then
-        echo "Received a Multinode file:"
-        python3 -c "import os; print(os.getenv('MULTINODE'))"
         release=$(python3 -c "import os; import yaml; release=yaml.safe_load(os.getenv('MULTINODE')); release=release['variables']['OPENSTACK_RELEASE']; print(release.lower())")
         ceph_current_bool=$(python3 -c "import os; import yaml; ceph_multi=yaml.safe_load(os.getenv('MULTINODE')); ceph=ceph_multi['variables']['CEPH']; print(str(ceph).lower())")
         sed -i "s/<RELEASE_VM_PROFILE>/''/g" trigger-pipeline.yml
