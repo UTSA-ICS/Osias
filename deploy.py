@@ -184,7 +184,6 @@ def bootstrap_openstack(
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
-    print(f"osias kolla imports: {osias_kolla_imports}")
     if osias_kolla_imports:
         print("Creating & importing unique kolla configs.")
         utils.create_kolla_config_files(osias_kolla_imports)
@@ -345,7 +344,6 @@ def main():
             variable="DOCKER_REGISTRY_USERNAME"
         )
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
-        print(f"OSIAS_KOLLA_IMPORTS: {OSIAS_KOLLA_IMPORTS}")
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")

@@ -68,6 +68,9 @@ class parser:
             ALL_IPS.extend(ips)
         ALL_IPS = list((dict.fromkeys(ALL_IPS)))  # remove duplicates from list
         ALL_IPS = list(filter(None, ALL_IPS))  # remove null values from list
+        
+        if not ALL_IPS and iptype != "data":
+            raise Exception(f"{iptype} IPs are not set, empty list.")
         return ALL_IPS
 
     def get_each_servers_ips(self):
@@ -83,11 +86,8 @@ class parser:
         return SERVERS
 
     def bool_check_ips_exist(self, node_type, ip_type):
-        print(f"node_type: {node_type}\nip_type: {ip_type}")
         data = self.data[node_type]
-        print(f"BOOL DATA: {data}")
         for item in data:
-            print(f"{item[ip_type]}")
             return bool(item[ip_type])
 
 
