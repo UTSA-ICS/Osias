@@ -43,8 +43,9 @@ class MaasBase:
         deployment_list = []
         for machine in machine_list:
             check = any(item in self.public_ips for item in machine["ip_addresses"])
+            print(f'System found: {machine["system_id"]}')
+            print(f'IPs: {machine["ip_addresses"]}')
             if check:
-                print(f'System found: {machine["system_id"]}')
                 deployment_list.append(machine["system_id"])
         self.machine_list = deployment_list
         if not deployment_list:
