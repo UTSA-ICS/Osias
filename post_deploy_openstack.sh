@@ -5,6 +5,7 @@ source "$HOME"/base_config.sh
 
 PUBLICIP=$(/sbin/ip addr show br0 | grep 'inet ' | grep brd | awk '{print $2}')
 PUBLIC_NETWORK="${PUBLICIP%.*}.0/24"
+PUBLIC_GATEWAY=$(/sbin/ip route | grep default | awk '{print $3}')
 
 if [ $# -ge 1 ] && [ -n "$1" ]; then
   DNS_IP=$1
@@ -17,8 +18,6 @@ if [ $# == 3 ]; then
   POOL_START=$2
   POOL_END=$3
 fi
-
-POOL_GATEWAY="${PUBLICIP%.*}.253"
 
 sudo chown "$USER":"$USER" /etc/kolla/admin-openrc.sh
 echo "export OS_CACERT=/etc/kolla/certificates/ca/root.crt" >> /etc/kolla/admin-openrc.sh
@@ -58,7 +57,7 @@ openstack flavor create --id 19 --vcpus 4 --ram 12288 --disk 40 mb2.large
 TENANT=$(openstack project list -f value -c ID --user admin)
 openstack network create --share --project "${TENANT}" --external --provider-network-type flat --provider-physical-network physnet1 public
 if [ $# == 3 ]; then
-  openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --allocation-pool start="${POOL_START}",end="${POOL_END}" --dns-nameserver "${DNS_IP}" --gateway "${POOL_GATEWAY}" --network public public_subnet
+  openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --allocation-pool start="${POOL_START}",end="${POOL_END}" --dns-nameserver "${DNS_IP}" --gateway "${PUBLIC_GATEWAY}" --network public public_subnet
 else
   PUBLIC_NETWORK="192.168.1.0/24"
   openstack subnet create --project "${TENANT}" --subnet-range "${PUBLIC_NETWORK}" --dns-nameserver "${DNS_IP}" --network public public_subnet
@@ -68,6 +67,7 @@ openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --
 openstack router create --enable --project "${TENANT}" pub-router
 openstack router set pub-router --external-gateway public
 openstack router add subnet pub-router private_subnet
+# openstack router add route --route destination=0.0.0.0/0,gateway="${PUBLIC_GATEWAY}" pub-router
 
 SERVICE_LIST="$(openstack service list)"
 
