@@ -67,7 +67,6 @@ openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --
 openstack router create --enable --project "${TENANT}" pub-router
 openstack router set pub-router --external-gateway public
 openstack router add subnet pub-router private_subnet
-# openstack router add route --route destination=0.0.0.0/0,gateway="${PUBLIC_GATEWAY}" pub-router
 
 SERVICE_LIST="$(openstack service list)"
 

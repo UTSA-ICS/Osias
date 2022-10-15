@@ -319,7 +319,7 @@ follows or have python3 installed:
 
 Next, `cd /test` and install the python dependencies for the project
 
-`pip3 install yaml timeout_decorator`
+`pip3 install PyYAML timeout_decorator`
 
 Lastly, customize and source your variables as shown in the development_helper.sh file. Once
 sourced, you can manually issue the commands from our gitlab-ci.yml file, for example:
