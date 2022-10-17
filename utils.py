@@ -219,14 +219,16 @@ def create_multinode(input_dictionary, optional_variables):
     multinode += "\n[variables]\n"
     optional_variables = optional_variables[1:-1]
     optional_variables = "".join(optional_variables.split())
-    optional_variables = {i.split(':')[0]: i.split(':')[1] for i in optional_variables.split(',')}
-    
+    optional_variables = {
+        i.split(":")[0]: i.split(":")[1] for i in optional_variables.split(",")
+    }
+
     opt_vars = ""
-    for k,v in optional_variables.items():
-        k.replace('"', '')
-        v.replace('"','').replace(',','')
+    for k, v in optional_variables.items():
+        k.replace('"', "")
+        v.replace('"', "").replace(",", "")
         opt_vars += f"  {k}: {v}\n"
-    multinode +="{opt_vars}"
+    multinode += "{opt_vars}"
     return multinode
 
 
