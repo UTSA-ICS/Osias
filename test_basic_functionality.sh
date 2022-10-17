@@ -26,7 +26,7 @@ LAST_NAME="Doe"
 USER_EMAIL_ADDRESS="John.Doe@organization.com"
 PASSWORD="$(echo $RANDOM | md5sum | head -c 16; echo;)"
 firstletter=${FIRST_NAME:0:1}
-USER_NAME=$firstletter$LAST_NAME
+USER_NAME=$firstletter$LAST_NAME${PASSWORD:0:4}
 NAME="$FIRST_NAME $LAST_NAME"
 
 PROJECT_NAME=$USER_NAME

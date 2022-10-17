@@ -3,8 +3,7 @@
 import argparse
 import ast
 import os
-
-import toml
+import yaml
 
 import maas_base
 import maas_virtual
@@ -41,7 +40,7 @@ def parse_args():
         "--config",
         type=str,
         required=False,
-        help="The config file in toml format defining all servers and their IPs",
+        help="The config file in yaml format defining all servers and their IPs",
     )
     parser.add_argument(
         "--file_path",
@@ -140,6 +139,7 @@ def bootstrap_openstack(
     ceph,
     vip_address,
     fqdn,
+    osias_kolla_imports,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -184,6 +184,10 @@ def bootstrap_openstack(
     )
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
+    if osias_kolla_imports:
+        print("Creating & importing unique kolla configs.")
+        utils.create_kolla_config_files(osias_kolla_imports)
+    utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
 def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
@@ -268,7 +272,7 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    multinode = utils.create_multinode(server_dict, toml.dumps(optional_vars))
+    multinode = utils.create_multinode(server_dict, toml.dump(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
     f.write(f"{multinode}")
@@ -339,6 +343,7 @@ def main():
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
         )
+        OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
         DATA_CIDR = config.get_variables(variable="Data_CIDR")
@@ -426,6 +431,7 @@ def main():
                 ceph_enabled,
                 VIP_ADDRESS,
                 FQDN,
+                OSIAS_KOLLA_IMPORTS,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
@@ -538,6 +544,11 @@ def main():
                 VM_DEPLOYMENT_CIDR,
                 PYTHON_VERSION,
                 OPENSTACK_RELEASE,
+                ANSIBLE_MAX_VERSION,
+                ceph_enabled,
+                VIP_ADDRESS,
+                FQDN,
+                OSIAS_KOLLA_IMPORTS,
             )
             if ceph_enabled:
                 bootstrap_ceph(

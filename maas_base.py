@@ -46,6 +46,10 @@ class MaasBase:
             if check:
                 deployment_list.append(machine["system_id"])
         self.machine_list = deployment_list
+        if not deployment_list:
+            raise Exception(
+                f"No machines found, please verify public IPs:\n\t{self.public_ips}\nare assigned to machines in MaaS."
+            )
         return deployment_list
 
     def _get_all_used_ips(self, cidr: str):
