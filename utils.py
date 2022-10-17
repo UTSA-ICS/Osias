@@ -228,7 +228,7 @@ def create_multinode(input_dictionary, optional_variables):
         k.replace('"', "")
         v.replace('"', "").replace(",", "")
         opt_vars += f"  {k}: {v}\n"
-    multinode += "{opt_vars}"
+    multinode += f"{opt_vars}"
     return multinode
 
 
