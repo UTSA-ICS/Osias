@@ -192,6 +192,14 @@ Our multinode file is formatted very similar to that of Kolla, where all of thes
 copied over to kolla's multinode file. However, `storage` will ALSO be used for our ceph deployment
 and `variables` is our own.
 
+Inside of the variables section, there are several items that are required, or highly encouraged to
+include to help with deployment or post-deployment. Likewise, very basic options are included by
+default in the globals.yml file (these can be found in the setup_configs.py file), but you can
+include additional options there is the `etc` section of the multinode file. This follows the file
+structure of `etc,kolla` with globals.yml as the key, and the value being what is to be added to the
+file. Likewise, if you need additional configuration files for nova, neutron, or any other service,
+a similiar pattern follows like the example shown below.
+
 - `POOL_START_IP = "{FLOATING_IP_POOL_START}"` This is the first IP used for your openstack
   deployment, the default value is an IP from the same subnet as your public IP's, i.e. 172.16.123.x
   or the CIDR indicated in osias_variables, VM_Profile: VM_DEPLOYMENT_CIDR.
@@ -211,44 +219,44 @@ pool_start_ip so the whole block is reserved.
 #data = "Non-Internet facing IP's, high speed IP's used for ceph, if not available leave "" "
 control:
   -
-    public = "172.16.123.23"
-    private = "192.168.3.23"
-    data = "10.100.3.23"
+    public: "172.16.123.23"
+    private: "192.168.3.23"
+    data: "10.100.3.23"
 network:
   -
-    public = "172.16.123.23"
-    private = "192.168.3.23"
-    data = "10.100.3.23"
+    public: "172.16.123.23"
+    private: "192.168.3.23"
+    data: "10.100.3.23"
 storage:
   -
-    public = "172.16.123.23"
-    private = "192.168.3.23"
-    data = "10.100.3.23"
+    public: "172.16.123.23"
+    private: "192.168.3.23"
+    data: "10.100.3.23"
 compute:
   -
-    public = "172.16.123.29"
-    private = "192.168.3.29"
-    data = "10.100.3.29"
+    public: "172.16.123.29"
+    private: "192.168.3.29"
+    data: "10.100.3.29"
   -
-    public = "172.16.123.25"
-    private = "192.168.3.25"
-    data = "10.100.3.25"
+    public: "172.16.123.25"
+    private: "192.168.3.25"
+    data: "10.100.3.25"
 monitor:
   -
-    public = ""
-    private = ""
-    data = ""
+    public: ""
+    private: ""
+    data: ""
 variables:
-    CEPH = "{true|false}"
-    DNS_IP = "{DNS_IP}"
-    OPENSTACK_RELEASE = "{OPENSTACK_RELEASE}"
-    POOL_START_IP = "{FLOATING_IP_POOL_START}"
-    POOL_END_IP = "{FLOATING_IP_POOL_END}"
-    VIP_ADDRESS = "{VIP_ADDRESS}"
+    CEPH: "{true|false}"
+    DNS_IP: "{DNS_IP}"
+    OPENSTACK_RELEASE: "{OPENSTACK_RELEASE}"
+    POOL_START_IP: "{FLOATING_IP_POOL_START}"
+    POOL_END_IP: "{FLOATING_IP_POOL_END}"
+    VIP_ADDRESS: "{VIP_ADDRESS}"
     # Optional variables
-    DOCKER_REGISTRY = "<DOCKER IP>"
-    DOCKER_REGISTRY_USERNAME = "<DOCKER REGISTRY USERNAME>"
-    FQDN = "<FULLY QUALIFIED DOMAIN NAME>"
+    DOCKER_REGISTRY: "<DOCKER IP>"
+    DOCKER_REGISTRY_USERNAME: "<DOCKER REGISTRY USERNAME>"
+    FQDN: "<FULLY QUALIFIED DOMAIN NAME>"
     Data_CIDR: 10.100.3.0/24
     VM_DEPLOYMENT_CIDR: 172.16.123.0/24
     Internal_CIDR: 192.168.3.0/24
