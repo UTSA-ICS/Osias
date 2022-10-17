@@ -9,7 +9,7 @@ DNS_IP=$1
 VM_POOL=$2
 TEMPEST_VERSION=$3
 REFSTACK_TEST_VERSION=$4
-PYTHON_VERSION=$5
+PYTHON_VERSION=${5::1}
 
 
 openstack user create swiftop --password a_big_secret
