@@ -37,7 +37,7 @@ wget "$UBUNTU1_URL" -O Ubuntu"$UBUNTU1_NAME"-"$DATE".img
 echo "Downloading Ubuntu $UBUNTU2_VERSION ($UBUNTU2_NAME) Image"
 wget "$UBUNTU2_URL" -O Ubuntu"$UBUNTU2_NAME"-"$DATE".img
 
-openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64  Ubuntu_"$UBUNTU1_VERSION"_LTS
+openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU1_VERSION"_LTS
 openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU2_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU2_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU2_VERSION"_LTS
 openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS"
 openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS-2"
@@ -55,7 +55,7 @@ IMAGE_FILE_NAME="${REFSTACK_TEST_IMAGE##*/}"
 
 SERVICE_LIST="$(openstack service list)"
 
-cat > "$HOME"/accounts.yaml <<__EOF__
+cat >"$HOME"/accounts.yaml <<__EOF__
 - username: 'swiftop'
   project_name: 'openstack'
   password: 'a_big_secret'
@@ -65,7 +65,7 @@ cat > "$HOME"/accounts.yaml <<__EOF__
 __EOF__
 
 # https://docs.openstack.org/tempest/latest/sampleconf.html
-cat > "$HOME"/tempest.conf <<__EOF__
+cat >"$HOME"/tempest.conf <<__EOF__
 [DEFAULT]
 debug = False
 use_stderr = False
@@ -205,10 +205,10 @@ check_service() {
     service="$1"
     shift
     string="$*"
-    if [ -z "${string##*"$service"*}" ] ;then
-        echo "$service = True" >> tempest.conf
+    if [ -z "${string##*"$service"*}" ]; then
+        echo "$service = True" >>tempest.conf
     else
-        echo "$service = False" >> tempest.conf
+        echo "$service = False" >>tempest.conf
     fi
 }
 

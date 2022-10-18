@@ -7,7 +7,7 @@ export MAAS_API_KEY="<INSERT KEY HERE>"
 export MAAS_URL="http://<YOUR MAAS IP HERE>:5240/MAAS"
 export DOCKER_REGISTRY_PASSWORD="<LOCAL_DOCKER_PASSWORD HERE>"
 
-read -r -d '' MULTINODE << EOF
+read -r -d '' MULTINODE <<EOF
 #public = "Internet facing IP's"
 #private = "Non-Internet facing IP's"
 #data = "Non-Internet facing IP's, high speed IP's used for ceph, if not available leave "" "
