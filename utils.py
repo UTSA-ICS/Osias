@@ -176,7 +176,6 @@ def create_kolla_config_files(data: dict):
 
 
 def create_multinode(input_dictionary, optional_variables):
-    print(f"input_dict = {input_dictionary}\noptional_dict = {optional_variables}")
     control_items = list(islice(input_dictionary.items(), 3))
     monitor_item = list(islice(input_dictionary.items(), 1))
     control_labels = ["control", "network"]

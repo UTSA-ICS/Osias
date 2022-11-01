@@ -81,19 +81,20 @@ FILENAME="$HOME"/refstack-client/.tempest/.stestr/0
 
 NUM_FAILURES=$(grep -c "failure:" "$FILENAME" || true)
 echo "Number of failure are -->> [$NUM_FAILURES]"
-FAILURE=$(grep "failure:" "$FILENAME" || true)
 
-if [[ $NUM_FAILURES -eq 2 ]] &&
-    [[ "$FAILURE" =~ .*(tearDownClass).* ]] &&
-    [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]] &&
-    [[ "$FAILURE" =~ .*(test_upload_too_many_objects).* ]]; then
-    MSG="#   Expected unresolved failure - EXIT 0  #"
-elif [[ $NUM_FAILURES -eq 2 ]] &&
-    [[ "$FAILURE" =~ .*(test_object_temp_url).* ]]; then
-    MSG="#   Expected unresolved failure - EXIT 0  #"
-elif [[ $NUM_FAILURES -eq 1 ]] &&
-    [[ "$FAILURE" =~ .*(tearDownClass).* ]] &&
-    [[ "$FAILURE" =~ .*(MultipleCreateTestJSON).* ]]; then
+exceptions=('MultipleCreateTestJSON' 'test_get_object_using_temp_url' 'test_put_object_using_temp_url' 'test_upload_too_many_objects')
+
+ALLOWED_FAILURES=0
+for exception in "${exceptions[@]}"; do
+    n="$(grep 'failure:' "$FILENAME" | grep -c "$exception")"
+    if [[ $n -gt 0 ]]; then
+        echo "Found [$n] exceptions with $exception"
+    fi
+    ALLOWED_FAILURES=$((ALLOWED_FAILURES + n))
+done
+echo
+
+if [[ $NUM_FAILURES -eq $ALLOWED_FAILURES ]]; then
     MSG="#   Expected unresolved failure - EXIT 0  #"
 elif [[ $NUM_FAILURES -eq 0 ]]; then
     MSG="#            All Tests Passed!            #"
