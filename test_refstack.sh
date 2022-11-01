@@ -86,13 +86,12 @@ exceptions=('MultipleCreateTestJSON' 'test_get_object_using_temp_url' 'test_put_
 
 ALLOWED_FAILURES=0
 for exception in "${exceptions[@]}"; do
-    n="$(grep 'failure:' "$FILENAME" | grep -c "$exception")"
+    n="$(grep 'failure:' "$FILENAME" | grep -c "$exception" || 0)"
     if [[ $n -gt 0 ]]; then
         echo "Found [$n] exceptions with $exception"
     fi
     ALLOWED_FAILURES=$((ALLOWED_FAILURES + n))
 done
-echo
 
 if [[ $NUM_FAILURES -eq $ALLOWED_FAILURES ]]; then
     MSG="#   Expected unresolved failure - EXIT 0  #"
