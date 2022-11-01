@@ -338,7 +338,7 @@ def main():
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
-        ceph_enabled = config.get_variables(variable="CEPH")
+        ceph_enabled = ast.literal_eval(config.get_variables(variable="CEPH").title())
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
