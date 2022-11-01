@@ -189,7 +189,7 @@ def create_multinode(input_dictionary, optional_variables):
             multinode[label].append(i)
             multinode[label][i] = {}
             multinode[label][i]["public"] = value[1]["public"]
-            multinode[label][i]["internal"] = value[1]["internal"]
+            multinode[label][i]["private"] = value[1]["internal"]
             multinode[label][i]["data"] = value[1]["data"]
     for label in secondary_labels:
         multinode[label] = []
@@ -197,7 +197,7 @@ def create_multinode(input_dictionary, optional_variables):
             multinode[label].append(i)
             multinode[label][i] = {}
             multinode[label][i]["public"] = v["public"]
-            multinode[label][i]["internal"] = v["internal"]
+            multinode[label][i]["private"] = v["internal"]
             multinode[label][i]["data"] = v["data"]
     for label in monitor_label:
         multinode[label] = []
@@ -205,7 +205,7 @@ def create_multinode(input_dictionary, optional_variables):
             multinode[label].append(i)
             multinode[label][i] = {}
             multinode[label][i]["public"] = v["public"]
-            multinode[label][i]["internal"] = v["internal"]
+            multinode[label][i]["private"] = v["internal"]
             multinode[label][i]["data"] = v["data"]
     multinode["variables"] = {}
     optional_variables = dict(
