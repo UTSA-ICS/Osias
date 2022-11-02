@@ -25,7 +25,7 @@ class parser:
         if "variables" in self.data:
             data = self.data["variables"]
             if variable in data:
-                return data[variable]
+                return str(data[variable])
         return None
 
     def get_kolla_configs(self):
