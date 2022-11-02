@@ -89,7 +89,7 @@ if [[ $(grep -c "failure:"  "$FILENAME" ) -eq 0 ]]; then
     echo "100% of test passed."
 else
     for exception in "${exceptions[@]}"; do
-        n="$(grep 'failure:' "$FILENAME" | grep -c "$exception" || 0)"
+        n="$(grep 'failure:' "$FILENAME" | grep -c "$exception")"
         if [[ $n -gt 0 ]]; then
             echo "Found [$n] exceptions with $exception"
         fi
