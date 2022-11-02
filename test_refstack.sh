@@ -85,18 +85,22 @@ echo "Number of failure are -->> [$NUM_FAILURES]"
 exceptions=('MultipleCreateTestJSON' 'test_get_object_using_temp_url' 'test_put_object_using_temp_url' 'test_upload_too_many_objects')
 
 ALLOWED_FAILURES=0
-for exception in "${exceptions[@]}"; do
-    n="$(grep 'failure:' "$FILENAME" | grep -c "$exception" || 0)"
-    if [[ $n -gt 0 ]]; then
-        echo "Found [$n] exceptions with $exception"
-    fi
-    ALLOWED_FAILURES=$((ALLOWED_FAILURES + n))
-done
+if [[ $(grep -c "failure:"  "$FILENAME" ) -eq 0 ]]; then
+    echo "100% of test passed."
+else
+    for exception in "${exceptions[@]}"; do
+        n="$(grep 'failure:' "$FILENAME" | grep -c "$exception" || 0)"
+        if [[ $n -gt 0 ]]; then
+            echo "Found [$n] exceptions with $exception"
+        fi
+        ALLOWED_FAILURES=$((ALLOWED_FAILURES + n))
+    done
+fi
 
-if [[ $NUM_FAILURES -eq $ALLOWED_FAILURES ]]; then
-    MSG="#   Expected unresolved failure - EXIT 0  #"
-elif [[ $NUM_FAILURES -eq 0 ]]; then
+if [[ $NUM_FAILURES -eq 0 ]]; then
     MSG="#            All Tests Passed!            #"
+elif [[ $NUM_FAILURES -eq $ALLOWED_FAILURES ]]; then
+    MSG="#   Expected unresolved failure - EXIT 0  #"
 else
     echo "###########################################"
     echo "#       Unexpected error occurred!        #"
