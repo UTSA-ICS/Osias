@@ -85,11 +85,11 @@ echo "Number of failure are -->> [$NUM_FAILURES]"
 exceptions=('MultipleCreateTestJSON' 'test_get_object_using_temp_url' 'test_put_object_using_temp_url' 'test_upload_too_many_objects')
 
 ALLOWED_FAILURES=0
-if [[ $(grep -c "failure:"  "$FILENAME" ) -eq 0 ]]; then
+if [[ $(grep -c "failure:" "$FILENAME") -eq 0 ]]; then
     echo "100% of test passed."
 else
     for exception in "${exceptions[@]}"; do
-        n="$(grep 'failure:' "$FILENAME" | grep -c "$exception")"
+        n="$(grep 'failure:' "$FILENAME" | grep -c "$exception" || true)"
         if [[ $n -gt 0 ]]; then
             echo "Found [$n] exceptions with $exception"
         fi
