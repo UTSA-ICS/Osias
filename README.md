@@ -336,9 +336,11 @@ sourced, you can manually issue the commands from our gitlab-ci.yml file, for ex
 Also, it has been tested you can deploy our code inside a
 [LXD VM configured from MaaS](https://maas.io/docs/snap/2.9/ui/vm-host-networking#heading--lxd-setup).
 
+Please verify all of your code with [python black](https://pypi.org/project/black/), [shellcheck](https://www.shellcheck.net/) and [`shfmt -i 4`](https://github.com/mvdan/sh).
+
 ### One Command, Complete Deployment
 
 To issue all of our deployment in one command for an all-in-one dev environment:
 All in one node may not fully test refstack components and will not install ceph.
 
-./all_in_one_openstack_deployment.sh "$OPENSTACK_RELEASE" "$NODES_IP_ADDRESS"
+`./all_in_one_openstack_deployment.sh "$OPENSTACK_RELEASE" "$NODES_IP_ADDRESS"`

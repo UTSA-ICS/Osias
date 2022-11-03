@@ -24,13 +24,13 @@ python3 -m pip install -r "$HOME"/requirements.txt
 # General Ansible config
 sudo mkdir -p /etc/ansible
 sudo chown "$USER":"$USER" /etc/ansible
-cat > /etc/ansible/ansible.cfg <<__EOF__
+cat >/etc/ansible/ansible.cfg <<__EOF__
 [defaults]
 host_key_checking=False
 pipelining=True
 forks=100
 interpreter_python=/usr/bin/python3
-timeout = 30 
+timeout = 30
 __EOF__
 
 # Configure kolla
@@ -41,7 +41,7 @@ cp /opt/kolla/venv/share/kolla-ansible/ansible/inventory/* . || true
 
 # Add nova config path
 mkdir -p /etc/kolla/config/
-cat > /etc/kolla/config/nova.conf <<__EOF__
+cat >/etc/kolla/config/nova.conf <<__EOF__
 [DEFAULT]
 cpu_allocation_ratio = 16.0
 ram_allocation_ratio = 1.5

@@ -34,7 +34,7 @@ tag_virtual_servers:
   stage: prepare
   image: utsaics/maas:2.8
   before_script:
-    - pip3 install toml timeout_decorator
+    - pip3 install PyYAML timeout_decorator
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
@@ -59,7 +59,7 @@ delete_tags_and_ips:
   stage: cleanup
   image: utsaics/maas:2.8
   before_script:
-    - pip3 install toml timeout_decorator
+    - pip3 install PyYAML timeout_decorator
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   script:
