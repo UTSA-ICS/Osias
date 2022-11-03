@@ -338,7 +338,7 @@ def main():
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
-        if isinstance(WIPE_PHYSICAL_SERVERS, str):
+        if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
