@@ -233,10 +233,6 @@ class MaasVirtual(MaasBase):
                 self._run_maas_command(f"tag delete {tag}")
             for ip in ips:
                 self._run_maas_command(f"ipaddresses release ip={ip} force=true")
-            for machine_id in machine_ids:
-                self._run_maas_command(
-                    f"tag update-nodes openstack_ready add={machine_id}"
-                )
         return machine_ids, distro
 
     def delete_virtual_machines(self, machine_ids: list, distro: str):

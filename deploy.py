@@ -187,7 +187,7 @@ def bootstrap_openstack(
     if osias_kolla_imports:
         print("Creating & importing unique kolla configs.")
         utils.create_kolla_config_files(osias_kolla_imports)
-    utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
+        utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
 def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
@@ -216,7 +216,7 @@ def reprovision_servers(
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
-    if ast.literal_eval(wipe_physical_servers.title()):
+    if wipe_physical_servers:
         servers._release()
     servers.deploy()
 
@@ -249,7 +249,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     )
 
 
-def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
+def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
     parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     if not parent_project_pipeline_id:
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -257,8 +257,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     servers = maas_virtual.MaasVirtual(
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
-    if isinstance(ceph_enabled, str):
-        CEPH = ast.literal_eval(ceph_enabled)
     (
         server_dict,
         VIP_ADDRESS,
@@ -266,13 +264,14 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         POOL_START_IP,
     ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
     print(f"server_dict: {server_dict}")
-
+    if ceph_enabled is None:
+        ceph_enabled = False
     optional_vars = vm_profile
-    optional_vars["CEPH"] = CEPH
+    optional_vars["CEPH"] = ceph_enabled
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-    multinode = utils.create_multinode(server_dict, toml.dump(optional_vars))
+    multinode = utils.create_multinode(server_dict, yaml.dump(optional_vars))
     print(f"Generated multinode is: {multinode}")
     f = open("MULTINODE.env", "w")
     f.write(f"{multinode}")
@@ -339,6 +338,8 @@ def main():
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
+        if isinstance(ceph_enabled, str):
+            ceph_enabled = ast.literal_eval(ceph_enabled.title())
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
@@ -352,6 +353,8 @@ def main():
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
         WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
+        if isinstance(WIPE_PHYSICAL_SERVERS, str):
+            WIPE_PHYSICAL_SERVERS = ast.literal_eval(WIPE_PHYSICAL_SERVERS.title())
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:

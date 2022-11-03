@@ -39,11 +39,6 @@ docker_registry_username: "{docker_registry_username}"
 """
     else:
         docker = "# Docker Set To Docker Hub"
-    if isinstance(ceph, str):
-        if ast.literal_eval(ceph):
-            ceph = True
-        else:
-            ceph = False
     if ceph:
         print("Implementing STORAGE with CEPH")
         storage = f"""

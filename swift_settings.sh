@@ -6,15 +6,14 @@ NUM_OF_WHOS=$1
 sudo ceph orch apply rgw osiasswift --port=7480 --placement="$NUM_OF_WHOS" # Default port results in port conflict and fails.
 sudo ceph dashboard set-rgw-api-ssl-verify False
 sudo ceph orch apply mgr "$HOSTNAME"
-if [[ $(grep -c ceph_rgw_keystone_password /etc/kolla/passwords.yml) -eq 1 ]]
-then
-    ceph_rgw_pass=$( grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+if [[ $(grep -c ceph_rgw_keystone_password /etc/kolla/passwords.yml) -eq 1 ]]; then
+    ceph_rgw_pass=$(grep ceph_rgw_keystone_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs)
     rgw_keystone_admin_user="ceph_rgw"
 else
-    ceph_rgw_pass=$( grep keystone_admin_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs )
+    ceph_rgw_pass=$(grep keystone_admin_password /etc/kolla/passwords.yml | cut -d':' -f2 | xargs)
     rgw_keystone_admin_user="admin"
 fi
-internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs )
+internal_url=$(grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -d':' -f2 | xargs)
 
 # https://docs.ceph.com/en/latest/radosgw/keystone/#integrating-with-openstack-keystone
 # https://www.spinics.net/lists/ceph-users/msg64137.html
@@ -24,8 +23,7 @@ internal_url=$( grep ^kolla_internal_vip_address: /etc/kolla/globals.yml | cut -
 
 WHO_IS=""
 NUM_WHO_IS=$(echo "$WHO_IS" | wc -w)
-while [[ "$NUM_WHO_IS" -lt "$NUM_OF_WHOS" ]]
-do
+while [[ "$NUM_WHO_IS" -lt "$NUM_OF_WHOS" ]]; do
     WHO_IS="$(sudo ceph auth ls | grep client.rgw | grep client)" || true
     echo "Waiting..."
     sleep 10
@@ -53,7 +51,6 @@ for WHO in $WHO_IS; do
     sudo ceph config set "$WHO" rgw_swift_versioning_enabled true
     sudo ceph config set "$WHO" rgw_verify_ssl true
 done
-
 
 # Redeploy your rgw daemon
 sudo ceph orch restart rgw.osiasswift

@@ -5,7 +5,7 @@ set -x
 OPENSTACK_RELEASE="$1"
 MY_IP="$2"
 
-! read -r -d '' MULTINODE << EOM
+! read -r -d '' MULTINODE <<EOM
 [control]
     [control.0]
     public = "$MY_IP"
@@ -48,17 +48,17 @@ export MULTINODE="$MULTINODE"
 #
 # Create and configure ubuntu user if it does not exist
 #
-user_exists(){ id "$1" &>/dev/null; }
+user_exists() { id "$1" &>/dev/null; }
 if ! user_exists "ubuntu"; then
-  # Create ssh keys
-  ssh-keygen -t rsa -f "$HOME"/.ssh/id_rsa -C "All in one key" -N ""
-  cat "$HOME"/.ssh/id_rsa.pub > "$HOME"/.ssh/authorized_keys
-  # Add the ubuntu user which will be used by the deployment scripts
-  sudo useradd -m -U -c "Ubuntu User" -s "/bin/bash" ubuntu
-  # Create ssh keys to allow login
-  sudo cp -Rp "$HOME"/.ssh /home/ubuntu/
-  sudo chown -R ubuntu.ubuntu /home/ubuntu/.ssh
-  # Now enable passwordless sudo for ubuntu
-  echo "ubuntu ALL=(ALL) NOPASSWD: ALL" > ubuntu
-  sudo cp ubuntu /etc/sudoers.d/.
+    # Create ssh keys
+    ssh-keygen -t rsa -f "$HOME"/.ssh/id_rsa -C "All in one key" -N ""
+    cat "$HOME"/.ssh/id_rsa.pub >"$HOME"/.ssh/authorized_keys
+    # Add the ubuntu user which will be used by the deployment scripts
+    sudo useradd -m -U -c "Ubuntu User" -s "/bin/bash" ubuntu
+    # Create ssh keys to allow login
+    sudo cp -Rp "$HOME"/.ssh /home/ubuntu/
+    sudo chown -R ubuntu.ubuntu /home/ubuntu/.ssh
+    # Now enable passwordless sudo for ubuntu
+    echo "ubuntu ALL=(ALL) NOPASSWD: ALL" >ubuntu
+    sudo cp ubuntu /etc/sudoers.d/.
 fi

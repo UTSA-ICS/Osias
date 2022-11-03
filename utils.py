@@ -25,7 +25,7 @@ class parser:
         if "variables" in self.data:
             data = self.data["variables"]
             if variable in data:
-                return data[variable]
+                return str(data[variable])
         return None
 
     def get_kolla_configs(self):
@@ -181,43 +181,39 @@ def create_multinode(input_dictionary, optional_variables):
     control_labels = ["control", "network"]
     secondary_labels = ["storage", "compute"]
     monitor_label = ["monitor"]
-    multinode = ""
+    multinode = {}
     for label in control_labels:
-        multinode += f"\n[{label}]"
+        multinode[label] = []
         for i, value in enumerate(control_items):
-            internal = value[1]["internal"]
-            public = value[1]["public"]
-            data = value[1]["data"]
-            multinode += f"""
-\t[{label}.{i}]
-\t\tpublic = \"{public}\"
-\t\tprivate = \"{internal}\"
-\t\tdata = \"{data}\""""
+            multinode[label].append(i)
+            multinode[label][i] = {}
+            multinode[label][i]["public"] = value[1]["public"]
+            multinode[label][i]["private"] = value[1]["internal"]
+            multinode[label][i]["data"] = value[1]["data"]
     for label in secondary_labels:
-        multinode += f"\n[{label}]"
+        multinode[label] = []
         for i, (k, v) in enumerate(input_dictionary.items()):
-            internal = v["internal"]
-            public = v["public"]
-            data = v["data"]
-            multinode += f"""
-\t[{label}.{i}]
-\t\tpublic = \"{public}\"
-\t\tprivate = \"{internal}\"
-\t\tdata = \"{data}\""""
+            multinode[label].append(i)
+            multinode[label][i] = {}
+            multinode[label][i]["public"] = v["public"]
+            multinode[label][i]["private"] = v["internal"]
+            multinode[label][i]["data"] = v["data"]
     for label in monitor_label:
-        multinode += f"\n[{label}]"
+        multinode[label] = []
         for i, (k, v) in enumerate(monitor_item):
-            internal = v["internal"]
-            public = v["public"]
-            data = v["data"]
-            multinode += f"""
-\t[{label}.{i}]
-\t\tpublic = \"{public}\"
-\t\tprivate = \"{internal}\"
-\t\tdata = \"{data}\""""
-
-    multinode += "\n[variables]\n\t[variables.0]\n"
-    multinode += f"\t\t{optional_variables}"
+            multinode[label].append(i)
+            multinode[label][i] = {}
+            multinode[label][i]["public"] = v["public"]
+            multinode[label][i]["private"] = v["internal"]
+            multinode[label][i]["data"] = v["data"]
+    multinode["variables"] = {}
+    optional_variables = dict(
+        [
+            (x.split(":")[0].strip(), x.split(":")[1].strip("' "))
+            for x in optional_variables.strip("{}").split(",")
+        ]
+    )
+    multinode["variables"].update(optional_variables)
     return multinode
 
 
