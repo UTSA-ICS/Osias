@@ -249,7 +249,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     )
 
 
-def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=False):
+def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
     parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     if not parent_project_pipeline_id:
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -264,9 +264,10 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
         POOL_START_IP,
     ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
     print(f"server_dict: {server_dict}")
-
+    if ceph_enabled is None:
+        ceph_enabled = False
     optional_vars = vm_profile
-    optional_vars["CEPH"] = CEPH
+    optional_vars["CEPH"] = ceph_enabled
     optional_vars["POOL_START_IP"] = POOL_START_IP
     optional_vars["POOL_END_IP"] = POOL_END_IP
     optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
