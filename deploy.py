@@ -257,8 +257,6 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled=Fals
     servers = maas_virtual.MaasVirtual(
         osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     )
-    if isinstance(ceph_enabled, str):
-        CEPH = ast.literal_eval(ceph_enabled)
     (
         server_dict,
         VIP_ADDRESS,
@@ -338,7 +336,9 @@ def main():
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
-        ceph_enabled = ast.literal_eval(config.get_variables(variable="CEPH").title())
+        ceph_enabled = config.get_variables(variable="CEPH")
+        if isinstance(WIPE_PHYSICAL_SERVERS, str):
+            ceph_enabled = ast.literal_eval(ceph_enabled.title())
         docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
@@ -351,9 +351,9 @@ def main():
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN")
-        WIPE_PHYSICAL_SERVERS = ast.literal_eval(
-            config.get_variables(variable="WIPE_PHYSICAL_SERVERS").title()
-        )
+        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
+        if isinstance(WIPE_PHYSICAL_SERVERS, str):
+            WIPE_PHYSICAL_SERVERS = ast.literal_eval(WIPE_PHYSICAL_SERVERS.title())
 
         if args.operation != "create_virtual_servers":
             if not VIP_ADDRESS or not POOL_START_IP or not POOL_END_IP or not DNS_IP:
