@@ -1,80 +1,78 @@
+# You can override the included template(s) by including variable overrides
+# SAST customization: https://docs.gitlab.com/ee/user/application_security/sast/#customizing-the-sast-settings
+# Secret Detection customization: https://docs.gitlab.com/ee/user/application_security/secret_detection/#customizing-settings
+# Dependency Scanning customization: https://docs.gitlab.com/ee/user/application_security/dependency_scanning/#customizing-the-dependency-scanning-settings
+# Container Scanning customization: https://docs.gitlab.com/ee/user/application_security/container_scanning/#customizing-the-container-scanning-settings
+# Note that environment variables can be set in several places
+# See https://docs.gitlab.com/ee/ci/variables/#cicd-variable-precedence
 default:
-  # Official language image. Look for the different tagged releases at:
-  # https://hub.docker.com/r/library/python/tags/
   image: python:3.7-buster
   interruptible: true
   tags:
-    - docker-runner
-
+  - docker-runner
 include:
-  # Disallow merge request pipelines globally so we don't generate duplicate pipelines
-  - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
-
+- template: Workflows/Branch-Pipelines.gitlab-ci.yml
+- template: Security/Dependency-Scanning.gitlab-ci.yml
 variables:
   DEPLOY_MULTIPLE_RELEASES:
-    value: "true"
+    value: 'true'
     description: Flag for deployment of multiple releases or one release.
   SLEEP_FAILURE_TIME:
-    value: "3600"
+    value: '3600'
     description: Pipeline sleep time for failure scenarios
-
 workflow:
   rules:
-    - if: '$CI_PIPELINE_SOURCE == "push"'
-    - if: '$CI_PIPELINE_SOURCE == "schedule"'
-    - if: '$CI_PIPELINE_SOURCE == "web"'
-
+  - if: $CI_PIPELINE_SOURCE == "push"
+  - if: $CI_PIPELINE_SOURCE == "schedule"
+  - if: $CI_PIPELINE_SOURCE == "web"
 stages:
-  - static_analysis
-  - tag_virtual_servers
-  - generate_yaml
-  - deploy_pipeline
-
+- static_analysis
+- tag_virtual_servers
+- generate_yaml
+- deploy_pipeline
 shellcheck:
   stage: static_analysis
   image: pipelinecomponents/shellcheck:latest
   script:
-    - |
-      find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
-      xargs -0 -r -n1 shellcheck -e SC1091 -e SC2024 --color
-
+  - |
+    find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
+    xargs -0 -r -n1 shellcheck -e SC1091 -e SC2024 --color
 python_black:
   stage: static_analysis
   image:
     name: cytopia/black
-    entrypoint: ["/bin/ash", "-c"]
+    entrypoint:
+    - "/bin/ash"
+    - "-c"
   script:
-    - python3 -m black --check --diff --color .
-
+  - python3 -m black --check --diff --color .
 generate_yaml_config:
   stage: generate_yaml
   script:
-    - pip3 install PyYAML
-    - bash generate_yml.sh > release-test.yml
-    - cat release-test.yml # For Debug purposes
-    - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
+  - pip3 install PyYAML
+  - bash generate_yml.sh > release-test.yml
+  - cat release-test.yml
+  - if [ -z "$MULTINODE" ]; then echo MULTINODE="" >> build.env; fi
   artifacts:
     paths:
-      - release-test.yml
-      - deploy*.yml
+    - release-test.yml
+    - deploy*.yml
     reports:
       dotenv: build.env
-
-
 release_testing:
   stage: deploy_pipeline
   trigger:
     include:
-      - artifact: release-test.yml
-        job: generate_yaml_config
+    - artifact: release-test.yml
+      job: generate_yaml_config
     strategy: depend
   variables:
-    DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
-    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
-    VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
-    VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
-    MULTINODE: $MULTINODE
-    REPROVISION_SERVERS: $REPROVISION_SERVERS
-    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    MAAS_URL: $MAAS_URL
-    MAAS_API_KEY: $MAAS_API_KEY
+    DEPLOY_MULTIPLE_RELEASES: "$DEPLOY_MULTIPLE_RELEASES"
+    PARENT_PIPELINE_ID: "$CI_PIPELINE_ID"
+    VM_PROFILE_CURRENT_RELEASE: "$VM_PROFILE_CURRENT_RELEASE"
+    VM_PROFILE_PREVIOUS_RELEASE: "$VM_PROFILE_PREVIOUS_RELEASE"
+    MULTINODE: "$MULTINODE"
+    REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+    SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
+    MAAS_URL: "$MAAS_URL"
+    MAAS_API_KEY: "$MAAS_API_KEY"
