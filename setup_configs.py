@@ -158,6 +158,9 @@ kolla_install_type: "source"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"
+enable_neutron_provider_networks: "yes"
+neutron_bridge_name: "br0"
+enable_neutron_dvr: "yes"
 keepalived_virtual_router_id: "{SUFFIX}"
 kolla_internal_vip_address: "{kolla_internal_vip_address}"
 kolla_external_vip_address: "{kolla_external_vip_address}"
@@ -179,7 +182,6 @@ enable_mariabackup: "no"
 
 # Desired Global Options:
 #enable_neutron_metering: "yes"
-#enable_neutron_dvr: "yes"
 #enable_neutron_qos: "yes"
 #enable_neutron_agent_ha: "no"
 # Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
