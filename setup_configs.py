@@ -158,9 +158,12 @@ kolla_install_type: "source"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"
+
+# Enable direct access to the internet from compute nodes & reduce latency.
 enable_neutron_provider_networks: "yes"
 neutron_bridge_name: "br0"
 enable_neutron_dvr: "yes"
+
 keepalived_virtual_router_id: "{SUFFIX}"
 kolla_internal_vip_address: "{kolla_internal_vip_address}"
 kolla_external_vip_address: "{kolla_external_vip_address}"
