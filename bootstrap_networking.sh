@@ -6,11 +6,13 @@ set -euxo pipefail
 br0_exists() { ip addr show br0 &>/dev/null; }
 if ! br0_exists; then
     netplan_file="50-cloud-init.yaml" # "00-installer-config.yaml"
+    # Get the public internet interface name
+    interface_name=$(ip route | grep default | awk '{print $5}')
+    gateway=$(ip route | grep default | awk '{print $3}')
+    ip_addr=$(ip route | grep "${interface_name}" | grep link | awk '{print $NF}')
+    subnet_size=$(ip route | grep "${interface_name} "| grep link | awk '{print $1}' | cut -d/ -f2)
     # Get existing MAC address
-    mac_address=$(grep macaddress /etc/netplan/${netplan_file} | awk '{print $2}')
-    # Get the interface name (remove the ":" from the name)
-    interface_name=$(grep -A 1 ethernets /etc/netplan/${netplan_file} | grep -v ethernets | awk '{print $1}')
-    interface_name=${interface_name%:}
+    mac_address=$(ip link show "${interface_name}" | grep link | awk '{print $2}')
     cat /etc/netplan/${netplan_file}
     cat /etc/hosts
     cat /etc/resolv.conf
@@ -23,8 +25,17 @@ if ! br0_exists; then
           interfaces:
               - $interface_name
           macaddress: $mac_address
+          addresses:
+            - $ip_addr/$subnet_size
+          gateway4: $gateway
 " >>/tmp/${netplan_file}
 
+    # Delete gateway from original interface
+    sed -i "0,/$gateway/{//d}" /tmp/${netplan_file}
+    # Delete ip address and 'address:' line above from original interface
+    line=$(grep -n -m 1 "$ip_addr" /tmp/50-cloud-init.yaml |sed  's/\([0-9]*\).*/\1/')
+    n="$((line-1))"
+    sed -i.bak -e "${n}d;${line}d" /tmp/50-cloud-init.yaml
     # Now copy over the modified file in the netplan directory
     sudo mv /tmp/${netplan_file} /etc/netplan/${netplan_file}
     # Activate the updated netplan configuration
