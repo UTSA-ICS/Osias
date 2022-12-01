@@ -9,6 +9,7 @@ default:
 include:
   # Disallow merge request pipelines globally so we don't generate duplicate pipelines
   - template: 'Workflows/Branch-Pipelines.gitlab-ci.yml'
+  - template: Security/SAST.gitlab-ci.yml
 
 variables:
   DEPLOY_MULTIPLE_RELEASES:
@@ -46,6 +47,9 @@ python_black:
   script:
     - python3 -m black --check --diff --color .
 
+sast:
+  stage: static_analysis
+
 generate_yaml_config:
   stage: generate_yaml
   script:
@@ -69,12 +73,12 @@ release_testing:
         job: generate_yaml_config
     strategy: depend
   variables:
-    DEPLOY_MULTIPLE_RELEASES: $DEPLOY_MULTIPLE_RELEASES
-    PARENT_PIPELINE_ID: $CI_PIPELINE_ID
-    VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
-    VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
-    MULTINODE: $MULTINODE
-    REPROVISION_SERVERS: $REPROVISION_SERVERS
-    SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    MAAS_URL: $MAAS_URL
-    MAAS_API_KEY: $MAAS_API_KEY
+    DEPLOY_MULTIPLE_RELEASES: "$DEPLOY_MULTIPLE_RELEASES"
+    PARENT_PIPELINE_ID: "$CI_PIPELINE_ID"
+    VM_PROFILE_CURRENT_RELEASE: "$VM_PROFILE_CURRENT_RELEASE"
+    VM_PROFILE_PREVIOUS_RELEASE: "$VM_PROFILE_PREVIOUS_RELEASE"
+    MULTINODE: "$MULTINODE"
+    REPROVISION_SERVERS: "$REPROVISION_SERVERS"
+    SSH_PRIVATE_KEY: "$SSH_PRIVATE_KEY"
+    MAAS_URL: "$MAAS_URL"
+    MAAS_API_KEY: "$MAAS_API_KEY"
