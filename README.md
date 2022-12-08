@@ -316,6 +316,11 @@ enable_mariabackup: "yes"
 enable_neutron_agent_ha: "yes"
 glance_enable_rolling_upgrade: "yes"
 keepalived_virtual_router_id: "VIP host address i.e. 250 from above example"
+
+# Enable direct access to the internet from compute nodes & reduce latency.
+enable_neutron_provider_networks: "yes"
+neutron_bridge_name: "br0"
+enable_neutron_dvr: "yes"
 ```
 
 ## Dev Work
