@@ -11,13 +11,13 @@ def check_ip(IP):
         subnet = ".".join((IP.split(".")[:3]))
         suffix = int(IP.split(".")[-1])
         if suffix < 255:
-            IP=f"{subnet}.{suffix}"
-            IP=check_ip(IP)
+            IP = f"{subnet}.{suffix}"
+            IP = check_ip(IP)
         if suffix == 254:
-            IP=f"{subnet}.1"
-            IP=check_ip(IP)
+            IP = f"{subnet}.1"
+            IP = check_ip(IP)
     else:
-        print(IP, 'is available!')
+        print(IP, "is available!")
     return IP
 
 
