@@ -1,6 +1,24 @@
 #!/usr/bin/python3
 
 import ast
+import os
+
+
+def check_ip(IP):
+    response = os.system("ping -c 1 " + IP + " > /dev/null 2>&1")
+    if response == 0:
+        print(f"{IP} is being used!")
+        subnet = ".".join((IP.split(".")[:3]))
+        suffix = int(IP.split(".")[-1])
+        if suffix < 255:
+            IP=f"{subnet}.{suffix}"
+            IP=check_ip(IP)
+        if suffix == 254:
+            IP=f"{subnet}.1"
+            IP=check_ip(IP)
+    else:
+        print(IP, 'is available!')
+    return IP
 
 
 def setup_kolla_configs(
@@ -28,6 +46,7 @@ def setup_kolla_configs(
     VIP_ADDRESS_SUFFIX = vip_address.split(".")[-1]
     kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
     kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+    kolla_internal_vip_address = check_ip(kolla_internal_vip_address)
     SUFFIX = VIP_ADDRESS_SUFFIX
 
     if docker_registry:
