@@ -237,6 +237,8 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
     )
+    for ip in public_IP_pool:
+        setup_configs.check_ip(ip)
     VIP_ADDRESS = str(public_IP_pool.pop())
     POOL_END_IP = str(public_IP_pool.pop())
     POOL_START_IP = str(public_IP_pool.pop(0))
