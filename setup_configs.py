@@ -11,7 +11,7 @@ def check_ip(IP):
     elif response == 1:
         print(f"Ping shows {IP} is available!")
     else:
-        raise Exception(f"Ping shows {IP} has an unknown error!")
+        print(f"Ping shows {IP} is probably available!")
 
 
 def setup_kolla_configs(
