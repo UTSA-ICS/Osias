@@ -211,14 +211,48 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
 
 
 def reprovision_servers(
-    maas_url, maas_api_key, servers_public_ip, distro, wipe_physical_servers
+    maas_url,
+    maas_api_key,
+    servers_public_ip,
+    distro,
+    wipe_physical_servers,
+    private_ips: list,
+    vip_public: str,
+    data_ips: list,
 ):
-    utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    servers = maas_base.MaasBase(distro)
-    servers.set_public_ip(servers_public_ip)
-    if wipe_physical_servers:
-        servers._release()
-    servers.deploy()
+    # utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
+    # servers = maas_base.MaasBase(distro)
+    # servers.set_public_ip(servers_public_ip)
+    # if wipe_physical_servers:
+    #    servers._release()
+    # servers.deploy()
+
+    # Test all IP's are active
+    active_results = []
+    active_ips = servers_public_ip
+    active_private_ips = private_ips + data_ips
+    for ip in active_ips:
+        result = utils.check_ip_active(ip)
+        active_results.append(result)
+    active_results.extend(
+        utils.check_private_ip_active(active_ips[0], active_private_ips)
+    )
+    print("\nINFO: Completed verification that host IP's are online.")
+    print(f"      There were {active_results.count(False)} errors.\n")
+    # Test all IP's are inactive.
+    inactive_results = []
+    internal_subnet = ".".join((private_ips[0].split(".")[:3]))
+    VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
+    vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+    inactive_ips = [vip_public] + [vip_internal]
+    inactive_results.append(utils.check_ip_active(vip_public))
+    inactive_results.extend(
+        utils.check_private_ip_active(active_ips[0], [vip_internal])
+    )
+    print("\nINFO: Completed verification that VIP address are not being used.")
+    print(f"      There were {inactive_results.count(True)} errors.\n")
+    if True in inactive_results or False in active_results:
+        raise Exception("ERROR: Please check the results above and correct any errors.")
 
 
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
@@ -237,8 +271,11 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
     )
+    active_ips = []
     for ip in public_IP_pool:
-        setup_configs.check_ip(ip)
+        active_ips.append(utils.check_ip_active(ip))
+    if True in active_ips:
+        raise Exception("IP was found in use that shouldn't be.")
     VIP_ADDRESS = str(public_IP_pool.pop())
     POOL_END_IP = str(public_IP_pool.pop())
     POOL_START_IP = str(public_IP_pool.pop(0))
@@ -393,6 +430,9 @@ def main():
                     servers_public_ip,
                     MAAS_VM_DISTRO,
                     WIPE_PHYSICAL_SERVERS,
+                    servers_private_ip,
+                    VIP_ADDRESS,
+                    storage_nodes_data_ip,
                 )
             else:
                 raise Exception(

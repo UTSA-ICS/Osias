@@ -3,6 +3,7 @@
 import subprocess
 from itertools import islice
 from pathlib import Path
+import os
 
 import yaml
 
@@ -159,6 +160,31 @@ def run_cmd(command, test=True, output=True):
     if output:
         print(f"\nCommand Output: \n{stdout.decode()}\n")
     return stdout
+
+
+def check_ip_active(IP):
+    response = os.system("ping -c 1 " + IP + " > /dev/null 2>&1")
+    if response == 0:
+        print(f"Ping shows {IP} is in use (packets received)!")
+        return True
+    else:
+        print(f"Ping shows {IP} is NOT in use (packets lost)!")
+        return False
+
+
+def check_private_ip_active(public_ip: str, private_ips: list):
+    result = []
+    for private_ip in private_ips:
+        try:
+            run_cmd_on_server(
+                "ping -c 1 " + private_ip + " > /dev/null 2>&1", public_ip
+            )
+            print(f"INFO: Ping shows {private_ip} is in use (packets received)!")
+            result.append(True)
+        except:
+            print(f"INFO: Ping shows {private_ip} is NOT in use (packets lost)!")
+            result.append(False)
+    return result
 
 
 def create_kolla_config_files(data: dict):

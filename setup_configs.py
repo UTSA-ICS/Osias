@@ -4,13 +4,6 @@ import ast
 import os
 
 
-def check_ip(IP):
-    response = os.system("ping -c 1 -t 1" + IP + " > /dev/null 2>&1")
-    if response == 0:
-        raise Exception(f"Ping shows {IP} is being used!")
-    else:
-        print(f"Ping shows {IP} is available!")
-
 
 def setup_kolla_configs(
     controller_nodes,
@@ -37,8 +30,6 @@ def setup_kolla_configs(
     VIP_ADDRESS_SUFFIX = vip_address.split(".")[-1]
     kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
     kolla_internal_vip_address = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
-    for ip in [kolla_external_vip_address, kolla_internal_vip_address]:
-        check_ip(ip)
     SUFFIX = VIP_ADDRESS_SUFFIX
 
     if docker_registry:
