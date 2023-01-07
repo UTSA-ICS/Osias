@@ -4,7 +4,6 @@ import ast
 import os
 
 
-
 def setup_kolla_configs(
     controller_nodes,
     network_nodes,
