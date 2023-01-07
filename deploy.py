@@ -220,12 +220,12 @@ def reprovision_servers(
     vip_public: str,
     data_ips: list,
 ):
-    # utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    # servers = maas_base.MaasBase(distro)
-    # servers.set_public_ip(servers_public_ip)
-    # if wipe_physical_servers:
-    #    servers._release()
-    # servers.deploy()
+    utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
+    servers = maas_base.MaasBase(distro)
+    servers.set_public_ip(servers_public_ip)
+    if wipe_physical_servers:
+        servers._release()
+    servers.deploy()
 
     # Test all IP's are active
     active_results = []
