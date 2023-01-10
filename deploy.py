@@ -216,9 +216,6 @@ def reprovision_servers(
     servers_public_ip,
     distro,
     wipe_physical_servers,
-    private_ips: list,
-    vip_public: str,
-    data_ips: list,
 ):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
@@ -227,27 +224,29 @@ def reprovision_servers(
         servers._release()
     servers.deploy()
 
-    # Test all IP's are active
+
+def verify_network_connectivity(
+    public_ips: list, private_ips: list, data_ips: list, vip_public: str
+):
+    # Test all IPs are active
     active_results = []
-    active_ips = servers_public_ip
     active_private_ips = private_ips + data_ips
-    for ip in active_ips:
+    for ip in public_ips:
         result = utils.check_ip_active(ip)
         active_results.append(result)
     active_results.extend(
-        utils.check_private_ip_active(active_ips[0], active_private_ips)
+        utils.check_private_ip_active(public_ips[0], active_private_ips)
     )
     print("\nINFO: Completed verification that host IP's are online.")
     print(f"      There were {active_results.count(False)} errors.\n")
-    # Test all IP's are inactive.
+    # Test all IPs are inactive.
     inactive_results = []
     internal_subnet = ".".join((private_ips[0].split(".")[:3]))
     VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
     vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
-    inactive_ips = [vip_public] + [vip_internal]
     inactive_results.append(utils.check_ip_active(vip_public))
     inactive_results.extend(
-        utils.check_private_ip_active(active_ips[0], [vip_internal])
+        utils.check_private_ip_active(public_ips[0], [vip_internal])
     )
     print("\nINFO: Completed verification that VIP address are not being used.")
     print(f"      There were {inactive_results.count(True)} errors.\n")
@@ -257,7 +256,7 @@ def reprovision_servers(
 
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
-    If VM's aren't available, they will be created.  Additionally, this will find an available
+    If VMs aren't available, they will be created.  Additionally, this will find an available
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
     IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
     file generation."""
@@ -430,10 +429,14 @@ def main():
                     servers_public_ip,
                     MAAS_VM_DISTRO,
                     WIPE_PHYSICAL_SERVERS,
-                    servers_private_ip,
-                    VIP_ADDRESS,
-                    storage_nodes_data_ip,
                 )
+                verify_network_connectivity(
+                    servers_public_ip,
+                    servers_private_ip,
+                    storage_nodes_data_ip,
+                    VIP_ADDRESS,
+                )
+
             else:
                 raise Exception(
                     "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
