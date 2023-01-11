@@ -252,7 +252,7 @@ def verify_network_connectivity(
     count = 0
     while len(active_private_ips) > 0 and count <= 10:
         private_ip_results = utils.check_private_ip_active(
-            functional_public_ip[0], active_private_ips
+            functional_public_ip, active_private_ips
         )
         for ip in private_ip_results["active"]:
             active_private_ips.remove(ip)
@@ -272,7 +272,7 @@ def verify_network_connectivity(
 
     inactive_results = []
     inactive_results.append(utils.check_ip_active(vip_public))
-    result = utils.check_private_ip_active(functional_public_ip[0], [vip_internal])
+    result = utils.check_private_ip_active(functional_public_ip, [vip_internal])
     if len(result["active"]) > 0:
         inactive_results.extend([True for i in range(len(result["active"]))])
     print("\nINFO: Completed verification that VIP address are not being used.")
