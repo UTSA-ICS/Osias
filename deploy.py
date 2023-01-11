@@ -4,6 +4,7 @@ import argparse
 import ast
 import os
 import yaml
+from time import sleep
 
 import maas_base
 import maas_virtual
@@ -229,28 +230,54 @@ def verify_network_connectivity(
     public_ips: list, private_ips: list, data_ips: list, vip_public: str
 ):
     # Test all IPs are active
-    active_results = []
+    retry = {}
+    retry["public"] = []
+    retry["internal"] = []
+    functional_public_ip = ""
     active_private_ips = private_ips + data_ips
-    for ip in public_ips:
-        result = utils.check_ip_active(ip)
-        active_results.append(result)
-    active_results.extend(
-        utils.check_private_ip_active(public_ips[0], active_private_ips)
-    )
+    count = 0
+    while len(public_ips) > 0 and count <= 10:
+        for ip in public_ips:
+            result = utils.check_ip_active(ip)
+            if result is True:
+                functional_public_ip = ip
+                public_ips.remove(ip)
+            if result is False:
+                count = count + 1
+                print(
+                    f"INFO: Attempt {count}/10 - Public IP, {ip}, did not respond, sleeping for 5 seconds."
+                )
+                sleep(5)
+
+    count = 0
+    while len(active_private_ips) > 0 and count <= 10:
+        private_ip_results = utils.check_private_ip_active(
+            functional_public_ip[0], active_private_ips
+        )
+        for ip in private_ip_results["active"]:
+            active_private_ips.remove(ip)
+        if len(private_ip_results["inactive"]) > 0:
+            count = count + 1
+            print(
+                f"INFO: Attempt {count}/10 - Private IP, {private_ip_results['inactive']}, did not respond, sleeping for 5 seconds."
+            )
+            sleep(5)
     print("\nINFO: Completed verification that host IP's are online.")
-    print(f"      There were {active_results.count(False)} errors.\n")
+    print(f"      There were {len(active_private_ips)} errors.\n")
+
     # Test all IPs are inactive.
-    inactive_results = []
     internal_subnet = ".".join((private_ips[0].split(".")[:3]))
     VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
     vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+
+    inactive_results = []
     inactive_results.append(utils.check_ip_active(vip_public))
-    inactive_results.extend(
-        utils.check_private_ip_active(public_ips[0], [vip_internal])
-    )
+    result = utils.check_private_ip_active(functional_public_ip[0], [vip_internal])
+    if len(result["active"]) > 0:
+        inactive_results.extend([True for i in range(len(result["active"]))])
     print("\nINFO: Completed verification that VIP address are not being used.")
     print(f"      There were {inactive_results.count(True)} errors.\n")
-    if True in inactive_results or False in active_results:
+    if len(active_private_ips) > 0 or True in inactive_results:
         raise Exception("ERROR: Please check the results above and correct any errors.")
 
 
