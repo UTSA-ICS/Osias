@@ -93,6 +93,7 @@ def parse_args():
             "tag_virtual_servers",
             "create_virtual_servers",
             "bootstrap_networking",
+            "verify_connectivity",
             "bootstrap_openstack",
             "bootstrap_ceph",
             "pre_deploy_openstack",
@@ -281,6 +282,18 @@ def verify_network_connectivity(
         raise Exception("ERROR: Please check the results above and correct any errors.")
 
 
+def verify_vm_pool_availability(vm_profile, public_IP_pool):
+    internal_subnet = ".".join(vm_profile["Internal_CIDR"].split(".")[:3])
+    VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
+    vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+    active_ips = []
+    for ip in public_IP_pool:
+        active_ips.append(utils.check_ip_active(ip))
+    active_ips.append(utils.check_ip_active(vip_internal))
+    if True in active_ips:
+        raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
+
+
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
     If VMs aren't available, they will be created.  Additionally, this will find an available
@@ -297,11 +310,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
     )
-    active_ips = []
-    for ip in public_IP_pool:
-        active_ips.append(utils.check_ip_active(ip))
-    if True in active_ips:
-        raise Exception("IP was found in use that shouldn't be.")
+    verify_vm_pool_availability(vm_profile, public_IP_pool)
     VIP_ADDRESS = str(public_IP_pool.pop())
     POOL_END_IP = str(public_IP_pool.pop())
     POOL_START_IP = str(public_IP_pool.pop(0))
@@ -457,13 +466,6 @@ def main():
                     MAAS_VM_DISTRO,
                     WIPE_PHYSICAL_SERVERS,
                 )
-                verify_network_connectivity(
-                    servers_public_ip,
-                    servers_private_ip,
-                    storage_nodes_data_ip,
-                    VIP_ADDRESS,
-                )
-
             else:
                 raise Exception(
                     "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
@@ -473,6 +475,13 @@ def main():
         elif args.operation == "bootstrap_networking":
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
             bootstrap_networking(servers_public_ip)
+        elif args.operation == "verify_connectivity":
+            verify_network_connectivity(
+                servers_public_ip,
+                servers_private_ip,
+                storage_nodes_data_ip,
+                VIP_ADDRESS,
+            )
         elif args.operation == "bootstrap_ceph":
             if not isinstance(ceph_enabled, bool):
                 raise Exception(
