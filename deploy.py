@@ -4,6 +4,7 @@ import argparse
 import ast
 import os
 import yaml
+from time import sleep
 
 import maas_base
 import maas_virtual
@@ -92,6 +93,7 @@ def parse_args():
             "tag_virtual_servers",
             "create_virtual_servers",
             "bootstrap_networking",
+            "verify_connectivity",
             "bootstrap_openstack",
             "bootstrap_ceph",
             "pre_deploy_openstack",
@@ -198,7 +200,7 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
-        args=[storage_nodes_data_ip[0], ceph_release, DATA_CIDR],
+        args=[servers_public_ip[0], ceph_release, DATA_CIDR],
     )
 
 
@@ -211,7 +213,11 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
 
 
 def reprovision_servers(
-    maas_url, maas_api_key, servers_public_ip, distro, wipe_physical_servers
+    maas_url,
+    maas_api_key,
+    servers_public_ip,
+    distro,
+    wipe_physical_servers,
 ):
     utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     servers = maas_base.MaasBase(distro)
@@ -221,9 +227,76 @@ def reprovision_servers(
     servers.deploy()
 
 
+def verify_network_connectivity(
+    public_ips: list, private_ips: list, data_ips: list, vip_public: str
+):
+    # Test all IPs are active
+    retry = {}
+    retry["public"] = []
+    retry["internal"] = []
+    functional_public_ip = ""
+    active_private_ips = private_ips + data_ips
+    count = 0
+    while len(public_ips) > 0 and count <= 10:
+        for ip in public_ips:
+            result = utils.check_ip_active(ip)
+            if result is True:
+                functional_public_ip = ip
+                public_ips.remove(ip)
+            if result is False:
+                count = count + 1
+                print(
+                    f"INFO: Attempt {count}/10 - Public IP, {ip}, did not respond, sleeping for 5 seconds."
+                )
+                sleep(5)
+
+    count = 0
+    while len(active_private_ips) > 0 and count <= 10:
+        private_ip_results = utils.check_private_ip_active(
+            functional_public_ip, active_private_ips
+        )
+        for ip in private_ip_results["active"]:
+            active_private_ips.remove(ip)
+        if len(private_ip_results["inactive"]) > 0:
+            count = count + 1
+            print(
+                f"INFO: Attempt {count}/10 - Private IP, {private_ip_results['inactive']}, did not respond, sleeping for 5 seconds."
+            )
+            sleep(5)
+    print("\nINFO: Completed verification that host IP's are online.")
+    print(f"      There were {len(active_private_ips)} errors.\n")
+
+    # Test all IPs are inactive.
+    internal_subnet = ".".join((private_ips[0].split(".")[:3]))
+    VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
+    vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+
+    inactive_results = []
+    inactive_results.append(utils.check_ip_active(vip_public))
+    result = utils.check_private_ip_active(functional_public_ip, [vip_internal])
+    if len(result["active"]) > 0:
+        inactive_results.extend([True for i in range(len(result["active"]))])
+    print("\nINFO: Completed verification that VIP address are not being used.")
+    print(f"      There were {inactive_results.count(True)} errors.\n")
+    if len(active_private_ips) > 0 or True in inactive_results:
+        raise Exception("ERROR: Please check the results above and correct any errors.")
+
+
+def verify_vm_pool_availability(vm_profile, public_IP_pool):
+    internal_subnet = ".".join(vm_profile["Internal_CIDR"].split(".")[:3])
+    VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
+    vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+    active_ips = []
+    for ip in public_IP_pool:
+        active_ips.append(utils.check_ip_active(ip))
+    active_ips.append(utils.check_ip_active(vip_internal))
+    if True in active_ips:
+        raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
+
+
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
-    If VM's aren't available, they will be created.  Additionally, this will find an available
+    If VMs aren't available, they will be created.  Additionally, this will find an available
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
     IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
     file generation."""
@@ -237,6 +310,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
         osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
         osias_variables.VM_Profile["IPs_NEEDED"],
     )
+    verify_vm_pool_availability(vm_profile, public_IP_pool)
     VIP_ADDRESS = str(public_IP_pool.pop())
     POOL_END_IP = str(public_IP_pool.pop())
     POOL_START_IP = str(public_IP_pool.pop(0))
@@ -401,6 +475,13 @@ def main():
         elif args.operation == "bootstrap_networking":
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
             bootstrap_networking(servers_public_ip)
+        elif args.operation == "verify_connectivity":
+            verify_network_connectivity(
+                servers_public_ip,
+                servers_private_ip,
+                storage_nodes_data_ip,
+                VIP_ADDRESS,
+            )
         elif args.operation == "bootstrap_ceph":
             if not isinstance(ceph_enabled, bool):
                 raise Exception(

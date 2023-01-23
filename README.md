@@ -101,6 +101,7 @@ This stage will only happen if you are not using MaaS.
   - All of your ceph volumes and keyrings will be generated in this stage.
   - 1 Radosgw will be installed for swift API services.
 - Kolla pre-checks and kolla pull will both run.
+- **For swift to work properly, controller nodes must be listed in the storage section of our multinode as well**
 
 ### Deploy OpenStack
 

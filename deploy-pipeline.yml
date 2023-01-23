@@ -18,6 +18,7 @@ stages:
   - generate_cidr
   - reprovision_servers
   - bootstrap_networking
+  - verify_connectivity
   - cleanup
   - reboot_servers
   - bootstrap_openstack
@@ -89,6 +90,13 @@ bootstrap_networking:
   script:
     # Configure the networking and bridge for openstack.
     - python3 -u deploy.py bootstrap_networking --config "$MULTINODE"
+
+verify_connectivity:
+  stage: verify_connectivity
+  extends:
+    - .base_setup
+  script:
+    - python3 -u deploy.py verify_connectivity --config "$MULTINODE"
 
 bootstrap:openstack:
   stage: bootstrap_openstack
