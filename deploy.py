@@ -175,7 +175,7 @@ def bootstrap_openstack(
         utils.run_script_on_server(
             "bootstrap_openstack.sh",
             servers_public_ip[0],
-            args=[docker_registry_password, servers_private_ip[0]],
+            args=[servers_private_ip[0], docker_registry_password],
         )
     else:
         utils.run_script_on_server(

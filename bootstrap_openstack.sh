@@ -5,7 +5,7 @@ set -euo pipefail
 network_interface_ip=$1
 
 if [ $# -ge 2 ] && [ -n "$2" ]; then
-    DOCKER_REGISTRY_PASSWORD=$1
+    DOCKER_REGISTRY_PASSWORD=$2
 else
     echo "No Docker Password Supplied"
 fi
