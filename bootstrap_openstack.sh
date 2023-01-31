@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-if [ $# -ge 1 ] && [ -n "$1" ]; then
+network_interface_ip=$1
+
+if [ $# -ge 2 ] && [ -n "$2" ]; then
     DOCKER_REGISTRY_PASSWORD=$1
 else
     echo "No Docker Password Supplied"
@@ -17,10 +19,14 @@ if [[ -v DOCKER_REGISTRY_PASSWORD ]]; then
     sudo sed -i "s|docker_registry_password: null|docker_registry_password: ${DOCKER_REGISTRY_PASSWORD}|g" /etc/kolla/passwords.yml
 fi
 
-kolla-ansible -i multinode certificates
+base_ip=$(echo "$network_interface_ip" | cut -d"." -f1-3)
+network_interface=$(ip a | grep "$base_ip" |  awk '{print $NF}')
+sudo sed -i "s|NETWORK_INTERFACE|\"${network_interface}\"|g" /etc/kolla/globals.yml
+
+#kolla-ansible -i multinode certificates
 
 # Necessary for Yoga onwards.
-kolla-ansible install-deps || true
+#kolla-ansible install-deps || true
 
 # This bootstrap is necessary to prep for openstack deployment.
-kolla-ansible -i multinode bootstrap-servers
+#kolla-ansible -i multinode bootstrap-servers
