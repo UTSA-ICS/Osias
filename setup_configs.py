@@ -110,7 +110,7 @@ nova_backend_ceph: "no"
 """
 
     # Default value of the network interface
-    network_interface = "eno1"
+    network_interface = "NETWORK_INTERFACE"
     # Default value of tls backend
     tls_enabled = "yes"
     # Default value of High Availability options:
