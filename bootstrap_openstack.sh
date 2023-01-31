@@ -21,12 +21,12 @@ fi
 
 base_ip=$(echo "$network_interface_ip" | cut -d"." -f1-3)
 network_interface=$(ip a | grep "$base_ip" |  awk '{print $NF}')
-sudo sed -i "s|NETWORK_INTERFACE|\"${network_interface}\"|g" /etc/kolla/globals.yml
+sudo sed -i "s|NETWORK_INTERFACE|${network_interface}|g" /etc/kolla/globals.yml
 
-#kolla-ansible -i multinode certificates
+kolla-ansible -i multinode certificates
 
 # Necessary for Yoga onwards.
-#kolla-ansible install-deps || true
+kolla-ansible install-deps || true
 
 # This bootstrap is necessary to prep for openstack deployment.
-#kolla-ansible -i multinode bootstrap-servers
+kolla-ansible -i multinode bootstrap-servers
