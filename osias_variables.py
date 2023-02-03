@@ -71,7 +71,7 @@ MAAS_VM_DISTRO = {
     "wallaby": "focal hwe_kernel=hwe-20.04-edge",
     "xena": "focal hwe_kernel=hwe-20.04-edge",
     "yoga": "focal hwe_kernel=hwe-20.04-edge",
-    "zed": "jammy hwe_kernel=hwe-22.04-edge",
+    "zed": "jammy hwe_kernel=ga-22.04",
 }
 
 # REFSTACK VARIABLES
