@@ -9,9 +9,9 @@ CLUSTER_NETWORK="${3:-''}"
 # Update to fetch the latest package index
 sudo apt-get update
 
-# Fetch most recent version of cephadm
-curl --silent --remote-name --location https://github.com/ceph/ceph/raw/"$CEPH_RELEASE"/src/cephadm/cephadm
-chmod +x cephadm
+# Fetch most recent version of cephadm otherwise get system latest
+curl --silent --remote-name --location https://github.com/ceph/ceph/raw/"$CEPH_RELEASE"/src/cephadm/cephadm || sudo apt-get install -y cephadm
+chmod +x cephadm || true
 
 sudo ./cephadm add-repo --release "$CEPH_RELEASE"
 
