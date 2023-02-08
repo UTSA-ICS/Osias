@@ -17,7 +17,7 @@ def setup_kolla_configs(
     ceph,
     vip_address,
     fqdn,
-    kolla_base_distro
+    kolla_base_distro,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
