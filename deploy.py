@@ -142,6 +142,7 @@ def bootstrap_openstack(
     vip_address,
     fqdn,
     osias_kolla_imports,
+    kolla_base_distro,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -163,6 +164,7 @@ def bootstrap_openstack(
         ceph,
         vip_address,
         fqdn,
+        kolla_base_distro,
     )
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
@@ -456,6 +458,7 @@ def main():
         MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
         CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
+        KOLLA_BASE_DISTRO = osias_variables.KOLLA_BASE_DISTRO[OPENSTACK_RELEASE]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -518,6 +521,7 @@ def main():
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
+                KOLLA_BASE_DISTRO,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
@@ -635,6 +639,7 @@ def main():
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
+                KOLLA_BASE_DISTRO,
             )
             if ceph_enabled:
                 bootstrap_ceph(

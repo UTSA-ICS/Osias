@@ -17,6 +17,7 @@ def setup_kolla_configs(
     ceph,
     vip_address,
     fqdn,
+    kolla_base_distro
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
@@ -154,7 +155,7 @@ enable_haproxy: "no"
 # Globals file is completely commented out besides these variables.
 cat >>/etc/kolla/globals.yml <<__EOF__
 # Basic Options
-kolla_base_distro: "centos"
+kolla_base_distro: "{kolla_base_distro}"
 kolla_install_type: "source"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"

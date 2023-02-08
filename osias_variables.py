@@ -74,6 +74,15 @@ MAAS_VM_DISTRO = {
     "zed": "jammy hwe_kernel=ga-22.04",
 }
 
+KOLLA_BASE_DISTRO = {
+    "ussuri": "centos",
+    "victoria": "centos",
+    "wallaby": "centos",
+    "xena": "centos",
+    "yoga": "centos",
+    "zed": "rocky",
+}
+
 # REFSTACK VARIABLES
 # https://docs.openstack.org/nova/latest/reference/api-microversion-history.html
 # https://docs.openstack.org/cinder/latest/contributor/api_microversion_history.html
