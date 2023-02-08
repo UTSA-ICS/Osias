@@ -156,7 +156,6 @@ enable_haproxy: "no"
 cat >>/etc/kolla/globals.yml <<__EOF__
 # Basic Options
 kolla_base_distro: "{kolla_base_distro}"
-kolla_install_type: "source"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"
