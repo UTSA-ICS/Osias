@@ -452,13 +452,11 @@ def main():
             raise Exception(
                 f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
             )
-        if (
-            OPENSTACK_RELEASE not in osias_variables.NON_QUAY_RELEASE
-            and DOCKER_REGISTRY_IP not None
-        ):
-            raise Exception(
-                f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
-            )
+        if OPENSTACK_RELEASE not in osias_variables.NON_QUAY_RELEASE:
+            if docker_registry_ip is not None:
+                raise Exception(
+                    f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
+                )
         PYTHON_VERSION = osias_variables.PYTHON_VERSION[OPENSTACK_RELEASE]
         TEMPEST_VERSION = osias_variables.TEMPEST_VERSION[OPENSTACK_RELEASE]
         REFSTACK_TEST_VERSION = osias_variables.REFSTACK_TEST_VERSION[OPENSTACK_RELEASE]
@@ -636,7 +634,7 @@ def main():
                 storage_nodes_private_ip,
                 compute_nodes,
                 monitoring_nodes,
-                docker_registry,
+                docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
                 VM_DEPLOYMENT_CIDR,
