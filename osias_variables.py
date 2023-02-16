@@ -41,6 +41,7 @@ VM_Profile = {
 }
 
 SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga", "zed"]
+NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
     "ussuri": "3.6",
     "victoria": "3.8",

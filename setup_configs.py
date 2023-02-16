@@ -33,6 +33,7 @@ def setup_kolla_configs(
     SUFFIX = VIP_ADDRESS_SUFFIX
 
     if docker_registry:
+        print("Docker Set To Pull From Local Registry")
         docker = f"""
 # Docker Options
 docker_registry: "{docker_registry}"
@@ -40,7 +41,8 @@ docker_registry_insecure: "yes"
 docker_registry_username: "{docker_registry_username}"
 """
     else:
-        docker = "# Docker Set To Docker Hub"
+        print("Docker Set To Pull From The Cloud")
+        docker = "# Docker Set To Pull From The Cloud "
     if ceph:
         print("Implementing STORAGE with CEPH")
         storage = f"""

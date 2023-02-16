@@ -131,7 +131,7 @@ def bootstrap_openstack(
     storage_nodes_private_ip,
     compute_nodes,
     monitoring_nodes,
-    docker_registry,
+    docker_registry_ip,
     docker_registry_username,
     docker_registry_password,
     vm_deployment_cidr,
@@ -158,7 +158,7 @@ def bootstrap_openstack(
         compute_nodes,
         monitoring_nodes,
         servers_public_ip,
-        docker_registry,
+        docker_registry_ip,
         docker_registry_username,
         vm_deployment_cidr,
         ceph,
@@ -306,6 +306,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     file generation."""
     parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     if not parent_project_pipeline_id:
+
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
@@ -418,7 +419,7 @@ def main():
         ceph_enabled = config.get_variables(variable="CEPH")
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
+        docker_registry_ip = config.get_variables(variable="DOCKER_REGISTRY_IP")
         docker_registry_username = config.get_variables(
             variable="DOCKER_REGISTRY_USERNAME"
         )
@@ -450,6 +451,13 @@ def main():
         if OPENSTACK_RELEASE not in osias_variables.SUPPORTED_OPENSTACK_RELEASE:
             raise Exception(
                 f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
+            )
+        if (
+            OPENSTACK_RELEASE not in osias_variables.NON_QUAY_RELEASE
+            and DOCKER_REGISTRY_IP not None
+        ):
+            raise Exception(
+                f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
             )
         PYTHON_VERSION = osias_variables.PYTHON_VERSION[OPENSTACK_RELEASE]
         TEMPEST_VERSION = osias_variables.TEMPEST_VERSION[OPENSTACK_RELEASE]
@@ -510,7 +518,7 @@ def main():
                 storage_nodes_private_ip,
                 compute_nodes,
                 monitoring_nodes,
-                docker_registry,
+                docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
                 VM_DEPLOYMENT_CIDR,
