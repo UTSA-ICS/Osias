@@ -449,12 +449,24 @@ def main():
             raise Exception(
                 f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
             )
-        PYTHON_VERSION = osias_variables.PYTHON_VERSION[OPENSTACK_RELEASE]
-        TEMPEST_VERSION = osias_variables.TEMPEST_VERSION[OPENSTACK_RELEASE]
-        REFSTACK_TEST_VERSION = osias_variables.REFSTACK_TEST_VERSION[OPENSTACK_RELEASE]
-        ANSIBLE_MAX_VERSION = osias_variables.ANSIBLE_MAX_VERSION[OPENSTACK_RELEASE]
-        MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
-        CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
+        PYTHON_VERSION = config.get_variables(
+            variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        TEMPEST_VERSION = config.get_variables(
+            variable="TEMPEST_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        REFSTACK_TEST_VERSION = config.get_variables(
+            variable="REFSTACK_TEST_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        ANSIBLE_MAX_VERSION = config.get_variables(
+            variable="ANSIBLE_MAX_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        MAAS_VM_DISTRO = config.get_variables(
+            variable="MAAS_VM_DISTRO", openstack_release=OPENSTACK_RELEASE
+        )
+        CEPH_RELEASE = config.get_variables(
+            variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE
+        )
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
 
         cmd = "".join((args.operation, ".sh"))

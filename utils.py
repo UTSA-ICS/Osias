@@ -1,12 +1,13 @@
 #!/usr/bin/python3
 
+import os
 import subprocess
 from itertools import islice
 from pathlib import Path
-import os
 
 import yaml
 
+import osias_variables
 from ssh_tool import ssh_tool
 
 
@@ -22,11 +23,14 @@ class parser:
             ips.append(myips[ip_type])
         return ips
 
-    def get_variables(self, variable):
-        if "variables" in self.data:
+    def get_variables(self, variable, openstack_release=None):
+        if "variables" in self.data and variable in self.data["variables"]:
             data = self.data["variables"]
             if variable in data:
                 return str(data[variable])
+        elif getattr(osias_variables, variable):
+            x = getattr(osias_variables, variable)
+            return x[openstack_release]
         return None
 
     def get_kolla_configs(self):

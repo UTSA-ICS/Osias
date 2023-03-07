@@ -55,7 +55,7 @@ ANSIBLE_MAX_VERSION = {
     "xena": "5.0",
     "yoga": "6",
 }
-CEPH_VERSION = {
+CEPH_RELEASE = {
     "ussuri": "pacific",
     "victoria": "pacific",
     "wallaby": "pacific",
