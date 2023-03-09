@@ -28,7 +28,7 @@ class parser:
             data = self.data["variables"]
             if variable in data:
                 return str(data[variable])
-        elif getattr(osias_variables, variable):
+        elif getattr(osias_variables, variable, None):
             x = getattr(osias_variables, variable)
             return x[openstack_release]
         return None
