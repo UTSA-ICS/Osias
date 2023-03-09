@@ -416,19 +416,25 @@ def main():
         ceph_enabled = config.get_variables(variable="CEPH")
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        docker_registry = config.get_variables(variable="DOCKER_REGISTRY_IP")
+        docker_registry = config.get_variables(
+            variable="DOCKER_REGISTRY_IP", optional=True
+        )
         docker_registry_username = config.get_variables(
-            variable="DOCKER_REGISTRY_USERNAME"
+            variable="DOCKER_REGISTRY_USERNAME", optional=True
         )
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
-        VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
-        DATA_CIDR = config.get_variables(variable="Data_CIDR")
+        VM_DEPLOYMENT_CIDR = config.get_variables(
+            variable="VM_DEPLOYMENT_CIDR", optional=True
+        )
+        DATA_CIDR = config.get_variables(variable="Data_CIDR", optional=True)
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
-        FQDN = config.get_variables(variable="FQDN")
-        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
+        FQDN = config.get_variables(variable="FQDN", optional=True)
+        WIPE_PHYSICAL_SERVERS = config.get_variables(
+            variable="WIPE_PHYSICAL_SERVERS", optional=True
+        )
         if isinstance(WIPE_PHYSICAL_SERVERS, str):
             WIPE_PHYSICAL_SERVERS = ast.literal_eval(WIPE_PHYSICAL_SERVERS.title())
 

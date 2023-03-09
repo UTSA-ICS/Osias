@@ -23,7 +23,7 @@ class parser:
             ips.append(myips[ip_type])
         return ips
 
-    def get_variables(self, variable, openstack_release=None):
+    def get_variables(self, variable, openstack_release=None, optional=False):
         if "variables" in self.data and variable in self.data["variables"]:
             data = self.data["variables"]
             if variable in data:
@@ -31,7 +31,9 @@ class parser:
         elif getattr(osias_variables, variable, None):
             x = getattr(osias_variables, variable)
             return x[openstack_release]
-        return None
+        elif optional:
+            return None
+        raise Exception(f"Unable to location, {variable}, please specify.")
 
     def get_kolla_configs(self):
         if "etc" in self.data:
