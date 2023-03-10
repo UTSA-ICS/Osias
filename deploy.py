@@ -201,6 +201,8 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_
         "bootstrap_podman.sh",
         servers_public_ip,
     )
+    if DATA_CIDR is None or DATA_CIDR == "None":
+        DATA_CIDR = ""
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
