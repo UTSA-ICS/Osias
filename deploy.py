@@ -416,19 +416,25 @@ def main():
         ceph_enabled = config.get_variables(variable="CEPH")
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        docker_registry = config.get_variables(variable="DOCKER_REGISTRY")
+        docker_registry = config.get_variables(
+            variable="DOCKER_REGISTRY_IP", optional=True
+        )
         docker_registry_username = config.get_variables(
-            variable="DOCKER_REGISTRY_USERNAME"
+            variable="DOCKER_REGISTRY_USERNAME", optional=True
         )
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
-        VM_DEPLOYMENT_CIDR = config.get_variables(variable="VM_DEPLOYMENT_CIDR")
-        DATA_CIDR = config.get_variables(variable="Data_CIDR")
+        VM_DEPLOYMENT_CIDR = config.get_variables(
+            variable="VM_DEPLOYMENT_CIDR", optional=True
+        )
+        DATA_CIDR = config.get_variables(variable="Data_CIDR", optional=True)
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
-        FQDN = config.get_variables(variable="FQDN")
-        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS")
+        FQDN = config.get_variables(variable="FQDN", optional=True)
+        WIPE_PHYSICAL_SERVERS = config.get_variables(
+            variable="WIPE_PHYSICAL_SERVERS", optional=True
+        )
         if isinstance(WIPE_PHYSICAL_SERVERS, str):
             WIPE_PHYSICAL_SERVERS = ast.literal_eval(WIPE_PHYSICAL_SERVERS.title())
 
@@ -449,12 +455,24 @@ def main():
             raise Exception(
                 f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
             )
-        PYTHON_VERSION = osias_variables.PYTHON_VERSION[OPENSTACK_RELEASE]
-        TEMPEST_VERSION = osias_variables.TEMPEST_VERSION[OPENSTACK_RELEASE]
-        REFSTACK_TEST_VERSION = osias_variables.REFSTACK_TEST_VERSION[OPENSTACK_RELEASE]
-        ANSIBLE_MAX_VERSION = osias_variables.ANSIBLE_MAX_VERSION[OPENSTACK_RELEASE]
-        MAAS_VM_DISTRO = osias_variables.MAAS_VM_DISTRO[OPENSTACK_RELEASE]
-        CEPH_RELEASE = osias_variables.CEPH_VERSION[OPENSTACK_RELEASE]
+        PYTHON_VERSION = config.get_variables(
+            variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        TEMPEST_VERSION = config.get_variables(
+            variable="TEMPEST_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        REFSTACK_TEST_VERSION = config.get_variables(
+            variable="REFSTACK_TEST_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        ANSIBLE_MAX_VERSION = config.get_variables(
+            variable="ANSIBLE_MAX_VERSION", openstack_release=OPENSTACK_RELEASE
+        )
+        MAAS_VM_DISTRO = config.get_variables(
+            variable="MAAS_VM_DISTRO", openstack_release=OPENSTACK_RELEASE
+        )
+        CEPH_RELEASE = config.get_variables(
+            variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE
+        )
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
 
         cmd = "".join((args.operation, ".sh"))
