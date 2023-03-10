@@ -513,6 +513,8 @@ def main():
                     "ERROR: Unable to determine if ceph should be enabled or not, OSIAS multinode value should be a boolean of 'true' or 'false' without quotes."
                 )
             if ceph_enabled:
+                if DATA_CIDR is None:
+                    DATA_CIDR = ''
                 bootstrap_ceph(
                     servers_public_ip,
                     storage_nodes_data_ip,
