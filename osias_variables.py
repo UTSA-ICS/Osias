@@ -30,9 +30,9 @@ VM_Profile = {
     "vCPU": 6,
     "RAM_in_MB": 16384,
     "HDD1": 60,
-    "HDD2": 10,
-    "HDD3": 10,
-    "HDD4": 10,
+    "HDD2": 1,
+    "HDD3": 1,
+    "HDD4": 1,
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
@@ -58,7 +58,7 @@ ANSIBLE_MAX_VERSION = {
     "yoga": "6",
     "zed": "6",
 }
-CEPH_VERSION = {
+CEPH_RELEASE = {
     "ussuri": "pacific",
     "victoria": "pacific",
     "wallaby": "pacific",
