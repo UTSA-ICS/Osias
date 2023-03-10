@@ -419,7 +419,7 @@ def main():
         ceph_enabled = config.get_variables(variable="CEPH")
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        docker_registry = config.get_variables(
+        docker_registry_ip = config.get_variables(
             variable="DOCKER_REGISTRY_IP", optional=True
         )
         docker_registry_username = config.get_variables(
