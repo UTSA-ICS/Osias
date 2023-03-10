@@ -514,7 +514,7 @@ def main():
                 )
             if ceph_enabled:
                 if DATA_CIDR is None:
-                    DATA_CIDR = ''
+                    DATA_CIDR = ""
                 bootstrap_ceph(
                     servers_public_ip,
                     storage_nodes_data_ip,
