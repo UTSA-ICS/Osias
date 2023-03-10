@@ -24,7 +24,7 @@ sudo ./cephadm install
 
 sudo mkdir -p /etc/ceph
 
-if [ $# == 3 ]; then
+if [ $# == 3 ] && [ -n "$3" ]; then
   sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP" --cluster-network "$CLUSTER_NETWORK"
 else
   sudo ./cephadm bootstrap --mon-ip "$MONITOR_IP"
