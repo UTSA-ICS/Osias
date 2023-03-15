@@ -32,7 +32,7 @@ fi
 
 # Turn on telemetry and accept Community Data License Agreement - Sharing
 sudo ceph telemetry on --license sharing-1-0
-# perf telementry was added after pacific.
+# perf telemetry was added after pacific.
 if [ "$2" != "pacific" ]; then
   sudo ceph telemetry enable channel perf
 fi

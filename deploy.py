@@ -237,7 +237,7 @@ def verify_network_connectivity(
     public_ips: list, private_ips: list, data_ips: list, vip_public: str
 ):
     # Test all IPs are active
-    retry = {}
+    retry = dict()
     retry["public"] = []
     retry["internal"] = []
     functional_public_ip = ""
@@ -277,11 +277,11 @@ def verify_network_connectivity(
     VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
     vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
 
-    inactive_results = []
+    inactive_results = list()
     inactive_results.append(utils.check_ip_active(vip_public))
     result = utils.check_private_ip_active(functional_public_ip, [vip_internal])
     if len(result["active"]) > 0:
-        inactive_results.extend([True for i in range(len(result["active"]))])
+        inactive_results.extend([True for _ in range(len(result["active"]))])
     print("\nINFO: Completed verification that VIP address are not being used.")
     print(f"      There were {inactive_results.count(True)} errors.\n")
     if len(active_private_ips) > 0 or True in inactive_results:

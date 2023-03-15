@@ -129,7 +129,7 @@ enable_haproxy: "yes"
     else:
         if fqdn is None:
             fqdn = "{{ kolla_external_vip_address }}"
-    # Check if its a all in one deployment on a single
+    # Check if it's an all-in-one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
     if (
