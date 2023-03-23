@@ -17,6 +17,7 @@ def setup_kolla_configs(
     ceph,
     vip_address,
     fqdn,
+    kolla_base_distro,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
     VIP_SUFFIX = vip_address.split(".")[-1]
@@ -32,6 +33,7 @@ def setup_kolla_configs(
     SUFFIX = VIP_ADDRESS_SUFFIX
 
     if docker_registry:
+        print("Docker Set To Pull From Local Registry")
         docker = f"""
 # Docker Options
 docker_registry: "{docker_registry}"
@@ -39,7 +41,8 @@ docker_registry_insecure: "yes"
 docker_registry_username: "{docker_registry_username}"
 """
     else:
-        docker = "# Docker Set To Docker Hub"
+        print("Docker Set To Pull From The Cloud")
+        docker = "# Docker Set To Pull From The Cloud "
     if ceph:
         print("Implementing STORAGE with CEPH")
         storage = f"""
@@ -126,7 +129,7 @@ enable_haproxy: "yes"
     else:
         if fqdn is None:
             fqdn = "{{ kolla_external_vip_address }}"
-    # Check if its a all in one deployment on a single
+    # Check if it's an all-in-one deployment on a single
     # node; if so then use br0 as the network interface
     # and disable tls backend
     if (
@@ -154,8 +157,7 @@ enable_haproxy: "no"
 # Globals file is completely commented out besides these variables.
 cat >>/etc/kolla/globals.yml <<__EOF__
 # Basic Options
-kolla_base_distro: "centos"
-kolla_install_type: "source"
+kolla_base_distro: "{kolla_base_distro}"
 network_interface: "{network_interface}"
 kolla_external_vip_interface: "br0"
 neutron_external_interface: "veno1"

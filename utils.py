@@ -168,18 +168,18 @@ def run_cmd(command, test=True, output=True):
     return stdout
 
 
-def check_ip_active(IP):
-    response = os.system("ping -c 1 " + IP + " > /dev/null 2>&1")
+def check_ip_active(ip):
+    response = os.system("ping -c 1 " + ip + " > /dev/null 2>&1")
     if response == 0:
-        print(f"Ping shows {IP} is in use (packets received)!")
+        print(f"Ping shows {ip} is in use (packets received)!")
         return True
     else:
-        print(f"Ping shows {IP} is NOT in use (packets lost)!")
+        print(f"Ping shows {ip} is NOT in use (packets lost)!")
         return False
 
 
 def check_private_ip_active(public_ip: str, private_ips: list):
-    result = {}
+    result = dict()
     result["active"] = []
     result["inactive"] = []
     for private_ip in private_ips:

@@ -37,16 +37,18 @@ VM_Profile = {
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
     "VM_DEPLOYMENT_CIDR": "10.245.121.0/24",
-    "IPs_NEEDED": 8,
+    "IPs_NEEDED": 12,
 }
 
-SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
+SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga", "zed"]
+NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
     "ussuri": "3.6",
     "victoria": "3.8",
     "wallaby": "3.8",
     "xena": "3.8",
     "yoga": "3.8",
+    "zed": "3.8",
 }
 ANSIBLE_MAX_VERSION = {
     "ussuri": "2.10",
@@ -54,6 +56,7 @@ ANSIBLE_MAX_VERSION = {
     "wallaby": "3.0",
     "xena": "5.0",
     "yoga": "6",
+    "zed": "6",
 }
 CEPH_RELEASE = {
     "ussuri": "pacific",
@@ -61,6 +64,7 @@ CEPH_RELEASE = {
     "wallaby": "pacific",
     "xena": "pacific",
     "yoga": "quincy",
+    "zed": "quincy",
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
@@ -68,6 +72,16 @@ MAAS_VM_DISTRO = {
     "wallaby": "focal hwe_kernel=hwe-20.04-edge",
     "xena": "focal hwe_kernel=hwe-20.04-edge",
     "yoga": "focal hwe_kernel=hwe-20.04-edge",
+    "zed": "jammy hwe_kernel=ga-22.04",
+}
+
+KOLLA_BASE_DISTRO = {
+    "ussuri": "centos",
+    "victoria": "centos",
+    "wallaby": "centos",
+    "xena": "centos",
+    "yoga": "centos",
+    "zed": "rocky",
 }
 
 # REFSTACK VARIABLES
@@ -79,7 +93,7 @@ MAAS_VM_DISTRO = {
 UBUNTU_NAMES = ["focal", "jammy"]
 UBUNTU_VERSIONS = ["20.04.4", "22.04"]
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.5.2/cirros-0.5.2-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.6.1/cirros-0.6.1-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.11",
@@ -87,6 +101,7 @@ REFSTACK_TEST_VERSION = {
     "wallaby": "2021.11",
     "xena": "2021.11",
     "yoga": "2021.11",
+    "zed": "2022.06",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
@@ -94,6 +109,7 @@ TEMPEST_VERSION = {
     "wallaby": "29.1.0",
     "xena": "31.1.0",
     "yoga": "31.1.0",
+    "zed": "33.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -101,6 +117,7 @@ NOVA_MIN_MICROVERSION = {
     "wallaby": "2.1",
     "xena": "2.1",
     "yoga": "2.1",
+    "zed": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
@@ -108,6 +125,7 @@ NOVA_MAX_MICROVERSION = {
     "wallaby": "2.88",
     "xena": "2.90",
     "yoga": "2.92",
+    "zed": "2.93",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -115,6 +133,7 @@ STORAGE_MIN_MICROVERSION = {
     "wallaby": "3.0",
     "xena": "3.0",
     "yoga": "3.0",
+    "zed": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -122,6 +141,7 @@ STORAGE_MAX_MICROVERSION = {
     "wallaby": "3.64",
     "xena": "3.66",
     "yoga": "3.69",
+    "zed": "3.70",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
@@ -129,6 +149,7 @@ PLACEMENT_MIN_MICROVERSION = {
     "wallaby": "1.0",
     "xena": "1.0",
     "yoga": "1.0",
+    "zed": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
@@ -136,4 +157,5 @@ PLACEMENT_MAX_MICROVERSION = {
     "wallaby": "1.36",
     "xena": "1.39",
     "yoga": "1.39",
+    "zed": "1.39",
 }

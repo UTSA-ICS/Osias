@@ -61,7 +61,7 @@ class ssh_tool:
 
     def check_access(self):
         # Check if the machine is accessible:
-        for i in range(30):
+        for _ in range(30):
             out = self.ssh("uname -a", test=False)
             if out == 0:
                 print(f"Successfully connected to {self.ip}")

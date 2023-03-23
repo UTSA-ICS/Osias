@@ -131,7 +131,7 @@ def bootstrap_openstack(
     storage_nodes_private_ip,
     compute_nodes,
     monitoring_nodes,
-    docker_registry,
+    docker_registry_ip,
     docker_registry_username,
     docker_registry_password,
     vm_deployment_cidr,
@@ -142,6 +142,7 @@ def bootstrap_openstack(
     vip_address,
     fqdn,
     osias_kolla_imports,
+    kolla_base_distro,
 ):
     utils.copy_file_on_server("requirements.txt", servers_public_ip[0])
 
@@ -157,12 +158,13 @@ def bootstrap_openstack(
         compute_nodes,
         monitoring_nodes,
         servers_public_ip,
-        docker_registry,
+        docker_registry_ip,
         docker_registry_username,
         vm_deployment_cidr,
         ceph,
         vip_address,
         fqdn,
+        kolla_base_distro,
     )
     ssh_priv_key, ssh_public_key = utils.create_new_ssh_key()
     utils.run_script_on_server(
@@ -199,6 +201,8 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_
         "bootstrap_podman.sh",
         servers_public_ip,
     )
+    if DATA_CIDR is None or DATA_CIDR == "None":
+        DATA_CIDR = ""
     utils.run_script_on_server(
         "bootstrap_ceph.sh",
         servers_public_ip[0],
@@ -233,7 +237,7 @@ def verify_network_connectivity(
     public_ips: list, private_ips: list, data_ips: list, vip_public: str
 ):
     # Test all IPs are active
-    retry = {}
+    retry = dict()
     retry["public"] = []
     retry["internal"] = []
     functional_public_ip = ""
@@ -273,11 +277,11 @@ def verify_network_connectivity(
     VIP_ADDRESS_SUFFIX = vip_public.split(".")[-1]
     vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
 
-    inactive_results = []
+    inactive_results = list()
     inactive_results.append(utils.check_ip_active(vip_public))
     result = utils.check_private_ip_active(functional_public_ip, [vip_internal])
     if len(result["active"]) > 0:
-        inactive_results.extend([True for i in range(len(result["active"]))])
+        inactive_results.extend([True for _ in range(len(result["active"]))])
     print("\nINFO: Completed verification that VIP address are not being used.")
     print(f"      There were {inactive_results.count(True)} errors.\n")
     if len(active_private_ips) > 0 or True in inactive_results:
@@ -304,6 +308,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     file generation."""
     parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     if not parent_project_pipeline_id:
+
         raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
     utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     servers = maas_virtual.MaasVirtual(None)
@@ -416,7 +421,7 @@ def main():
         ceph_enabled = config.get_variables(variable="CEPH")
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        docker_registry = config.get_variables(
+        docker_registry_ip = config.get_variables(
             variable="DOCKER_REGISTRY_IP", optional=True
         )
         docker_registry_username = config.get_variables(
@@ -451,10 +456,11 @@ def main():
                     + "Pool start/end correlate to the floating IP's that VM's will use."
                 )
         OPENSTACK_RELEASE = config.get_variables(variable="OPENSTACK_RELEASE").lower()
-        if OPENSTACK_RELEASE not in osias_variables.SUPPORTED_OPENSTACK_RELEASE:
-            raise Exception(
-                f"Openstack version <{OPENSTACK_RELEASE}> not supported, please use valid release: <{osias_variables.SUPPORTED_OPENSTACK_RELEASE}>"
-            )
+        if OPENSTACK_RELEASE not in osias_variables.NON_QUAY_RELEASE:
+            if docker_registry_ip is not None:
+                raise Exception(
+                    f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
+                )
         PYTHON_VERSION = config.get_variables(
             variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE
         )
@@ -474,6 +480,7 @@ def main():
             variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE
         )
         IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
+        KOLLA_BASE_DISTRO = osias_variables.KOLLA_BASE_DISTRO[OPENSTACK_RELEASE]
 
         cmd = "".join((args.operation, ".sh"))
 
@@ -508,6 +515,8 @@ def main():
                     "ERROR: Unable to determine if ceph should be enabled or not, OSIAS multinode value should be a boolean of 'true' or 'false' without quotes."
                 )
             if ceph_enabled:
+                if DATA_CIDR is None:
+                    DATA_CIDR = ""
                 bootstrap_ceph(
                     servers_public_ip,
                     storage_nodes_data_ip,
@@ -525,7 +534,7 @@ def main():
                 storage_nodes_private_ip,
                 compute_nodes,
                 monitoring_nodes,
-                docker_registry,
+                docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
                 VM_DEPLOYMENT_CIDR,
@@ -536,6 +545,7 @@ def main():
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
+                KOLLA_BASE_DISTRO,
             )
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
@@ -642,7 +652,7 @@ def main():
                 storage_nodes_private_ip,
                 compute_nodes,
                 monitoring_nodes,
-                docker_registry,
+                docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
                 VM_DEPLOYMENT_CIDR,
@@ -653,6 +663,7 @@ def main():
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
+                KOLLA_BASE_DISTRO,
             )
             if ceph_enabled:
                 bootstrap_ceph(
