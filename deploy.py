@@ -137,6 +137,7 @@ def bootstrap_openstack(
     openstack_release,
     ansible_version,
     ceph,
+    enable_swift,
     vip_address,
     fqdn,
     osias_kolla_imports,
@@ -416,11 +417,11 @@ def main():
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
-        enable_swift = config.get_variables(variable="enable_swift", optional=True)
+        ENABLE_SWIFT = config.get_variables(variable="ENABLE_SWIFT", optional=True)
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
-        if enable_swift:
-            enable_swift = ast.literal_eval(enable_swift.title())
+        if ENABLE_SWIFT:
+            ENABLE_SWIFT = ast.literal_eval(ENABLE_SWIFT.title())
         docker_registry_ip = config.get_variables(
             variable="DOCKER_REGISTRY_IP", optional=True
         )
@@ -536,6 +537,7 @@ def main():
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
+                ENABLE_SWIFT,
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
@@ -544,7 +546,7 @@ def main():
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
                 utils.copy_file_on_server("swift_settings.sh", servers_public_ip[0])
-                deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift)
+                deploy_ceph(servers_public_ip, storage_nodes_data_ip, ENABLE_SWIFT)
             else:
                 print("'Deploy_Ceph' is skipped due to CEPH being DISABLED.")
         elif args.operation == "reboot_servers":
@@ -652,6 +654,7 @@ def main():
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
+                ENABLE_SWIFT,
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
@@ -663,7 +666,7 @@ def main():
                     CEPH_RELEASE,
                     DATA_CIDR,
                 )
-                deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift)
+                deploy_ceph(servers_public_ip, storage_nodes_data_ip, ENABLE_SWIFT)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
             utils.run_script_on_server("deploy_openstack.sh", servers_public_ip[0])
             utils.run_script_on_server(
