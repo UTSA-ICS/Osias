@@ -215,7 +215,7 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift):
         "configure_ceph_node_permissions.sh", servers_public_ip[0]
     )
     utils.run_script_on_server(
-        "deploy_ceph.sh", servers_public_ip[0], args=[enable_swift]
+        "deploy_ceph.sh", servers_public_ip[0], args=[str(enable_swift)]
     )
 
 
