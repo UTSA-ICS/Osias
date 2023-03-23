@@ -2,6 +2,8 @@
 
 set -euxo pipefail
 
+ENABLE_SWIFT="${1:-'False'}"
+
 sudo ceph orch host ls
 sudo ceph orch device ls --refresh
 sudo ceph orch apply osd --all-available-devices
@@ -40,8 +42,12 @@ sudo ceph config set global rbd_cache_writethrough_until_flush False # Default: 
 # The mode is switched to writeback only after the first flush request is received.
 
 # Enable swift
-source "$HOME"/swift_settings.sh 1
-
+if [ "$ENABLE_SWIFT" == "True" ] ; then
+    echo "INFO: Swift Enabled."
+    source "$HOME"/swift_settings.sh 1
+else
+    echo "INFO: Swift Disabled."
+fi
 sudo ceph config set mgr mgr/cephadm/config_checks_enabled true # Enable additional configuration checks.
 
 # Get cinder and cinder-backup ready
