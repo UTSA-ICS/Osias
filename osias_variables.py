@@ -25,14 +25,14 @@ example input:
 'Number_of_VM_Servers': 3, 'Public_CIDR': '10.245.121.0/24', 'Data_CIDR': '10.100.0.0/16', 'DNS_IP': '10.250.53.202'}
 """
 
+# 5GB Ceph drives is minimum required 
 VM_Profile = {
     "Number_of_VM_Servers": 3,
     "vCPU": 6,
     "RAM_in_MB": 16384,
     "HDD1": 60,
-    "HDD2": 1,
-    "HDD3": 1,
-    "HDD4": 1,
+    "HDD2": 5,
+    "HDD3": 5,
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
