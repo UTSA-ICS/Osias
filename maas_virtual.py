@@ -94,7 +94,6 @@ class MaasVirtual(MaasBase):
             osias_variables.VM_Profile["HDD1"]
             + osias_variables.VM_Profile["HDD2"]
             + osias_variables.VM_Profile["HDD3"]
-            + osias_variables.VM_Profile["HDD4"]
         )
         pod_id = self._get_pod_id(
             total_storage,
@@ -113,7 +112,7 @@ class MaasVirtual(MaasBase):
         server_list = []
         for _ in range(num_VMs):
             server = self._run_maas_command(
-                f"vm-host compose {pod_id.pop()} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']},mylabel:{osias_variables.VM_Profile['HDD4']}' interfaces='{interfaces}'"
+                f"vm-host compose {pod_id.pop()} cores={osias_variables.VM_Profile['vCPU']} memory={osias_variables.VM_Profile['RAM_in_MB']} 'storage=mylabel:{osias_variables.VM_Profile['HDD1']},mylabel:{osias_variables.VM_Profile['HDD2']},mylabel:{osias_variables.VM_Profile['HDD3']}' interfaces='{interfaces}'"
             )
             server_list.append(server["system_id"])
 

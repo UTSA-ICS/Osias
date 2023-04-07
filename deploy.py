@@ -134,11 +134,10 @@ def bootstrap_openstack(
     docker_registry_ip,
     docker_registry_username,
     docker_registry_password,
-    vm_deployment_cidr,
-    python_version,
     openstack_release,
     ansible_version,
     ceph,
+    enable_swift,
     vip_address,
     fqdn,
     osias_kolla_imports,
@@ -160,8 +159,8 @@ def bootstrap_openstack(
         servers_public_ip,
         docker_registry_ip,
         docker_registry_username,
-        vm_deployment_cidr,
         ceph,
+        enable_swift,
         vip_address,
         fqdn,
         kolla_base_distro,
@@ -196,7 +195,7 @@ def bootstrap_openstack(
         utils.run_script_on_server("write_kolla_configs.sh", servers_public_ip[0])
 
 
-def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_CIDR):
+def bootstrap_ceph(servers_public_ip, ceph_release, DATA_CIDR):
     utils.run_script_on_server(
         "bootstrap_podman.sh",
         servers_public_ip,
@@ -210,12 +209,14 @@ def bootstrap_ceph(servers_public_ip, storage_nodes_data_ip, ceph_release, DATA_
     )
 
 
-def deploy_ceph(servers_public_ip, storage_nodes_data_ip):
+def deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift):
     setup_configs.setup_ceph_node_permisions(storage_nodes_data_ip)
     utils.run_script_on_server(
         "configure_ceph_node_permissions.sh", servers_public_ip[0]
     )
-    utils.run_script_on_server("deploy_ceph.sh", servers_public_ip[0])
+    utils.run_script_on_server(
+        "deploy_ceph.sh", servers_public_ip[0], args=[str(enable_swift)]
+    )
 
 
 def reprovision_servers(
@@ -411,16 +412,16 @@ def main():
         storage_nodes_private_ip = config.get_server_ips(
             node_type="storage", ip_type="private"
         )
-        storage_nodes_public_ip = config.get_server_ips(
-            node_type="storage", ip_type="public"
-        )
         compute_nodes = config.get_server_ips(node_type="compute", ip_type="private")
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
         servers_public_ip = config.get_all_ips_type("public")
         servers_private_ip = config.get_all_ips_type("private")
         ceph_enabled = config.get_variables(variable="CEPH")
+        ENABLE_SWIFT = config.get_variables(variable="ENABLE_SWIFT", optional=True)
         if isinstance(ceph_enabled, str):
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
+        if ENABLE_SWIFT:
+            ENABLE_SWIFT = ast.literal_eval(ENABLE_SWIFT.title())
         docker_registry_ip = config.get_variables(
             variable="DOCKER_REGISTRY_IP", optional=True
         )
@@ -429,9 +430,6 @@ def main():
         )
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
-        VM_DEPLOYMENT_CIDR = config.get_variables(
-            variable="VM_DEPLOYMENT_CIDR", optional=True
-        )
         DATA_CIDR = config.get_variables(variable="Data_CIDR", optional=True)
         POOL_START_IP = config.get_variables(variable="POOL_START_IP")
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
@@ -519,7 +517,6 @@ def main():
                     DATA_CIDR = ""
                 bootstrap_ceph(
                     servers_public_ip,
-                    storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
                 )
@@ -537,11 +534,10 @@ def main():
                 docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_DEPLOYMENT_CIDR,
-                PYTHON_VERSION,
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
+                ENABLE_SWIFT,
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
@@ -550,7 +546,7 @@ def main():
         elif args.operation == "deploy_ceph":
             if ceph_enabled:
                 utils.copy_file_on_server("swift_settings.sh", servers_public_ip[0])
-                deploy_ceph(servers_public_ip, storage_nodes_data_ip)
+                deploy_ceph(servers_public_ip, storage_nodes_data_ip, ENABLE_SWIFT)
             else:
                 print("'Deploy_Ceph' is skipped due to CEPH being DISABLED.")
         elif args.operation == "reboot_servers":
@@ -655,11 +651,10 @@ def main():
                 docker_registry_ip,
                 docker_registry_username,
                 args.DOCKER_REGISTRY_PASSWORD,
-                VM_DEPLOYMENT_CIDR,
-                PYTHON_VERSION,
                 OPENSTACK_RELEASE,
                 ANSIBLE_MAX_VERSION,
                 ceph_enabled,
+                ENABLE_SWIFT,
                 VIP_ADDRESS,
                 FQDN,
                 OSIAS_KOLLA_IMPORTS,
@@ -668,11 +663,10 @@ def main():
             if ceph_enabled:
                 bootstrap_ceph(
                     servers_public_ip,
-                    storage_nodes_data_ip,
                     CEPH_RELEASE,
                     DATA_CIDR,
                 )
-                deploy_ceph(servers_public_ip, storage_nodes_data_ip)
+                deploy_ceph(servers_public_ip, storage_nodes_data_ip, ENABLE_SWIFT)
             utils.run_script_on_server("pre_deploy_openstack.sh", servers_public_ip[0])
             utils.run_script_on_server("deploy_openstack.sh", servers_public_ip[0])
             utils.run_script_on_server(

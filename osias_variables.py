@@ -12,6 +12,7 @@ Dictionary of values containing the following:
     RAID
 
 Number_of_VM_Servers: 3 to 7 VM's can be deployed in a test environment
+6GB Ceph drives is minimum required.
 HDD1 is the primary disk; HDD2+ is used for Ceph/RAID,
 Internal_CIDR is the internal CIDR from MaaS to assign an interface to VM,
 Public_CIDR is the public CIDR from MaaS to assign an interface to the VM,
@@ -30,9 +31,8 @@ VM_Profile = {
     "vCPU": 6,
     "RAM_in_MB": 16384,
     "HDD1": 60,
-    "HDD2": 1,
-    "HDD3": 1,
-    "HDD4": 1,
+    "HDD2": 6,
+    "HDD3": 6,
     "Internal_CIDR": "192.168.1.0/24",
     "Data_CIDR": "10.100.0.0/16",
     "DNS_IP": "",
