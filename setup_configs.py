@@ -13,19 +13,13 @@ def setup_kolla_configs(
     servers_public_ip,
     docker_registry,
     docker_registry_username,
-    vm_deployment_cidr,
     ceph,
+    enable_swift,
     vip_address,
     fqdn,
     kolla_base_distro,
 ):
     internal_subnet = ".".join((controller_nodes[0].split(".")[:3]))
-    VIP_SUFFIX = vip_address.split(".")[-1]
-    if VIP_SUFFIX == "255":
-        print(
-            "\n\nWARNING: You are setting the VIP address to the network address, VIP is being reassigned to 254\n\n"
-        )
-        VIP_SUFFIX = "254"
     external_subnet = ".".join((servers_public_ip[0].split(".")[:3]))
     VIP_ADDRESS_SUFFIX = vip_address.split(".")[-1]
     kolla_external_vip_address = ".".join((external_subnet, VIP_ADDRESS_SUFFIX))
@@ -43,25 +37,9 @@ docker_registry_username: "{docker_registry_username}"
     else:
         print("Docker Set To Pull From The Cloud")
         docker = "# Docker Set To Pull From The Cloud "
-    if ceph:
-        print("Implementing STORAGE with CEPH")
-        storage = f"""
-glance_backend_ceph: "yes"
-glance_backend_file: "no"
-#glance_backend_swift: "no"
-glance_enable_rolling_upgrade: "yes"
-
-enable_cinder: "yes"
-#enable_cinder_backend_lvm: "no"
-
-ceph_nova_user: "cinder"
-cinder_backend_ceph: "yes"
-cinder_backup_driver: "ceph"
-
-nova_backend_ceph: "yes"
-#gnocchi_backend_storage: "ceph"
-
-# Swift options:
+    if enable_swift:
+        print("SWIFT WITH CEPH IS: ENABLED")
+        SWIFT = """# Swift options:
 enable_ceph_rgw: true # Feature from Xena onwards
 # This sets up the endpoints, etc.
 
@@ -80,6 +58,30 @@ ceph_rgw_swift_account_in_url: true
 # This can be resolved by setting ceph_rgw_swift_account_in_url to true
 
 enable_ceph_rgw_loadbalancer: true
+"""
+    else:
+        print("SWIFT WITH CEPH IS: DISABLED")
+        SWIFT = "# SWIFT DISABLED"
+    if ceph:
+        print("Implementing STORAGE with CEPH")
+        storage = f"""
+glance_backend_ceph: "yes"
+glance_backend_file: "no"
+#glance_backend_swift: "no"
+glance_enable_rolling_upgrade: "yes"
+
+enable_cinder: "yes"
+#enable_cinder_backend_lvm: "no"
+
+ceph_nova_user: "cinder"
+cinder_backend_ceph: "yes"
+cinder_backup_driver: "ceph"
+
+nova_backend_ceph: "yes"
+#gnocchi_backend_storage: "ceph"
+
+{SWIFT}
+
 ceph_rgw_hosts:
   - host: $HOST0
     ip: {controller_nodes[0]}
