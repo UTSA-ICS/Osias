@@ -11,10 +11,10 @@ TEMPEST_VERSION=$3
 REFSTACK_TEST_VERSION=$4
 PYTHON_VERSION=${5::1}
 TENANT=openstack
-USERNAME=swiftop
+USER_NAME=swiftop
 
-if ! openstack user list -c Name -f value | grep -q "$USERNAME"; then
-    openstack user create "$USERNAME" --password a_big_secret
+if ! openstack user list -c Name -f value | grep -q "$USER_NAME"; then
+    openstack user create "$USER_NAME" --password a_big_secret
 fi
 
 if ! openstack project list -c Name -f value | grep -q "$TENANT"; then
@@ -25,25 +25,25 @@ if ! openstack role list -c Name -f value | grep -q 'ResellerAdmin'; then
     openstack role create ResellerAdmin
 fi
 
-openstack role add Member --user "$USERNAME" --project "$TENANT"
-openstack role add ResellerAdmin --user "$USERNAME" --project "$TENANT"
+openstack role add Member --user "$USER_NAME" --project "$TENANT"
+openstack role add ResellerAdmin --user "$USER_NAME" --project "$TENANT"
 
-TENANT_ID=$(openstack project list -f value -c ID --user "$USERNAME")
+TENANT_ID=$(openstack project list -f value -c ID --user "$USER_NAME")
 
-if ! openstack network list --project "${TENANT_ID}" -c Name -f value | grep -q 'mynet'; then
-    openstack network create --project "${TENANT_ID}" mynet
+if ! openstack network list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Network; then
+    openstack network create --project "${TENANT_ID}" "$USER_NAME"_Network
 fi
 
-if ! openstack subnet list --project "${TENANT_ID}" -c Name -f value | grep -q 'mysubnet'; then
-    openstack subnet create --project "${TENANT_ID}" --subnet-range 192.168.100.0/24 --dns-nameserver "${DNS_IP}" --network mynet mysubnet
+if ! openstack subnet list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Subnet; then
+    openstack subnet create --project "${TENANT_ID}" --subnet-range 192.168.100.0/24 --dns-nameserver "${DNS_IP}" --network "$USER_NAME"_Network "$USER_NAME"_Subnet
 fi
 
-if ! openstack router list --project "${TENANT_ID}" -c Name -f value | grep -q 'myrouter'; then
-    openstack router create --enable --project "${TENANT_ID}" myrouter
-    openstack router add subnet myrouter mysubnet
+if ! openstack router list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Router; then
+    openstack router create --enable --project "${TENANT_ID}" "$USER_NAME"_Router
+    openstack router add subnet "$USER_NAME"_Router "$USER_NAME"_Subnet
 fi
 
-git clone https://opendev.org/openinfra/refstack-client.git
+git clone https://opendev.org/openinfra/refstack-client.git || true
 cd refstack-client || exit
 ./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}" -q
 
@@ -89,8 +89,22 @@ fi
 refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
 
 # Cleanup user & project creation
-openstack user delete "$USERNAME"
+openstack user delete "$USER_NAME"
 openstack project delete "$TENANT"
+mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
+for port in "${port_list[@]}"; do
+    echo "INFO: Deleting or Removing Port: $port"
+    if openstack port delete "$port"; then
+        echo "INFO: Port Deleted: $port"
+    else
+        openstack router remove port "$USER_NAME"_Router "$port"
+        echo "INFO: Port Removed: $port."
+    fi
+done
+openstack subnet delete "$USER_NAME"_Subnet || true
+openstack router delete "$USER_NAME"_Router || true
+openstack network delete "$USER_NAME"_Network || true
+
 
 # Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
