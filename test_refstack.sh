@@ -142,6 +142,9 @@ else
     echo "#       Unexpected error occurred!        #"
     echo "#                ERROR!!!!                #"
     echo "###########################################"
+    echo "#       WARNING: Failed tests are:        #"
+    grep '^failure:' "$FILENAME" | grep -o -P "(tempest+).*" | cut -d '[' -f 1 | cut -d ')' -f 1
+    echo "###########################################"
     exit 1
 fi
 
