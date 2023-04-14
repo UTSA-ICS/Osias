@@ -42,6 +42,7 @@ ROUTER_NAME="$PROJECT_NAME"_Router
 KEYPAIR_NAME="$USER_NAME"_keypair
 ADMIN_KEYPAIR_NAME="admin_keypair_${PASSWORD:0:4}"
 FLAVOR="cb1.medium"
+ERROR=0
 
 function retry {
     command="$*"
@@ -129,7 +130,7 @@ function check_status() {
     LIST_OF_BAD_STATUS="down failed error :-("
     LIST_OF_GOOD_STATUS="active running :-)"
     if echo "$LIST_OF_BAD_STATUS" | grep -i -q "$SOURCE"; then
-        echo "1. This is a bad state: $SOURCE"
+        echo "1. ERROR: This is a BAD STATE: $SOURCE"
     elif echo "$LIST_OF_GOOD_STATUS" | grep -i -q "$SOURCE"; then
         echo "2. Operation is complete, now $SOURCE."
     else
@@ -162,31 +163,36 @@ function create_vms() {
             echo "$STATUS_VALUE"
             echo "$VALUE"
             case $VALUE in
-            1) exit 1 ;;
+            1)
+                echo "ERROR: VM, $INSTANCE_NAME is in a bad state $STATUS_VALUE, deleting..."
+                ERROR=$((ERROR + 1))
+                break
+                ;;
             2)
                 TEST=$(ssh_into_vm "$KEYPAIR_NAME" "$FLOATING_IP" "$INSTANCE_NAME")
                 echo "$TEST"
                 test_value="${TEST: -4}"
                 if [ "$test_value" == "pass" ]; then
                     echo "INFO: SUCCESS: SSH PASSES ON $compute_node with $INSTANCE_NAME!"
-                    echo "INFO: Deleting VM: $INSTANCE_NAME"
-                    openstack server delete "$INSTANCE_NAME"
-                    openstack floating ip delete "$FLOATING_IP"
-                    echo "INFO: Delete complete"
                 else
                     echo "ERROR: SSH FAILED!!!!"
-                    exit 1
+                    ERROR=$((ERROR + 1))
                 fi
                 break
                 ;;
             3) sleep 1 ;;
             *)
                 echo "ERROR: UNKNOWN ERROR"
-                exit 1
+                ERROR=$((ERROR + 1))
+                break
                 ;;
             esac
             sleep 1
         done
+        echo "INFO: Deleting VM: $INSTANCE_NAME"
+        openstack server delete "$INSTANCE_NAME"
+        openstack floating ip delete "$FLOATING_IP"
+        echo "INFO: Delete complete"
     done
 
 }
@@ -213,6 +219,7 @@ function ssh_into_vm() {
 }
 
 function delete_project_and_user() {
+    echo "INFO: CLEANING UP PROJECT AND USER"
     openstack keypair delete "$ADMIN_KEYPAIR_NAME"
     rm "$ADMIN_KEYPAIR_NAME" || true
     openstack user delete "$USER_NAME"
@@ -230,8 +237,15 @@ function delete_project_and_user() {
     openstack subnet delete "$USER_NAME"_Subnet
     openstack router delete "$USER_NAME"_Router
     openstack network delete "$USER_NAME"_Network
+    echo "INFO: CLEANUP COMPLETE"
 }
 
 create_project_and_user
 create_vms
 delete_project_and_user
+if [[ "$ERROR" -gt 0 ]]; then
+    echo "####################################################################"
+    echo "WARNING: THERE WERE $ERROR ERRORS FOUND! PLEASE SEARCH ABOVE FOR 'ERROR:'"
+    echo "####################################################################"
+    exit 1
+fi
