@@ -58,56 +58,49 @@ function retry {
         retval=$?
         attempt=$((attempt + 1))
         if [[ $retval -ne 0 ]]; then
-            echo "Rare race condition, trying again in 5 seconds."
+            echo "WARNING: Rare race condition, trying again in 5 seconds."
             sleep 5
         fi
     done
     if [[ $retval -ne 0 ]] && [[ $attempt -gt 5 ]]; then
-        # Critical error is happening, go ahead and exit
+        echo "ERROR: Critical error is happening, go ahead and exit"
         exit $retval
     fi
 }
 
 function create_project_and_user() {
-    echo "INFO: CREATING GROUP"
+    echo "INFO: Creating Group..."
     openstack project create --description "Project for $NAME" "$PROJECT_NAME"
+    echo "INFO: Getting project/group ID..."
+    PROJECT_ID=$(openstack project show -f shell -c id "$PROJECT_NAME" | cut -d"=" -f2 | tr -d '"')
     echo "INFO: Creating user..."
     openstack user create --project "$PROJECT_NAME" --description "$NAME" --password "$PASSWORD" --email "$USER_EMAIL_ADDRESS" --enable "$USER_NAME"
-    echo "INFO: Getting project ID..."
-    PROJECT_ID=$(openstack project show -f shell -c id "$PROJECT_NAME" | cut -d"=" -f2 | tr -d '"')
     echo "INFO: Adding user to project and set project as default project"
     openstack role add --user "$USER_NAME" --project "$PROJECT_ID" member
     openstack user set --project "$PROJECT_NAME" "$USER_NAME"
 
-    echo "INFO: CREATING NETWORKING"
+    echo "INFO: Getting External Network Information..."
     EXTERNAL_NETWORK_NAME=$(openstack network list --long | grep External | awk '{print $4}')
     EXTERNAL_NETWORK_ID=$(openstack network show -f shell "$EXTERNAL_NETWORK_NAME" -c id | cut -d "\"" -f 2)
 
     if [[ -z "$EXTERNAL_NETWORK_NAME" ]]; then
-        echo "EXTERNAL_NETWORK_NAME is not defined, quitting."
+        echo "ERROR: EXTERNAL_NETWORK_NAME is not defined, quitting."
         exit 1
     fi
     if [[ -z "$EXTERNAL_NETWORK_ID" ]]; then
-        echo "EXTERNAL_NETWORK_ID is not defined, quitting."
+        echo "ERROR: EXTERNAL_NETWORK_ID is not defined, quitting."
         exit 1
     fi
 
+    echo "INFO: Creating Network and subnet..."
     openstack network create --project "$PROJECT_ID" "$NETWORK_NAME"
     NETWORK_ID=$(openstack network show -f shell -c id "$NETWORK_NAME" | cut -d"=" -f2 | tr -d '"')
-
-    echo "INFO: Creating Subnetworking..."
     openstack subnet create --project "$PROJECT_ID" --dns-nameserver "8.8.8.8" --subnet-range "192.168.0.0/24" --network "$NETWORK_ID" "$SUBNET_NAME"
 
-    echo "INFO: Creating router..."
+    echo "INFO: Creating router and connections ..."
     openstack router create --project "$PROJECT_ID" "$ROUTER_NAME"
-
-    echo "INFO: Acquiring router id..."
     ROUTER_ID=$(openstack router show -f shell "$ROUTER_NAME" -c id | cut -d"\"" -f 2)
-
-    echo "INFO: Setting external gateway on router..."
     openstack router set --external-gateway "$EXTERNAL_NETWORK_ID" "$ROUTER_ID"
-
-    echo "INFO: Adding subnet to router..."
     openstack router add subnet "$ROUTER_ID" "$SUBNET_NAME"
 
     echo "INFO: UPDATING SECURITY GROUP RULES"
@@ -139,20 +132,22 @@ function check_status() {
 }
 
 function create_vms() {
+    echo "INFO: Starting VM creation process."
+    echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
     mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
     openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
     chmod 600 "$ADMIN_KEYPAIR_NAME"
     mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
-
+    FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
+    echo "INFO: Created Floating IP of $FLOATING_IP"
+    echo "INFO: Creating VM's now on each compute node."
     for compute_node in "${compute_nodes[@]}"; do
         INSTANCE_NAME="TEST_INSTANCE_$(
             echo $RANDOM | md5sum | head -c 5
-            echo
         )"
         echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server: $compute_node"
         openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$NETWORK_NAME" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
-        FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
         echo "INFO: Assigning public IP to VM, $INSTANCE_NAME: $FLOATING_IP"
         retry openstack server add floating ip "$INSTANCE_NAME" "$FLOATING_IP"
         while true; do
@@ -180,7 +175,7 @@ function create_vms() {
                 fi
                 break
                 ;;
-            3) sleep 1 ;;
+            3) sleep 2 ;;
             *)
                 echo "ERROR: UNKNOWN ERROR"
                 ERROR=$((ERROR + 1))
@@ -189,12 +184,12 @@ function create_vms() {
             esac
             sleep 1
         done
-        echo "INFO: Deleting VM: $INSTANCE_NAME"
+        echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node"
         openstack server delete "$INSTANCE_NAME"
-        openstack floating ip delete "$FLOATING_IP"
         echo "INFO: Delete complete"
     done
-
+    echo "INFO: Deleting the floating IP: $FLOATING_IP"
+    openstack floating ip delete "$FLOATING_IP"
 }
 
 function ssh_into_vm() {
@@ -221,9 +216,12 @@ function ssh_into_vm() {
 function delete_project_and_user() {
     echo "INFO: CLEANING UP PROJECT AND USER"
     openstack keypair delete "$ADMIN_KEYPAIR_NAME"
+    echo "INFO: Keypair deleted"
     rm "$ADMIN_KEYPAIR_NAME" || true
     openstack user delete "$USER_NAME"
+    echo "INFO: User deleted"
     openstack project delete "$USER_NAME"
+    echo "INFO: Project deleted"
     mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
     for port in "${port_list[@]}"; do
         echo "INFO: Deleting or Removing Port: $port"
@@ -234,10 +232,14 @@ function delete_project_and_user() {
             echo "INFO: Port Removed: $port."
         fi
     done
+    echo "INFO: All Ports deleted"
     openstack subnet delete "$USER_NAME"_Subnet
+    echo "INFO: Subnet deleted"
     openstack router delete "$USER_NAME"_Router
+    echo "INFO: Router deleted"
     openstack network delete "$USER_NAME"_Network
-    echo "INFO: CLEANUP COMPLETE"
+    echo "INFO: Network deleted"
+    echo "INFO: All project and user aspects have been deleted."
 }
 
 create_project_and_user
@@ -248,4 +250,8 @@ if [[ "$ERROR" -gt 0 ]]; then
     echo "WARNING: THERE WERE $ERROR ERRORS FOUND! PLEASE SEARCH ABOVE FOR 'ERROR:'"
     echo "####################################################################"
     exit 1
+else
+    echo "########################"
+    echo "#   ALL TESTS PASSED   #"
+    echo "########################"
 fi
