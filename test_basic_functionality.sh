@@ -84,11 +84,13 @@ function create_project_and_user() {
     EXTERNAL_NETWORK_ID=$(openstack network show -f shell "$EXTERNAL_NETWORK_NAME" -c id | cut -d "\"" -f 2)
 
     if [[ -z "$EXTERNAL_NETWORK_NAME" ]]; then
-        echo "ERROR: EXTERNAL_NETWORK_NAME is not defined, quitting."
+        echo "ERROR: EXTERNAL_NETWORK_NAME is not defined, cleaning up the project and quitting."
+        delete_project_and_user
         exit 1
     fi
     if [[ -z "$EXTERNAL_NETWORK_ID" ]]; then
-        echo "ERROR: EXTERNAL_NETWORK_ID is not defined, quitting."
+        echo "ERROR: EXTERNAL_NETWORK_ID is not defined, cleaning up the project and quitting."
+        delete_project_and_user
         exit 1
     fi
 
@@ -135,18 +137,20 @@ function create_vms() {
     echo "INFO: Starting VM creation process."
     echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
     mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
+    num_of_nodes=${#compute_nodes[@]}
     openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
     chmod 600 "$ADMIN_KEYPAIR_NAME"
     mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
     FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
     echo "INFO: Created Floating IP of $FLOATING_IP"
-    echo "INFO: Creating VM's now on each compute node."
+    echo "INFO: Creating VM's now on each of the $num_of_nodes compute nodes."
+    i=1
     for compute_node in "${compute_nodes[@]}"; do
         INSTANCE_NAME="TEST_INSTANCE_$(
             echo $RANDOM | md5sum | head -c 5
         )"
-        echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server: $compute_node"
+        echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
         openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$NETWORK_NAME" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
         echo "INFO: Assigning public IP to VM, $INSTANCE_NAME: $FLOATING_IP"
         retry openstack server add floating ip "$INSTANCE_NAME" "$FLOATING_IP"
@@ -184,10 +188,13 @@ function create_vms() {
             esac
             sleep 1
         done
-        echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node"
+
+        echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node ($i of $num_of_nodes)"
         openstack server delete "$INSTANCE_NAME"
         echo "INFO: Delete complete"
+        i=$((i+1))
     done
+
     echo "INFO: Deleting the floating IP: $FLOATING_IP"
     openstack floating ip delete "$FLOATING_IP"
 }
