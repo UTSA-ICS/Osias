@@ -21,26 +21,38 @@ sudo chown "$USER":"$USER" "$HOME"/root.crt
 
 # Create accounts and tempest files:
 source /etc/kolla/admin-openrc.sh
-openstack flavor create --id 100 --vcpus 1 --ram 256 --disk 1 ref.nano
-openstack flavor create --id 101 --vcpus 2 --ram 512 --disk 2 ref.micro
-
-wget "$REFSTACK_TEST_IMAGE" -O /tmp/CirrOS.img
+openstack flavor create --id 100 --vcpus 1 --ram 256 --disk 1 ref.nano || true
+openstack flavor create --id 101 --vcpus 2 --ram 512 --disk 2 ref.micro || true
 
 DATE=$(date '+%Y-%m-%d')
 
 UBUNTU1_URL="http://cloud-images.ubuntu.com/$UBUNTU1_NAME/current/$UBUNTU1_NAME-server-cloudimg-amd64.img"
 UBUNTU2_URL="http://cloud-images.ubuntu.com/$UBUNTU2_NAME/current/$UBUNTU2_NAME-server-cloudimg-amd64.img"
 
-echo "Downloading Ubuntu $UBUNTU1_VERSION ($UBUNTU1_NAME) Image"
-wget "$UBUNTU1_URL" -O Ubuntu"$UBUNTU1_NAME"-"$DATE".img
+UPLOADED_IMAGES="$(openstack image list -c Name -f value)"
 
-echo "Downloading Ubuntu $UBUNTU2_VERSION ($UBUNTU2_NAME) Image"
-wget "$UBUNTU2_URL" -O Ubuntu"$UBUNTU2_NAME"-"$DATE".img
+if [[ $UPLOADED_IMAGES != *Ubuntu_"$UBUNTU1_VERSION"_LTS* ]]; then
+    echo "Downloading Ubuntu $UBUNTU1_VERSION ($UBUNTU1_NAME) Image"
+    wget "$UBUNTU1_URL" -O Ubuntu"$UBUNTU1_NAME"-"$DATE".img
 
-openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU1_VERSION"_LTS
-openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU2_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU2_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU2_VERSION"_LTS
-openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS"
-openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS-2"
+    openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU1_VERSION"_LTS
+fi
+
+if [[ $UPLOADED_IMAGES != *Ubuntu_"$UBUNTU2_VERSION"_LTS* ]]; then
+    echo "Downloading Ubuntu $UBUNTU2_VERSION ($UBUNTU2_NAME) Image"
+    wget "$UBUNTU2_URL" -O Ubuntu"$UBUNTU2_NAME"-"$DATE".img
+    openstack image create --disk-format qcow2 --container-format bare --public --min-disk 5 --min-ram 2048 --file Ubuntu"$UBUNTU1_NAME"-"$DATE".img --property os_distro=ubuntu --property os_type=linux --property os_version="$UBUNTU1_VERSION" --property architecture=x86_64 Ubuntu_"$UBUNTU1_VERSION"_LTS
+fi
+
+if [[ $UPLOADED_IMAGES != *CirrOS* ]]; then
+    wget "$REFSTACK_TEST_IMAGE" -O /tmp/CirrOS.img
+    openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS"
+fi
+
+if [[ $UPLOADED_IMAGES != *CirrOS-2* ]]; then
+    wget "$REFSTACK_TEST_IMAGE" -O /tmp/CirrOS.img
+    openstack image create --disk-format qcow2 --container-format bare --public --file /tmp/CirrOS.img "CirrOS-2"
+fi
 
 ADMIN_PASS="$(grep 'OS_PASSWORD=' '/etc/kolla/admin-openrc.sh' | cut -d '=' -f2)"
 CIRROSID="$(openstack image list -f value -c ID --name CirrOS)"
