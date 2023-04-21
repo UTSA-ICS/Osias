@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -uo pipefail
+set -uxo pipefail
 
 # shellcheck source=/dev/null
 
@@ -29,7 +29,6 @@ LAST_NAME="Doe"
 USER_EMAIL_ADDRESS="John.Doe@organization.com"
 PASSWORD="$(
     echo $RANDOM | md5sum | head -c 16
-    echo
 )"
 firstletter=${FIRST_NAME:0:1}
 USER_NAME=$firstletter$LAST_NAME${PASSWORD:0:4}
@@ -141,6 +140,7 @@ function create_vms() {
     openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
     chmod 600 "$ADMIN_KEYPAIR_NAME"
     mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
+    ADMIN_NETWORK_ID=$(openstack network list --internal --project admin -c ID -f value)
     EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
     FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
     echo "INFO: Created Floating IP of $FLOATING_IP"
@@ -151,7 +151,7 @@ function create_vms() {
             echo $RANDOM | md5sum | head -c 5
         )"
         echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
-        openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$NETWORK_NAME" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
+        openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$ADMIN_NETWORK_ID" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
         echo "INFO: Assigning public IP to VM, $INSTANCE_NAME: $FLOATING_IP"
         retry openstack server add floating ip "$INSTANCE_NAME" "$FLOATING_IP"
         while true; do
@@ -192,7 +192,7 @@ function create_vms() {
         echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node ($i of $num_of_nodes)"
         openstack server delete "$INSTANCE_NAME"
         echo "INFO: Delete complete"
-        i=$((i+1))
+        i=$((i + 1))
     done
 
     echo "INFO: Deleting the floating IP: $FLOATING_IP"
