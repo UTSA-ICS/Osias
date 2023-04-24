@@ -48,7 +48,8 @@ function retry {
     command="$*"
     retval=1
     attempt=1
-    until [[ $retval -eq 0 ]] || [[ $attempt -gt 5 ]]; do
+    tries=10
+    until [[ $retval -eq 0 ]] || [[ $attempt -gt $tries ]]; do
         # Execute inside of a subshell in case parent
         # script is running with "set -e"
         (
@@ -62,7 +63,7 @@ function retry {
             sleep 5
         fi
     done
-    if [[ $retval -ne 0 ]] && [[ $attempt -gt 5 ]]; then
+    if [[ $retval -ne 0 ]] && [[ $attempt -gt $tries ]]; then
         echo "ERROR: Critical error is happening, go ahead and exit"
         exit $retval
     fi
