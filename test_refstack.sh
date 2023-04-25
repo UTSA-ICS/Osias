@@ -10,26 +10,42 @@ VM_POOL=$2
 TEMPEST_VERSION=$3
 REFSTACK_TEST_VERSION=$4
 PYTHON_VERSION=${5::1}
+TENANT=openstack
+USER_NAME=swiftop
 
-openstack user create swiftop --password a_big_secret
-openstack project create --enable openstack
+if ! openstack user list -c Name -f value | grep -q "$USER_NAME"; then
+    openstack user create "$USER_NAME" --password a_big_secret
+fi
+
+if ! openstack project list -c Name -f value | grep -q "$TENANT"; then
+    openstack project create --enable "$TENANT"
+fi
 
 if ! openstack role list -c Name -f value | grep -q 'ResellerAdmin'; then
     openstack role create ResellerAdmin
 fi
 
-openstack role add Member --user swiftop --project openstack
-openstack role add ResellerAdmin --user swiftop --project openstack
+openstack role add Member --user "$USER_NAME" --project "$TENANT"
+openstack role add ResellerAdmin --user "$USER_NAME" --project "$TENANT"
 
-TENANT=$(openstack project list -f value -c ID --user swiftop)
-openstack network create --project "${TENANT}" mynet
-openstack subnet create --project "${TENANT}" --subnet-range 192.168.100.0/24 --dns-nameserver "${DNS_IP}" --network mynet mysubnet
-openstack router create --enable --project "${TENANT}" myrouter
-openstack router add subnet myrouter mysubnet
+TENANT_ID=$(openstack project list -f value -c ID --user "$USER_NAME")
 
-git clone https://opendev.org/openinfra/refstack-client.git
+if ! openstack network list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Network; then
+    openstack network create --project "${TENANT_ID}" "$USER_NAME"_Network
+fi
+
+if ! openstack subnet list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Subnet; then
+    openstack subnet create --project "${TENANT_ID}" --subnet-range 192.168.100.0/24 --dns-nameserver "${DNS_IP}" --network "$USER_NAME"_Network "$USER_NAME"_Subnet
+fi
+
+if ! openstack router list --project "${TENANT_ID}" -c Name -f value | grep -q "$USER_NAME"_Router; then
+    openstack router create --enable --project "${TENANT_ID}" "$USER_NAME"_Router
+    openstack router add subnet "$USER_NAME"_Router "$USER_NAME"_Subnet
+fi
+
+git clone https://opendev.org/openinfra/refstack-client.git || true
 cd refstack-client || exit
-./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}"
+./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}" -q
 
 cp "$HOME"/accounts.yaml "$HOME"/refstack-client/etc/accounts.yaml
 cp "$HOME"/tempest.conf "$HOME"/refstack-client/etc/tempest.conf
@@ -72,12 +88,32 @@ fi
 # Now run the refstack test using the refstack client. Return true so that the results can be analyzed if a run fails.
 refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
 
+# Cleanup user & project creation
+openstack user delete "$USER_NAME"
+openstack project delete "$TENANT"
+mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
+for port in "${port_list[@]}"; do
+    echo "INFO: Deleting or Removing Port: $port"
+    if openstack port delete "$port"; then
+        echo "INFO: Port Deleted: $port"
+    else
+        openstack router remove port "$USER_NAME"_Router "$port"
+        echo "INFO: Port Removed: $port."
+    fi
+done
+openstack subnet delete "$USER_NAME"_Subnet || true
+openstack router delete "$USER_NAME"_Router || true
+openstack network delete "$USER_NAME"_Network || true
+
+
 # Finishing refstack test evaluation....
 # Now check to see if we are getting the expected failure and nothing else.
 # If so then exit with 0 indicating passing tests.
 # We will continue to research a solution for this 1 failing test but until it is resolved
 # flag the tests as passed.
-FILENAME="$HOME"/refstack-client/.tempest/.stestr/0
+
+# This will find the highest number file, indicitive of the latest refstack test run.
+FILENAME=$(find "$HOME"/refstack-client/.tempest/.stestr/ -name '*[0-9]' | sort -nr | head -n1)
 
 NUM_FAILURES=$(grep -c "failure:" "$FILENAME" || true)
 echo "Number of failure are -->> [$NUM_FAILURES]"
@@ -105,6 +141,9 @@ else
     echo "###########################################"
     echo "#       Unexpected error occurred!        #"
     echo "#                ERROR!!!!                #"
+    echo "###########################################"
+    echo "#       WARNING: Failed tests are:        #"
+    grep '^failure:' "$FILENAME" | grep -o -P "(tempest+).*" | cut -d '[' -f 1 | cut -d ')' -f 1
     echo "###########################################"
     exit 1
 fi
