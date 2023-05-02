@@ -191,6 +191,7 @@ function create_vms() {
             echo $RANDOM | md5sum | head -c 5
         )"
         echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
+        # shellcheck disable=SC2034
         servers["$compute_node"]="$INSTANCE_NAME"
         vms["$INSTANCE_NAME"]="openstack server create --key-name $ADMIN_KEYPAIR_NAME --network $ADMIN_NETWORK_ID --image ${IMAGE_LIST[-1]} --flavor $FLAVOR --availability-zone nova::$compute_node $INSTANCE_NAME"
         i=$((i + 1))
