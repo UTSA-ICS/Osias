@@ -583,7 +583,7 @@ def main():
             client = utils.create_ssh_client(servers_public_ip[0])
             client.scp_from("/etc/kolla/admin-public-openrc.sh")
             client.scp_from("/etc/kolla/certificates/ca/root.crt")
-            utils.run_cmd("source test_basic_functionality.sh")
+            utils.run_cmd_locally("source test_basic_functionality.sh")
         elif args.operation == "test_setup":
             utils.run_script_on_server(
                 "test_setup.sh",

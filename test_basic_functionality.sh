@@ -51,11 +51,12 @@ declare -A vms
 # vms["vm-test-1"]="openstack create server vm-test-1"
 
 function lookup_key_from_value() {
-    test_dict=$1
-    test_value=$2
-    for key in "${!test_dict[@]}"; do
-        if [[ ${test_dict[$key]} -eq $test_value ]]; then
+    declare -n arr=$1
+    search="$2"
+    for key in "${!arr[@]}"; do
+        if [[ "${arr[$key]}" == "$search" ]]; then
             echo "$key"
+            break
         fi
     done
 }
@@ -173,6 +174,17 @@ function ssh_into_vm() {
 
 function create_vms() {
     echo "INFO: Starting VM creation process."
+    echo "INFO: Adjusting necessary quotas"
+    original_vcpu_quota=$(openstack quota show -f value -c cores)
+    original_ram_quota=$(openstack quota show -f value -c ram)
+    original_instance_quota=$(openstack quota show -f value -c instances)
+    node_count=$(openstack compute service list -f value -c Host --service nova-compute | wc -l)
+    # Adjust quota values
+    new_vcpu_quota=$((2 * node_count + 20))
+    new_ram_quota=$((2048 * node_count + 51200))
+    new_instance_quota=$((node_count + 10))
+    openstack quota set --cores $new_vcpu_quota --ram $new_ram_quota --instances $new_instance_quota admin
+
     echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
     mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
     num_of_nodes=${#compute_nodes[@]}
@@ -251,6 +263,8 @@ function create_vms() {
     done
     echo "INFO: Deleting the floating IP: $FLOATING_IP"
     openstack floating ip delete "$FLOATING_IP"
+    echo "INFO: Revert quota values"
+    openstack quota set --cores "$original_vcpu_quota" --ram "$original_ram_quota" --instances "$original_instance_quota" admin
 }
 
 function delete_project_and_user() {
