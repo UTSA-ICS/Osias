@@ -227,7 +227,7 @@ function create_vms() {
             1)
                 echo "ERROR: VM, $VM_NAME is in a bad state $STATUS_VALUE, deleting..."
                 openstack server delete "$VM_NAME"
-                SERVER_ERRORS+=", $compute_node"
+                SERVER_ERRORS+="$compute_node "
                 echo "INFO: Recreating $VM_NAME ..."
                 eval "${vms[${VM_NAME}]}"
                 ;;
