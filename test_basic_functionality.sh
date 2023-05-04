@@ -43,6 +43,7 @@ KEYPAIR_NAME="$USER_NAME"_keypair
 ADMIN_KEYPAIR_NAME="admin_keypair_${PASSWORD:0:4}"
 FLAVOR="cb1.medium"
 ERROR=0
+SERVER_ERRORS=""
 
 # Declare dictionaries
 declare -A servers
@@ -175,13 +176,14 @@ function ssh_into_vm() {
 function create_vms() {
     echo "INFO: Starting VM creation process."
     echo "INFO: Adjusting necessary quotas"
+    flavor_vcpu=$(openstack flavor show $FLAVOR -f value -c vcpus)
+    flavor_ram=$(openstack flavor show $FLAVOR -f value -c ram)
     original_vcpu_quota=$(openstack quota show -f value -c cores)
     original_ram_quota=$(openstack quota show -f value -c ram)
     original_instance_quota=$(openstack quota show -f value -c instances)
     node_count=$(openstack compute service list -f value -c Host --service nova-compute | wc -l)
-    # Adjust quota values
-    new_vcpu_quota=$((2 * node_count + 20))
-    new_ram_quota=$((2048 * node_count + 51200))
+    new_vcpu_quota=$((flavor_vcpu * node_count + 20))
+    new_ram_quota=$((flavor_ram * node_count + 51200))
     new_instance_quota=$((node_count + 10))
     openstack quota set --cores $new_vcpu_quota --ram $new_ram_quota --instances $new_instance_quota admin
 
@@ -215,6 +217,7 @@ function create_vms() {
     while true; do
         for VM_NAME in "${!vms[@]}"; do
             echo "INFO: Checking $VM_NAME status...."
+            compute_node=$(lookup_key_from_value servers "$VM_NAME")
             STATUS_STATE=$(openstack server list -c Status --name "$VM_NAME" -f value)
             STATUS_VALUE=$(check_status "$STATUS_STATE")
             VALUE="${STATUS_VALUE::1}"
@@ -224,6 +227,7 @@ function create_vms() {
             1)
                 echo "ERROR: VM, $VM_NAME is in a bad state $STATUS_VALUE, deleting..."
                 openstack server delete "$VM_NAME"
+                SERVER_ERRORS+=", $compute_node"
                 echo "INFO: Recreating $VM_NAME ..."
                 eval "${vms[${VM_NAME}]}"
                 ;;
@@ -305,6 +309,12 @@ if [[ "$ERROR" -gt 0 ]]; then
     echo "####################################################################"
     exit 1
 else
+    if [[ -n "$SERVER_ERRORS" ]]; then
+        echo "#############################################"
+        echo "VM's were re-created on the following servers"
+        echo "$SERVER_ERRORS"
+        echo "#############################################"
+    fi
     echo "########################"
     echo "#   ALL TESTS PASSED   #"
     echo "########################"
