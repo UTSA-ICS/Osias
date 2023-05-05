@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import os
+import sys
 import subprocess
 from itertools import islice
 from pathlib import Path
@@ -166,6 +167,14 @@ def run_cmd(command, test=True, output=True):
     if output:
         print(f"\nCommand Output: \n{stdout.decode()}\n")
     return stdout
+
+
+def run_cmd_locally(command, test=True, output=True):
+    print(f"\nCommand Issued: \n\t{command}\n")
+    stdout = None
+    process = subprocess.Popen(command, stdout=subprocess.PIPE)
+    for c in iter(lambda: process.stdout.read(1), b""):
+        sys.stdout.buffer.write(c)
 
 
 def check_ip_active(ip):
