@@ -43,6 +43,24 @@ KEYPAIR_NAME="$USER_NAME"_keypair
 ADMIN_KEYPAIR_NAME="admin_keypair_${PASSWORD:0:4}"
 FLAVOR="cb1.medium"
 ERROR=0
+SERVER_ERRORS=""
+
+# Declare dictionaries
+declare -A servers
+declare -A vms
+# servers['r2-610-1']="vm-test-1"
+# vms["vm-test-1"]="openstack create server vm-test-1"
+
+function lookup_key_from_value() {
+    declare -n arr=$1
+    search="$2"
+    for key in "${!arr[@]}"; do
+        if [[ "${arr[$key]}" == "$search" ]]; then
+            echo "$key"
+            break
+        fi
+    done
+}
 
 function retry {
     command="$*"
@@ -134,73 +152,6 @@ function check_status() {
     fi
 }
 
-function create_vms() {
-    echo "INFO: Starting VM creation process."
-    echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
-    mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
-    num_of_nodes=${#compute_nodes[@]}
-    openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
-    chmod 600 "$ADMIN_KEYPAIR_NAME"
-    mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
-    ADMIN_NETWORK_ID=$(openstack network list --internal --project admin -c ID -f value)
-    EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
-    FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
-    echo "INFO: Created Floating IP of $FLOATING_IP"
-    echo "INFO: Creating VM's now on each of the $num_of_nodes compute nodes."
-    i=1
-    for compute_node in "${compute_nodes[@]}"; do
-        INSTANCE_NAME="TEST_INSTANCE_$(
-            echo $RANDOM | md5sum | head -c 5
-        )"
-        echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
-        openstack server create --key-name "$ADMIN_KEYPAIR_NAME" --network "$ADMIN_NETWORK_ID" --image "${IMAGE_LIST[-1]}" --flavor "$FLAVOR" --availability-zone nova::"$compute_node" "$INSTANCE_NAME"
-        echo "INFO: Assigning public IP to VM, $INSTANCE_NAME: $FLOATING_IP"
-        retry openstack server add floating ip "$INSTANCE_NAME" "$FLOATING_IP"
-        while true; do
-            echo "INFO: Checking $INSTANCE_NAME status...."
-            STATUS_STATE=$(openstack server list -c Status --name "$INSTANCE_NAME" -f value)
-            STATUS_VALUE=$(check_status "$STATUS_STATE")
-            VALUE="${STATUS_VALUE::1}"
-            echo "$STATUS_VALUE"
-            echo "$VALUE"
-            case $VALUE in
-            1)
-                echo "ERROR: VM, $INSTANCE_NAME is in a bad state $STATUS_VALUE, deleting..."
-                ERROR=$((ERROR + 1))
-                break
-                ;;
-            2)
-                TEST=$(ssh_into_vm "$KEYPAIR_NAME" "$FLOATING_IP" "$INSTANCE_NAME")
-                echo "$TEST"
-                test_value="${TEST: -4}"
-                if [ "$test_value" == "pass" ]; then
-                    echo "INFO: SUCCESS: SSH PASSES ON $compute_node with $INSTANCE_NAME!"
-                else
-                    echo "ERROR: SSH FAILED!!!!"
-                    ERROR=$((ERROR + 1))
-                fi
-                break
-                ;;
-            3) sleep 2 ;;
-            *)
-                echo "ERROR: UNKNOWN ERROR"
-                ERROR=$((ERROR + 1))
-                break
-                ;;
-            esac
-            sleep 1
-        done
-
-        echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node ($i of $num_of_nodes)"
-        openstack server delete "$INSTANCE_NAME"
-        echo "INFO: Delete complete"
-        i=$((i + 1))
-    done
-
-    echo "INFO: Deleting the floating IP: $FLOATING_IP"
-    openstack floating ip delete "$FLOATING_IP"
-}
-
 function ssh_into_vm() {
     i=0
     KEYPAIR_NAME=$1
@@ -220,6 +171,104 @@ function ssh_into_vm() {
         fi
         i=$i+1
     done
+}
+
+function create_vms() {
+    echo "INFO: Starting VM creation process."
+    echo "INFO: Adjusting necessary quotas"
+    flavor_vcpu=$(openstack flavor show $FLAVOR -f value -c vcpus)
+    flavor_ram=$(openstack flavor show $FLAVOR -f value -c ram)
+    original_vcpu_quota=$(openstack quota show -f value -c cores)
+    original_ram_quota=$(openstack quota show -f value -c ram)
+    original_instance_quota=$(openstack quota show -f value -c instances)
+    node_count=$(openstack compute service list -f value -c Host --service nova-compute | wc -l)
+    new_vcpu_quota=$((flavor_vcpu * node_count + 20))
+    new_ram_quota=$((flavor_ram * node_count + 51200))
+    new_instance_quota=$((node_count + 10))
+    openstack quota set --cores $new_vcpu_quota --ram $new_ram_quota --instances $new_instance_quota admin
+
+    echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
+    mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
+    num_of_nodes=${#compute_nodes[@]}
+    openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
+    chmod 600 "$ADMIN_KEYPAIR_NAME"
+    mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
+    ADMIN_NETWORK_ID=$(openstack network list --internal --project admin -c ID -f value)
+    EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
+    FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
+    echo "INFO: Created Floating IP of $FLOATING_IP"
+    echo "INFO: Creating VM's now on each of the $num_of_nodes compute nodes."
+    i=1
+
+    for compute_node in "${compute_nodes[@]}"; do
+        INSTANCE_NAME="TEST_INSTANCE_$(
+            echo $RANDOM | md5sum | head -c 5
+        )"
+        echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
+        # shellcheck disable=SC2034
+        servers["$compute_node"]="$INSTANCE_NAME"
+        vms["$INSTANCE_NAME"]="openstack server create --key-name $ADMIN_KEYPAIR_NAME --network $ADMIN_NETWORK_ID --image ${IMAGE_LIST[-1]} --flavor $FLAVOR --availability-zone nova::$compute_node $INSTANCE_NAME"
+        i=$((i + 1))
+    done
+    for VM_NAME in "${!vms[@]}"; do
+        eval "${vms[${VM_NAME}]}"
+    done
+    i=1
+    while true; do
+        for VM_NAME in "${!vms[@]}"; do
+            echo "INFO: Checking $VM_NAME status...."
+            compute_node=$(lookup_key_from_value servers "$VM_NAME")
+            STATUS_STATE=$(openstack server list -c Status --name "$VM_NAME" -f value)
+            STATUS_VALUE=$(check_status "$STATUS_STATE")
+            VALUE="${STATUS_VALUE::1}"
+            echo "$STATUS_VALUE"
+            echo "$VALUE"
+            case $VALUE in
+            1)
+                echo "ERROR: VM, $VM_NAME is in a bad state $STATUS_VALUE, deleting..."
+                openstack server delete "$VM_NAME"
+                SERVER_ERRORS+="$compute_node "
+                echo "INFO: Recreating $VM_NAME ..."
+                eval "${vms[${VM_NAME}]}"
+                ;;
+            2)
+                retry openstack server add floating ip "$VM_NAME" "$FLOATING_IP"
+                TEST=$(ssh_into_vm "$KEYPAIR_NAME" "$FLOATING_IP" "$VM_NAME")
+                echo "$TEST"
+                ssh-keygen -f "/root/.ssh/known_hosts" -R "$FLOATING_IP"
+                test_value="${TEST: -4}"
+                if [ "$test_value" == "pass" ]; then
+                    compute_node=$(lookup_key_from_value servers "$VM_NAME")
+                    echo "INFO: SUCCESS: SSH PASSES ON $compute_node with $VM_NAME!"
+                    echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node ($i of $num_of_nodes)"
+                    openstack server delete "$VM_NAME"
+                    echo "INFO: Delete complete"
+                    unset "vms[$VM_NAME]"
+                    i=$((i + 1))
+                else
+                    echo "ERROR: SSH FAILED!!!!"
+                    ERROR=$((ERROR + 1))
+                fi
+                break
+                ;;
+            3) sleep 2 ;;
+            *)
+                echo "ERROR: UNKNOWN ERROR"
+                ERROR=$((ERROR + 1))
+                break
+                ;;
+            esac
+            sleep 1
+        done
+        if [[ ${#vms[@]} -eq 0 ]]; then
+            echo "INFO: VM SSH test complete"
+            break
+        fi
+    done
+    echo "INFO: Deleting the floating IP: $FLOATING_IP"
+    openstack floating ip delete "$FLOATING_IP"
+    echo "INFO: Revert quota values"
+    openstack quota set --cores "$original_vcpu_quota" --ram "$original_ram_quota" --instances "$original_instance_quota" admin
 }
 
 function delete_project_and_user() {
@@ -260,6 +309,12 @@ if [[ "$ERROR" -gt 0 ]]; then
     echo "####################################################################"
     exit 1
 else
+    if [[ -n "$SERVER_ERRORS" ]]; then
+        echo "#############################################"
+        echo "VM's were re-created on the following servers"
+        echo "$SERVER_ERRORS"
+        echo "#############################################"
+    fi
     echo "########################"
     echo "#   ALL TESTS PASSED   #"
     echo "########################"
