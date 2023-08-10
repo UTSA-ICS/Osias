@@ -22,7 +22,7 @@ deployment.
 
 ## Versions
 
-- MAAS version: 2.8.2 - 3.2.6
+- MAAS version: 2.8.2 - 3.2.9
 
 |      | Kolla   | Python |    OS |      Ansible |    Ceph | Swift |
 |----------|------|-----|--------------|---------|---------|-------|
@@ -31,6 +31,7 @@ deployment.
 | wallaby  | 12.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific | No    |
 | xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
 | yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
+| zed      | 15.x | 3.8 | Ubuntu 22.04 | \< 6.0  | Quincy  | Yes   |
 
 ## MaaS
 
