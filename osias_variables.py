@@ -40,7 +40,7 @@ VM_Profile = {
     "IPs_NEEDED": 12,
 }
 
-SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga", "zed"]
+SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga", "zed", "2023.1", "2023.2"]
 NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
     "ussuri": "3.6",
@@ -49,6 +49,8 @@ PYTHON_VERSION = {
     "xena": "3.8",
     "yoga": "3.8",
     "zed": "3.8",
+    "2023.1": "3.10",
+    "2023.2": "3.10",
 }
 ANSIBLE_MAX_VERSION = {
     "ussuri": "2.10",
@@ -57,6 +59,8 @@ ANSIBLE_MAX_VERSION = {
     "xena": "5.0",
     "yoga": "6",
     "zed": "6",
+    "2023.1": "8",
+    "2023.2": "8",
 }
 CEPH_RELEASE = {
     "ussuri": "pacific",
@@ -65,6 +69,9 @@ CEPH_RELEASE = {
     "xena": "pacific",
     "yoga": "quincy",
     "zed": "quincy",
+    "2023.1": "quincy",
+    "2023.2": "quincy",
+
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
@@ -73,6 +80,8 @@ MAAS_VM_DISTRO = {
     "xena": "focal hwe_kernel=hwe-20.04-edge",
     "yoga": "focal hwe_kernel=hwe-20.04-edge",
     "zed": "jammy hwe_kernel=hwe-22.04-edge",
+    "2023.1": "jammy hwe_kernel=hwe-22.04-edge",
+    "2023.2": "jammy hwe_kernel=hwe-22.04-edge",
 }
 
 KOLLA_BASE_DISTRO = {
@@ -82,6 +91,8 @@ KOLLA_BASE_DISTRO = {
     "xena": "centos",
     "yoga": "centos",
     "zed": "rocky",
+    "2023.1": "rocky",
+    "2023.2": "rocky",
 }
 
 # REFSTACK VARIABLES
@@ -102,6 +113,8 @@ REFSTACK_TEST_VERSION = {
     "xena": "2021.11",
     "yoga": "2021.11",
     "zed": "2022.06",
+    "2023.1": "2022.11",
+    "2023.2": "2022.11",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
@@ -110,6 +123,8 @@ TEMPEST_VERSION = {
     "xena": "31.1.0",
     "yoga": "31.1.0",
     "zed": "33.0.0",
+    "2023.1": "34.2.0",
+    "2023.2": "36.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -118,6 +133,8 @@ NOVA_MIN_MICROVERSION = {
     "xena": "2.1",
     "yoga": "2.1",
     "zed": "2.1",
+    "2023.1": "2.1",
+    "2023.2": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
@@ -126,6 +143,8 @@ NOVA_MAX_MICROVERSION = {
     "xena": "2.90",
     "yoga": "2.92",
     "zed": "2.93",
+    "2023.1": "2.95",
+    "2023.2": "2.95",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -134,6 +153,8 @@ STORAGE_MIN_MICROVERSION = {
     "xena": "3.0",
     "yoga": "3.0",
     "zed": "3.0",
+    "2023.1": "3.0",
+    "2023.2": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -142,6 +163,8 @@ STORAGE_MAX_MICROVERSION = {
     "xena": "3.66",
     "yoga": "3.69",
     "zed": "3.70",
+    "2023.1": "3.70",
+    "2023.2": "3.70",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
@@ -150,6 +173,8 @@ PLACEMENT_MIN_MICROVERSION = {
     "xena": "1.0",
     "yoga": "1.0",
     "zed": "1.0",
+    "2023.1": "1.0",
+    "2023.2": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
@@ -158,4 +183,6 @@ PLACEMENT_MAX_MICROVERSION = {
     "xena": "1.39",
     "yoga": "1.39",
     "zed": "1.39",
+    "2023.1": "1.39",
+    "2023.2": "1.39",
 }
