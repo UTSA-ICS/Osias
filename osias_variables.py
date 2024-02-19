@@ -40,7 +40,16 @@ VM_Profile = {
     "IPs_NEEDED": 12,
 }
 
-SUPPORTED_OPENSTACK_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga", "zed", "2023.1", "2023.2"]
+SUPPORTED_OPENSTACK_RELEASE = [
+    "ussuri",
+    "victoria",
+    "wallaby",
+    "xena",
+    "yoga",
+    "zed",
+    "2023.1",
+    "2023.2",
+]
 NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
     "ussuri": "3.6",
@@ -71,7 +80,6 @@ CEPH_RELEASE = {
     "zed": "quincy",
     "2023.1": "quincy",
     "2023.2": "quincy",
-
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
