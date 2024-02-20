@@ -203,7 +203,9 @@ class MaasVirtual(MaasBase):
         if openstack_release is None:
             filters = str(parent_project_pipeline_id)
         else:
-            filters = f"{parent_project_pipeline_id}_{openstack_release.replace('.', '_')}"
+            filters = (
+                f"{parent_project_pipeline_id}_{openstack_release.replace('.', '_')}"
+            )
         defs = self._run_maas_command(
             f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names}} | select(.tag_names| contains([\"{filters}\"]))'"
         )
