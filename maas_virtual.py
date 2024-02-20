@@ -213,7 +213,10 @@ class MaasVirtual(MaasBase):
         starts = []
         machine_ids = []
         tags = []
-        distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
+        if openstack_release:
+            distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
+        else:
+            distro = None
         if isinstance(defs, dict):
             defs = [defs]
         if defs:
