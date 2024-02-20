@@ -178,9 +178,10 @@ function create_vms() {
     echo "INFO: Adjusting necessary quotas"
     flavor_vcpu=$(openstack flavor show $FLAVOR -f value -c vcpus)
     flavor_ram=$(openstack flavor show $FLAVOR -f value -c ram)
-    original_vcpu_quota=$(openstack quota show -f value -c cores)
-    original_ram_quota=$(openstack quota show -f value -c ram)
-    original_instance_quota=$(openstack quota show -f value -c instances)
+    myquota=$(openstack quota show --usage --compute)
+    original_vcpu_quota=$(echo "$myquota" | grep cores | awk '{print $4}')
+    original_ram_quota=$(echo "$myquota" | grep ram | awk '{print $4}')
+    original_instance_quota=$(echo "$myquota" | grep instances | awk '{print $4}')
     node_count=$(openstack compute service list -f value -c Host --service nova-compute | wc -l)
     new_vcpu_quota=$((flavor_vcpu * node_count + 20))
     new_ram_quota=$((flavor_ram * node_count + 51200))
