@@ -1,7 +1,7 @@
 default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
-  image: python:3.7-buster
+  image: python:3.11-buster
   #interruptible: true
   tags:
     - docker-runner
@@ -14,7 +14,7 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-  - <RELEASE_NAME>
+  - openstack_<RELEASE_NAME>
   - generate_cidr
   - reprovision_servers
   - bootstrap_networking
@@ -45,10 +45,10 @@ stages:
     - echo "$PARENT_PIPELINE_ID"
     - echo "$CEPH"
 
-deploy:<RELEASE_NAME>:
-  stage: <RELEASE_NAME>
+deploy:openstack_<RELEASE_NAME>:
+  stage: openstack_<RELEASE_NAME>
   script:
-    - echo "Deployment of <RELEASE_NAME> release"
+    - echo "Deployment of OpenStack <RELEASE_NAME> release"
 
 create_osias_multinode_file:
   stage: reprovision_servers

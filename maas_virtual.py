@@ -131,7 +131,7 @@ class MaasVirtual(MaasBase):
         self, vm_profile, pipeline_id, vip, ip_end, ip_start
     ):
         no_of_vms = vm_profile["Number_of_VM_Servers"]
-        release = vm_profile["OPENSTACK_RELEASE"]
+        release = vm_profile["OPENSTACK_RELEASE"].replace(".", "_")
         distro_hwe = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
         distro = distro_hwe.split(" ")[0]
         machines = self._run_maas_command(
@@ -172,7 +172,7 @@ class MaasVirtual(MaasBase):
         return ids
 
     def find_virtual_machines_and_deploy(self, vm_profile, pipeline_id: int):
-        release = vm_profile["OPENSTACK_RELEASE"]
+        release = vm_profile["OPENSTACK_RELEASE"].replace(".", "_")
         pipeline_tag_name = f"{pipeline_id}_{release}"
         machines = self._run_maas_command(
             "machines read | jq '.[] | {system_id:.system_id,status_name:.status_name,pool_name:.pool.name,ip_addresses:.ip_addresses,distro_series:.distro_series,tag_names:.tag_names}' --compact-output"
@@ -203,7 +203,9 @@ class MaasVirtual(MaasBase):
         if openstack_release is None:
             filters = str(parent_project_pipeline_id)
         else:
-            filters = f"{parent_project_pipeline_id}_{openstack_release}"
+            filters = (
+                f"{parent_project_pipeline_id}_{openstack_release.replace('.', '_')}"
+            )
         defs = self._run_maas_command(
             f"machines read |jq '.[] | {{system_id:.system_id,tag_names:.tag_names}} | select(.tag_names| contains([\"{filters}\"]))'"
         )
@@ -211,7 +213,10 @@ class MaasVirtual(MaasBase):
         starts = []
         machine_ids = []
         tags = []
-        distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
+        if openstack_release:
+            distro = osias_variables.MAAS_VM_DISTRO[openstack_release]
+        else:
+            distro = None
         if isinstance(defs, dict):
             defs = [defs]
         if defs:
