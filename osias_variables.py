@@ -112,7 +112,7 @@ KOLLA_BASE_DISTRO = {
 UBUNTU_NAMES = ["focal", "jammy"]
 UBUNTU_VERSIONS = ["20.04.4", "22.04"]
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.6.1/cirros-0.6.1-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.11",
