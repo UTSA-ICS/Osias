@@ -30,6 +30,7 @@ if ! br0_exists; then
     # Activate the updated netplan configuration
     sudo netplan generate
     sleep 2
+    sudo chmod 600 /etc/netplan/${netplan_file}
     sudo netplan apply
     sleep 5
 
