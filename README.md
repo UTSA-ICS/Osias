@@ -32,6 +32,8 @@ deployment.
 | xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
 | yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
 | zed      | 15.x | 3.8 | Ubuntu 22.04 | \< 6.0  | Quincy  | Yes   |
+| 2023.1   | 16.x | 3.10 | Ubuntu 22.04 | \< 8.0  | Quincy  | Yes   |
+| 2023.2   | 17.x | 3.10 | Ubuntu 22.04 | \< 8.0  | Quincy  | Yes   |
 
 ## MaaS
 
