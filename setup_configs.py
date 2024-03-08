@@ -192,8 +192,6 @@ enable_mariabackup: "no"
 #enable_neutron_metering: "yes"
 #enable_neutron_qos: "yes"
 #enable_neutron_agent_ha: "no"
-# Masakari provides Instances High Availability Service for OpenStack clouds by automatically recovering failed Instances.
-#enable_masakari: "yes"
 #enable_central_logging: "yes"
 kolla_external_fqdn: "{fqdn}"
 __EOF__
