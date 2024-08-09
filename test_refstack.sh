@@ -14,7 +14,7 @@ TENANT=openstack
 USER_NAME=swiftop
 
 if ! openstack user list -c Name -f value | grep -q "$USER_NAME"; then
-    openstack user create "$USER_NAME" --password a_big_secret
+    openstack user create "$USER_NAME" --password a_big_secret --domain default
 fi
 
 if ! openstack project list -c Name -f value | grep -q "$TENANT"; then
