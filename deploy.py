@@ -2,12 +2,9 @@
 
 import argparse
 import ast
-import os
-import yaml
 from time import sleep
 
 import maas_base
-import maas_virtual
 import osias_variables
 import setup_configs
 import utils
@@ -66,6 +63,13 @@ def parse_args():
         + "MAAS server. These can be found in the user preferences page "
         + "in the web UI; they take the form of a long random-looking "
         + "string composed of three parts, separated by colons.",
+    )
+    parser.add_argument(
+            "--CLOUD_PROVIDER",
+            type=str,
+            required=False,
+            choices=["maas", "proxmox"],
+            help="Which cloud provider to use, either 'maas' or 'proxmox'.",
     )
     parser.add_argument(
         "--DOCKER_REGISTRY_PASSWORD",
@@ -302,7 +306,7 @@ def verify_network_connectivity(
 #         raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
 
 
-def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
+def tag_virtual_servers(maas_url, maas_api_key, vm_profile, cloud_provider):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
     If VMs aren't available, they will be created.  Additionally, this will find an available
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
@@ -317,6 +321,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     credentials = {}
     credentials["cloud_url"] = maas_url
     credentials["cloud_pass"] = maas_api_key
+    credentials["cloud_provider"] = cloud_provider
     provider = CloudProvider(vm_profile, credentials)
     provider.tag_virtual_servers()
 
@@ -339,7 +344,7 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     # )
 
 
-def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
+def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled, cloud_provider):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -370,12 +375,13 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
     credentials = {
         "cloud_url": maas_url,
         "cloud_pass": maas_api_key,
+        "cloud_provider": cloud_provider,
     }
     provider = CloudProvider(vm_profile, credentials)
     provider.create_virtual_servers(ceph_enabled)
 
 
-def delete_tags_and_ips(maas_url, maas_api_key, openstack_release=None):
+def delete_tags_and_ips(maas_url, maas_api_key, cloud_provider, openstack_release=None):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
@@ -386,6 +392,7 @@ def delete_tags_and_ips(maas_url, maas_api_key, openstack_release=None):
     credentials = {
         "cloud_url": maas_url,
         "cloud_pass": maas_api_key,
+        "cloud_provider": cloud_provider,
     }
     provider = CloudProvider({}, credentials)
     return provider.delete_tags_and_ips(openstack_release)
@@ -394,6 +401,7 @@ def delete_tags_and_ips(maas_url, maas_api_key, openstack_release=None):
 def delete_virtual_machines(
     maas_url,
     maas_api_key,
+    cloud_provider,
     openstack_release,
 ):
     # machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
@@ -404,6 +412,7 @@ def delete_virtual_machines(
     credentials = {
         "cloud_url": maas_url,
         "cloud_pass": maas_api_key,
+        "cloud_provider": cloud_provider,
     }
     provider = CloudProvider({}, credentials)
     provider.delete_virtual_machines(openstack_release)
@@ -646,10 +655,11 @@ def main():
                 ],
             )
         elif args.operation == "delete_virtual_machines":
-            if args.MAAS_URL and args.MAAS_API_KEY:
+            if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
                 delete_virtual_machines(
                     args.MAAS_URL,
                     args.MAAS_API_KEY,
+                    args.CLOUD_PROVIDER,
                     OPENSTACK_RELEASE,
                 )
             else:
@@ -710,7 +720,7 @@ def main():
                 "test_basic_functionality.sh", servers_public_ip[0]
             )
     elif args.operation == "create_virtual_servers":
-        if args.MAAS_URL and args.MAAS_API_KEY:
+        if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
             VM_PROFILE = utils.merge_dictionaries(
                 osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
             )
@@ -722,6 +732,7 @@ def main():
                 args.MAAS_API_KEY,
                 VM_PROFILE,
                 ceph_enabled,
+                args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(
@@ -732,7 +743,7 @@ def main():
     elif args.operation == "tag_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
             tag_virtual_servers(
-                args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE)
+                args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE), args.CLOUD_PROVIDER
             )
         else:
             raise Exception(
@@ -741,10 +752,11 @@ def main():
                 + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
             )
     elif args.operation == "delete_tags_and_ips":
-        if args.MAAS_URL and args.MAAS_API_KEY:
+        if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
             delete_tags_and_ips(
                 args.MAAS_URL,
                 args.MAAS_API_KEY,
+                args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(
