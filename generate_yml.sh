@@ -14,6 +14,7 @@ if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
     sed -i "s/<RELEASE_NAME>/${current_release}/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE_CURRENT_RELEASE/g" trigger-pipeline.yml
     sed -i "s/<PREVIOUS_RELEASE_NAME>/${previous_release}/g" trigger-pipeline.yml
+    sed -i "s/<CLOUD_PROVIDER>/${CLOUD_PROVIDER}/g" trigger-pipeline.yml
 
     cp deploy-pipeline.yml deploy-"${current_release}".yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" deploy-"${current_release}".yml
@@ -37,6 +38,7 @@ else
 
     sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${release}/g" trigger-pipeline.yml
+    sed -i "s/<CLOUD_PROVIDER>/${CLOUD_PROVIDER}/g" trigger-pipeline.yml
 
     cp deploy-pipeline.yml deploy-"${release}".yml
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
