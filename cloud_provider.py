@@ -23,7 +23,7 @@ class CloudProvider:
         parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not parent_project_pipeline_id:
             raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-        if cloud == "maas":
+        if self.cloud == "maas":
             # deploy.py stuff
             cloud_user = "admin"
             utils.run_cmd(f"maas login {cloud_user} {cloud_url} {cloud_pass}")
@@ -59,7 +59,7 @@ class CloudProvider:
         )
 
 
-    def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
+    def create_virtual_servers(self, maas_url, maas_api_key, vm_profile, ceph_enabled):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
             # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -88,7 +88,7 @@ class CloudProvider:
         f.close()
 
 
-    def delete_tags_and_ips(maas_url, maas_api_key, openstack_release=None):
+    def delete_tags_and_ips(self, maas_url, maas_api_key, openstack_release=None):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not parent_project_pipeline_id:
             raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
@@ -98,6 +98,7 @@ class CloudProvider:
 
 
     def delete_virtual_machines(
+        self,
         maas_url,
         maas_api_key,
         openstack_release,
@@ -107,7 +108,7 @@ class CloudProvider:
         servers = maas_virtual.MaasVirtual(None)
         servers.delete_virtual_machines(machine_ids, distro)
 
-    def _verify_vm_pool_availability(public_IP_pool):
+    def _verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
         VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
         vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
