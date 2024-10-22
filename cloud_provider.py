@@ -65,7 +65,7 @@ class CloudProvider:
             # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
         # servers = maas_virtual.MaasVirtual(
-            osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
+            # osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
         # )
         (
             server_dict,
