@@ -18,6 +18,7 @@ class CloudProvider:
         cloud = vm_profile["DEPLOYMENT_CLOUD"].lower()
         cloud_url = credentials["cloud_url"]
         cloud_pass = credentials["cloud_pass"]
+        vm_profile = vm_profile
         operating_system = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
         parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not parent_project_pipeline_id:
@@ -38,20 +39,20 @@ class CloudProvider:
         # if not parent_project_pipeline_id:
 
             # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-        osias_variables.VM_Profile.update(vm_profile.items())
+        osias_variables.VM_Profile.update(self.vm_profile.items())
         
         if self.cloud == "maas":
             public_IP_pool = self.provider.get_ip_pool(
                 osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
                 osias_variables.VM_Profile["IPs_NEEDED"],
             )
-            self._verify_vm_pool_availability(vm_profile, public_IP_pool)
+            self._verify_vm_pool_availability(self.vm_profile, public_IP_pool)
             VIP_ADDRESS = str(public_IP_pool.pop())
             POOL_END_IP = str(public_IP_pool.pop())
             POOL_START_IP = str(public_IP_pool.pop(0))
         self.provider.find_virtual_machines_and_tag(
-            vm_profile,
-            parent_project_pipeline_id,
+            self.vm_profile,
+            self.parent_project_pipeline_id,
             VIP_ADDRESS,
             POOL_END_IP,
             POOL_START_IP,
@@ -62,20 +63,20 @@ class CloudProvider:
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
             # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-        utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-        servers = maas_virtual.MaasVirtual(
-            osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
-        )
+        # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+        # servers = maas_virtual.MaasVirtual(
+            osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
+        # )
         (
             server_dict,
             VIP_ADDRESS,
             POOL_END_IP,
             POOL_START_IP,
-        ) = servers.find_virtual_machines_and_deploy(vm_profile, parent_project_pipeline_id)
+        ) = self.provider.find_virtual_machines_and_deploy(self.vm_profile, self.parent_project_pipeline_id)
         print(f"server_dict: {server_dict}")
         if ceph_enabled is None:
             ceph_enabled = False
-        optional_vars = vm_profile
+        optional_vars = self.vm_profile
         optional_vars["CEPH"] = ceph_enabled
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
@@ -107,7 +108,7 @@ class CloudProvider:
         servers.delete_virtual_machines(machine_ids, distro)
 
     def _verify_vm_pool_availability(vm_profile, public_IP_pool):
-        internal_subnet = ".".join(vm_profile["Internal_CIDR"].split(".")[:3])
+        internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
         VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
         vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
         active_ips = []
