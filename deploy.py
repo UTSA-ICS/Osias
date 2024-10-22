@@ -376,12 +376,19 @@ def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
 
 
 def delete_tags_and_ips(maas_url, maas_api_key, openstack_release=None):
-    parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-    if not parent_project_pipeline_id:
-        raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
-    utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-    servers = maas_virtual.MaasVirtual(None)
-    return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
+    # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    # if not parent_project_pipeline_id:
+    #     raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
+    # utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
+    # servers = maas_virtual.MaasVirtual(None)
+    # return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
+
+    credentials = {
+        "cloud_url": maas_url,
+        "cloud_pass": maas_api_key,
+    }
+    provider = CloudProvider({}, credentials)
+    return provider.delete_tags_and_ips(openstack_release)
 
 
 def delete_virtual_machines(
@@ -389,10 +396,17 @@ def delete_virtual_machines(
     maas_api_key,
     openstack_release,
 ):
-    machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
+    # machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
+    #
+    # servers = maas_virtual.MaasVirtual(None)
+    # servers.delete_virtual_machines(machine_ids, distro)
 
-    servers = maas_virtual.MaasVirtual(None)
-    servers.delete_virtual_machines(machine_ids, distro)
+    credentials = {
+        "cloud_url": maas_url,
+        "cloud_pass": maas_api_key,
+    }
+    provider = CloudProvider({}, credentials)
+    provider.delete_virtual_machines(openstack_release)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):

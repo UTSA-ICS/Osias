@@ -90,28 +90,17 @@ class CloudProvider:
         f.write(f"{multinode}")
         f.close()
 
-    def delete_tags_and_ips(self, maas_url, maas_api_key, openstack_release=None):
-        # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    def delete_tags_and_ips(self, openstack_release=None):
         if not self.parent_project_pipeline_id:
             raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
-        utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
-        servers = maas_virtual.MaasVirtual(None)
-        return servers.delete_tags_and_ips(
+
+        return self.provider.delete_tags_and_ips(
             self.parent_project_pipeline_id, openstack_release
         )
 
-    def delete_virtual_machines(
-        self,
-        maas_url,
-        maas_api_key,
-        openstack_release,
-    ):
-        machine_ids, distro = delete_tags_and_ips(
-            maas_url, maas_api_key, openstack_release
-        )
-
-        servers = maas_virtual.MaasVirtual(None)
-        servers.delete_virtual_machines(machine_ids, distro)
+    def delete_virtual_machines(self, openstack_release):
+        machine_ids, distro = self.delete_tags_and_ips(openstack_release)
+        self.provider.delete_virtual_machines(machine_ids, distro)
 
     def _verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
