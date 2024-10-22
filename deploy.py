@@ -314,10 +314,9 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
     # servers = maas_virtual.MaasVirtual(None)
 
-    credentials = {
-        credentials["cloud_url"] = maas_url,
-        credentials["cloud_pass"] = maas_api_key
-    }
+    credentials = {}
+    credentials["cloud_url"] = maas_url
+    credentials["cloud_pass"] = maas_api_key
     provider = CloudProvider(vm_profile, credentials)
     provider.tag_virtual_servers()
 
