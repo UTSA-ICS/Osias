@@ -48,7 +48,7 @@ class CloudProvider:
                 osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
                 osias_variables.VM_Profile["IPs_NEEDED"],
             )
-            self._verify_vm_pool_availability(public_IP_pool)
+            self.verify_vm_pool_availability(public_IP_pool)
             VIP_ADDRESS = str(public_IP_pool.pop())
             POOL_END_IP = str(public_IP_pool.pop())
             POOL_START_IP = str(public_IP_pool.pop(0))
