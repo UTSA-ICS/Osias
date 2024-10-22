@@ -19,9 +19,11 @@ class CloudProvider:
         cloud_url = credentials["cloud_url"]
         cloud_pass = credentials["cloud_pass"]
         self.vm_profile = vm_profile
-        operating_system = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
-        parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-        if not parent_project_pipeline_id:
+        operating_system = osias_variables.MAAS_VM_DISTRO[
+            vm_profile["OPENSTACK_RELEASE"]
+        ]
+        self.parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+        if not self.parent_project_pipeline_id:
             raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         if self.cloud == "maas":
             # deploy.py stuff
@@ -38,9 +40,9 @@ class CloudProvider:
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
 
-            # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
+        # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         osias_variables.VM_Profile.update(self.vm_profile.items())
-        
+
         if self.cloud == "maas":
             public_IP_pool = self.provider.get_ip_pool(
                 osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
@@ -58,21 +60,22 @@ class CloudProvider:
             POOL_START_IP,
         )
 
-
     def create_virtual_servers(self, maas_url, maas_api_key, vm_profile, ceph_enabled):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
-            # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
+        # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
         # servers = maas_virtual.MaasVirtual(
-            # osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
+        # osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
         # )
         (
             server_dict,
             VIP_ADDRESS,
             POOL_END_IP,
             POOL_START_IP,
-        ) = self.provider.find_virtual_machines_and_deploy(self.vm_profile, self.parent_project_pipeline_id)
+        ) = self.provider.find_virtual_machines_and_deploy(
+            self.vm_profile, self.parent_project_pipeline_id
+        )
         print(f"server_dict: {server_dict}")
         if ceph_enabled is None:
             ceph_enabled = False
@@ -87,15 +90,15 @@ class CloudProvider:
         f.write(f"{multinode}")
         f.close()
 
-
     def delete_tags_and_ips(self, maas_url, maas_api_key, openstack_release=None):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not parent_project_pipeline_id:
             raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
         utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
         servers = maas_virtual.MaasVirtual(None)
-        return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
-
+        return servers.delete_tags_and_ips(
+            parent_project_pipeline_id, openstack_release
+        )
 
     def delete_virtual_machines(
         self,
@@ -103,8 +106,10 @@ class CloudProvider:
         maas_api_key,
         openstack_release,
     ):
-        machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
-        
+        machine_ids, distro = delete_tags_and_ips(
+            maas_url, maas_api_key, openstack_release
+        )
+
         servers = maas_virtual.MaasVirtual(None)
         servers.delete_virtual_machines(machine_ids, distro)
 
