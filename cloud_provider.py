@@ -26,7 +26,7 @@ class CloudProvider:
             # deploy.py stuff
             cloud_user = "admin"
             utils.run_cmd(f"maas login {cloud_user} {cloud_url} {cloud_pass}")
-            self.provider = maas.virtual.MaasVirtual(operating_system)
+            self.provider = maas_virtual.MaasVirtual(operating_system)
 
     def tag_virtual_servers(self):
         """Find virtual machines and tag them with the pipeline ID and openstack branch.
