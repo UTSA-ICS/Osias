@@ -25,6 +25,7 @@ class CloudProvider:
         operating_system = osias_variables.MAAS_VM_DISTRO[
             vm_profile["OPENSTACK_RELEASE"]
         ]
+        self.parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not self.parent_project_pipeline_id:
             raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         if self.cloud == "maas":
