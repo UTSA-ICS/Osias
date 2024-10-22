@@ -60,7 +60,7 @@ class CloudProvider:
             POOL_START_IP,
         )
 
-    def create_virtual_servers(self, maas_url, maas_api_key, vm_profile, ceph_enabled):
+    def create_virtual_servers(self, ceph_enabled):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
         # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -92,12 +92,12 @@ class CloudProvider:
 
     def delete_tags_and_ips(self, maas_url, maas_api_key, openstack_release=None):
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-        if not parent_project_pipeline_id:
+        if not self.parent_project_pipeline_id:
             raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
         utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
         servers = maas_virtual.MaasVirtual(None)
         return servers.delete_tags_and_ips(
-            parent_project_pipeline_id, openstack_release
+            self.parent_project_pipeline_id, openstack_release
         )
 
     def delete_virtual_machines(
