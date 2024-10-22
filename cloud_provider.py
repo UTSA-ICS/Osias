@@ -15,10 +15,10 @@ import utils
 
 class CloudProvider:
     def __init__(self, vm_profile, credentials: dict):
-        cloud = vm_profile["DEPLOYMENT_CLOUD"].lower()
+        self.cloud = vm_profile["DEPLOYMENT_CLOUD"].lower()
         cloud_url = credentials["cloud_url"]
         cloud_pass = credentials["cloud_pass"]
-        vm_profile = vm_profile
+        self.vm_profile = vm_profile
         operating_system = osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
         parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not parent_project_pipeline_id:
@@ -46,7 +46,7 @@ class CloudProvider:
                 osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
                 osias_variables.VM_Profile["IPs_NEEDED"],
             )
-            self._verify_vm_pool_availability(self.vm_profile, public_IP_pool)
+            self._verify_vm_pool_availability(public_IP_pool)
             VIP_ADDRESS = str(public_IP_pool.pop())
             POOL_END_IP = str(public_IP_pool.pop())
             POOL_START_IP = str(public_IP_pool.pop(0))
@@ -107,7 +107,7 @@ class CloudProvider:
         servers = maas_virtual.MaasVirtual(None)
         servers.delete_virtual_machines(machine_ids, distro)
 
-    def _verify_vm_pool_availability(vm_profile, public_IP_pool):
+    def _verify_vm_pool_availability(public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
         VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
         vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
