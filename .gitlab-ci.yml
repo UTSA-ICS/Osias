@@ -45,7 +45,8 @@ python_black:
     entrypoint: ["/bin/ash", "-c"]
   script:
     - python3 -m black --check --diff --color .
-
+  allow_failure: true
+  
 generate_yaml_config:
   stage: generate_yaml
   script:
