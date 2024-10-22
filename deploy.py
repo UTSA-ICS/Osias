@@ -11,6 +11,7 @@ import maas_virtual
 import osias_variables
 import setup_configs
 import utils
+from cloud_provider import CloudProvider
 
 
 def parse_args():
@@ -307,28 +308,36 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile):
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
     IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
     file generation."""
-    parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-    if not parent_project_pipeline_id:
+    # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
+    # if not parent_project_pipeline_id:
+        # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
+    # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+    # servers = maas_virtual.MaasVirtual(None)
 
-        raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-    utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
-    servers = maas_virtual.MaasVirtual(None)
-    osias_variables.VM_Profile.update(vm_profile.items())
-    public_IP_pool = servers.get_ip_pool(
-        osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
-        osias_variables.VM_Profile["IPs_NEEDED"],
-    )
-    verify_vm_pool_availability(vm_profile, public_IP_pool)
-    VIP_ADDRESS = str(public_IP_pool.pop())
-    POOL_END_IP = str(public_IP_pool.pop())
-    POOL_START_IP = str(public_IP_pool.pop(0))
-    servers.find_virtual_machines_and_tag(
-        vm_profile,
-        parent_project_pipeline_id,
-        VIP_ADDRESS,
-        POOL_END_IP,
-        POOL_START_IP,
-    )
+    credentials = {
+        credentials["cloud_url"] = maas_url,
+        credentials["cloud_pass"] = maas_api_key
+    }
+    provider = CloudProvider(vm_profile, credentials)
+    provider.tag_virtual_servers()
+
+    # osias_variables.VM_Profile.update(vm_profile.items())
+
+    #public_IP_pool = servers.get_ip_pool(
+    #    osias_variables.VM_Profile["VM_DEPLOYMENT_CIDR"],
+    #    osias_variables.VM_Profile["IPs_NEEDED"],
+    # )
+    # verify_vm_pool_availability(vm_profile, public_IP_pool)
+    # VIP_ADDRESS = str(public_IP_pool.pop())
+    # POOL_END_IP = str(public_IP_pool.pop())
+    # POOL_START_IP = str(public_IP_pool.pop(0))
+    # servers.find_virtual_machines_and_tag(
+    #    vm_profile,
+    #    parent_project_pipeline_id,
+    #    VIP_ADDRESS,
+    #    POOL_END_IP,
+    #    POOL_START_IP,
+    # )
 
 
 def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled):
@@ -375,6 +384,7 @@ def delete_virtual_machines(
     openstack_release,
 ):
     machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
+
     servers = maas_virtual.MaasVirtual(None)
     servers.delete_virtual_machines(machine_ids, distro)
 
