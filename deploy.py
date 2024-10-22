@@ -290,16 +290,16 @@ def verify_network_connectivity(
         raise Exception("ERROR: Please check the results above and correct any errors.")
 
 
-def verify_vm_pool_availability(vm_profile, public_IP_pool):
-    internal_subnet = ".".join(vm_profile["Internal_CIDR"].split(".")[:3])
-    VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
-    vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
-    active_ips = []
-    for ip in public_IP_pool:
-        active_ips.append(utils.check_ip_active(ip))
-    active_ips.append(utils.check_ip_active(vip_internal))
-    if True in active_ips:
-        raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
+# def verify_vm_pool_availability(vm_profile, public_IP_pool):
+#     internal_subnet = ".".join(vm_profile["Internal_CIDR"].split(".")[:3])
+#     VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
+#     vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
+#     active_ips = []
+#     for ip in public_IP_pool:
+#         active_ips.append(utils.check_ip_active(ip))
+#     active_ips.append(utils.check_ip_active(vip_internal))
+#     if True in active_ips:
+#         raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
 
 
 def tag_virtual_servers(maas_url, maas_api_key, vm_profile):

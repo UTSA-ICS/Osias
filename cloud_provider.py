@@ -102,7 +102,7 @@ class CloudProvider:
         machine_ids, distro = self.delete_tags_and_ips(openstack_release)
         self.provider.delete_virtual_machines(machine_ids, distro)
 
-    def _verify_vm_pool_availability(self, public_IP_pool):
+    def verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
         VIP_ADDRESS_SUFFIX = public_IP_pool[-1].split(".")[-1]
         vip_internal = ".".join((internal_subnet, VIP_ADDRESS_SUFFIX))
