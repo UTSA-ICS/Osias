@@ -16,13 +16,17 @@ import utils
 class CloudProvider:
     def __init__(self, vm_profile, credentials: dict):
         self.vm_profile = vm_profile or {}
-        self.cloud = vm_profile.get("DEPLOYMENT_CLOUD", "default_cloud").lower()
+        self.cloud = credentials.get("cloud_provider")
+        if not self.cloud:
+            self.cloud = os.getenv("CLOUD_PROVIDER", "default_cloud").lower()
         self.openstack_release = self.vm_profile.get(
             "OPENSTACK_RELEASE", "default_release"
         )
         cloud_url = credentials["cloud_url"]
         cloud_pass = credentials["cloud_pass"]
-        operating_system = osias_variables.MAAS_VM_DISTRO.get(self.openstack_release, "default_os")
+        operating_system = osias_variables.MAAS_VM_DISTRO.get(
+            self.openstack_release, "default_os"
+        )
         self.parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         if not self.parent_project_pipeline_id:
             raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
