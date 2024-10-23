@@ -1,7 +1,6 @@
 #!/usr/bin/python3
 
 import ast
-import os
 
 
 def setup_kolla_configs(

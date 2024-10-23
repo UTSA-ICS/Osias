@@ -1,15 +1,10 @@
 #!/usr/bin/python3
 
-import argparse
-import ast
 import os
 import yaml
-from time import sleep
 
-import maas_base
 import maas_virtual
 import osias_variables
-import setup_configs
 import utils
 
 
