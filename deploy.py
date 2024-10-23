@@ -65,11 +65,11 @@ def parse_args():
         + "string composed of three parts, separated by colons.",
     )
     parser.add_argument(
-            "--CLOUD_PROVIDER",
-            type=str,
-            required=False,
-            choices=["maas", "proxmox"],
-            help="Which cloud provider to use, either 'maas' or 'proxmox'.",
+        "--CLOUD_PROVIDER",
+        type=str,
+        required=False,
+        choices=["maas", "proxmox"],
+        help="Which cloud provider to use, either 'maas' or 'proxmox'.",
     )
     parser.add_argument(
         "--DOCKER_REGISTRY_PASSWORD",
@@ -344,7 +344,9 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile, cloud_provider):
     # )
 
 
-def create_virtual_servers(maas_url, maas_api_key, vm_profile, ceph_enabled, cloud_provider):
+def create_virtual_servers(
+    maas_url, maas_api_key, vm_profile, ceph_enabled, cloud_provider
+):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
@@ -743,7 +745,10 @@ def main():
     elif args.operation == "tag_virtual_servers":
         if args.MAAS_URL and args.MAAS_API_KEY:
             tag_virtual_servers(
-                args.MAAS_URL, args.MAAS_API_KEY, ast.literal_eval(args.VM_PROFILE), args.CLOUD_PROVIDER
+                args.MAAS_URL,
+                args.MAAS_API_KEY,
+                ast.literal_eval(args.VM_PROFILE),
+                args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(

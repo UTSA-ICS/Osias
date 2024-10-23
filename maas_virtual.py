@@ -72,9 +72,9 @@ class MaasVirtual(MaasBase):
                 vms_needed,
             )
             max_vm_supported_in_pod = (
-                lambda max_vm_supported_in_pod: max_vm_supported_in_pod
-                if (max_vm_supported_in_pod >= 0)
-                else 0
+                lambda max_vm_supported_in_pod: (
+                    max_vm_supported_in_pod if (max_vm_supported_in_pod >= 0) else 0
+                )
             )(max_vm_supported_in_pod)
             print(f"Pod {pod['id']}, can support {max_vm_supported_in_pod} VM's.")
             pods_needed.extend([pod["id"]] * int(max_vm_supported_in_pod))
