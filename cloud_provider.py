@@ -2,7 +2,6 @@
 
 import argparse
 import ast
-import logging
 import os
 import yaml
 from time import sleep
@@ -18,10 +17,6 @@ class CloudProvider:
     def __init__(self, vm_profile, credentials: dict):
         self.vm_profile = vm_profile or {}
         self.cloud = credentials.get("cloud_provider")
-        if not self.cloud:
-            raise ValueError("ERROR: cloud_provider is missing in credentials.")
-
-        logging.debug(f"Initialized CloudProvider with cloud: {self.cloud}")
         self.openstack_release = self.vm_profile.get(
             "OPENSTACK_RELEASE", "default_release"
         )
