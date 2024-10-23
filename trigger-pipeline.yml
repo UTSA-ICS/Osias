@@ -26,7 +26,6 @@ handle-yaml:
   script:
     - echo "This job only exists to handle the YAML"
     - echo "$MULTINODE"
-    - echo "$CLOUD_PROVIDER"
   artifacts:
     paths:
       - deploy*.yml
@@ -42,7 +41,6 @@ tag_virtual_servers:
     VM_PROFILE_PREVIOUS_RELEASE: $VM_PROFILE_PREVIOUS_RELEASE
     VM_PROFILE: $VM_PROFILE
     MULTINODE: $MULTINODE
-    CLOUD_PROVIDER: $CLOUD_PROVIDER
   script:
     - |
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
@@ -64,7 +62,6 @@ delete_tags_and_ips:
     - pip3 install PyYAML timeout_decorator
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
-    CLOUD_PROVIDER: $CLOUD_PROVIDER
   script:
     - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
     - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
