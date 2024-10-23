@@ -34,7 +34,7 @@ tag_virtual_servers:
   stage: prepare
   image: utsaics/maas:2.8
   before_script:
-    - pip3 install PyYAML timeout_decorator
+    - pip3 install PyYAML timeout_decorator proxmoxer
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
     VM_PROFILE_CURRENT_RELEASE: $VM_PROFILE_CURRENT_RELEASE
@@ -44,10 +44,10 @@ tag_virtual_servers:
   script:
     - |
       if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_CURRENT_RELEASE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE_PREVIOUS_RELEASE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
       else
-          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+          python3 -u deploy.py tag_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
       fi
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -59,12 +59,12 @@ delete_tags_and_ips:
   stage: cleanup
   image: utsaics/maas:2.8
   before_script:
-    - pip3 install PyYAML timeout_decorator
+    - pip3 install PyYAML timeout_decorator proxmoxer
   variables:
     PARENT_PIPELINE_ID: $CI_PIPELINE_ID
   script:
     - echo "This job only exists to cleanup IPs and tagging with a failed prepare"
-    - python3 -u deploy.py delete_tags_and_ips --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+    - python3 -u deploy.py delete_tags_and_ips --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE_CURRENT_RELEASE != null'
       when: on_failure
@@ -84,8 +84,8 @@ deploy:<RELEASE_NAME>:
     REPROVISION_SERVERS: $REPROVISION_SERVERS
     VM_PROFILE: <RELEASE_VM_PROFILE>
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    MAAS_URL: $MAAS_URL
-    MAAS_API_KEY: $MAAS_API_KEY
+    CLOUD_URL: $CLOUD_URL
+    CLOUD_PASS: $CLOUD_PASS
     CLOUD_PROVIDER: $CLOUD_PROVIDER
 
 deploy:<PREVIOUS_RELEASE_NAME>:
@@ -103,8 +103,8 @@ deploy:<PREVIOUS_RELEASE_NAME>:
     REPROVISION_SERVERS: $REPROVISION_SERVERS
     VM_PROFILE: $VM_PROFILE_PREVIOUS_RELEASE
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
-    MAAS_URL: $MAAS_URL
-    MAAS_API_KEY: $MAAS_API_KEY
+    CLOUD_URL: $CLOUD_URL
+    CLOUD_PASS: $CLOUD_PASS
     CLOUD_PROVIDER: $CLOUD_PROVIDER
   rules:
     - if: '($DEPLOY_MULTIPLE_RELEASES == "true")'

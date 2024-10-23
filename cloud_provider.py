@@ -6,7 +6,7 @@ import yaml
 import maas_virtual
 import osias_variables
 import utils
-
+from cloud_proxmox import ProxMox
 
 class CloudProvider:
     def __init__(self, vm_profile, credentials: dict):
@@ -28,6 +28,10 @@ class CloudProvider:
             cloud_user = "admin"
             utils.run_cmd(f"maas login {cloud_user} {cloud_url} {cloud_pass}")
             self.provider = maas_virtual.MaasVirtual(operating_system)
+
+        if self.cloud == "proxmox":
+            cloud_user = "OSIAS@pve"
+            self.provider = ProxMox()
 
     def tag_virtual_servers(self):
         """Find virtual machines and tag them with the pipeline ID and openstack branch.
@@ -62,7 +66,7 @@ class CloudProvider:
         # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
         # if not parent_project_pipeline_id:
         # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-        # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+        # utils.run_cmd(f"maas login admin {CLOUD_URL} {cloud_pass}")
         # servers = maas_virtual.MaasVirtual(
         # osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
         # )

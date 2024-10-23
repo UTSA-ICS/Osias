@@ -56,7 +56,8 @@ create_osias_multinode_file:
     - .base_setup
   image: utsaics/maas:2.8
   script:
-    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+    - pip3 install proxmoxer
+    - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
     - if: '$CI_PIPELINE_SOURCE == "push" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -72,7 +73,8 @@ reprovision_servers:
     - .base_setup
   image: utsaics/maas:2.8
   script:
-    - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+    - pip3 install proxmoxer
+    - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$MULTINODE == "" || $MULTINODE == null'
       when: never
@@ -214,7 +216,8 @@ delete_virtual_machines:
   extends:
     - .base_setup
   script:
-    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --MAAS_URL "$MAAS_URL" --MAAS_API_KEY "$MAAS_API_KEY" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+    - pip3 install proxmoxer
+    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always

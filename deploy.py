@@ -56,7 +56,7 @@ def parse_args():
         + "API version.",
     )
     parser.add_argument(
-        "--MAAS_API_KEY",
+        "--CLOUD_PASS",
         type=str,
         required=False,
         help="The credentials, also known as the API key, for the remote "
@@ -226,12 +226,12 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift):
 
 def reprovision_servers(
     maas_url,
-    maas_api_key,
+    cloud_pass,
     servers_public_ip,
     distro,
     wipe_physical_servers,
 ):
-    utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
+    utils.run_cmd("maas login admin {} {}".format(maas_url, cloud_pass))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
     if wipe_physical_servers:
@@ -306,7 +306,7 @@ def verify_network_connectivity(
 #         raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
 
 
-def tag_virtual_servers(maas_url, maas_api_key, vm_profile, cloud_provider):
+def tag_virtual_servers(maas_url, cloud_pass, vm_profile, cloud_provider):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
     If VMs aren't available, they will be created.  Additionally, this will find an available
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
@@ -315,12 +315,12 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile, cloud_provider):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-    # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+    # utils.run_cmd(f"maas login admin {maas_url} {cloud_pass}")
     # servers = maas_virtual.MaasVirtual(None)
 
     credentials = {}
     credentials["cloud_url"] = maas_url
-    credentials["cloud_pass"] = maas_api_key
+    credentials["cloud_pass"] = cloud_pass
     credentials["cloud_provider"] = cloud_provider
     provider = CloudProvider(vm_profile, credentials)
     provider.tag_virtual_servers()
@@ -345,12 +345,12 @@ def tag_virtual_servers(maas_url, maas_api_key, vm_profile, cloud_provider):
 
 
 def create_virtual_servers(
-    maas_url, maas_api_key, vm_profile, ceph_enabled, cloud_provider
+    maas_url, cloud_pass, vm_profile, ceph_enabled, cloud_provider
 ):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-    # utils.run_cmd(f"maas login admin {maas_url} {maas_api_key}")
+    # utils.run_cmd(f"maas login admin {maas_url} {cloud_pass}")
     # servers = maas_virtual.MaasVirtual(
     #     osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     # )
@@ -376,7 +376,7 @@ def create_virtual_servers(
 
     credentials = {
         "cloud_url": maas_url,
-        "cloud_pass": maas_api_key,
+        "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
     provider = CloudProvider(vm_profile, credentials)
@@ -385,19 +385,19 @@ def create_virtual_servers(
 
 def delete_tags_and_ips(
     maas_url,
-    maas_api_key,
+    cloud_pass,
     cloud_provider,
     openstack_release,
 ):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
-    # utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
+    # utils.run_cmd("maas login admin {} {}".format(maas_url, cloud_pass))
     # servers = maas_virtual.MaasVirtual(None)
     # return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
     credentials = {
         "cloud_url": maas_url,
-        "cloud_pass": maas_api_key,
+        "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
     provider = CloudProvider({}, credentials)
@@ -406,17 +406,17 @@ def delete_tags_and_ips(
 
 def delete_virtual_machines(
     maas_url,
-    maas_api_key,
+    cloud_pass,
     cloud_provider,
     openstack_release,
 ):
-    # machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
+    # machine_ids, distro = delete_tags_and_ips(maas_url, cloud_pass, openstack_release)
     #
     # servers = maas_virtual.MaasVirtual(None)
     # servers.delete_virtual_machines(machine_ids, distro)
     credentials = {
         "cloud_url": maas_url,
-        "cloud_pass": maas_api_key,
+        "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
     provider = CloudProvider({}, credentials)
@@ -526,19 +526,19 @@ def main():
         cmd = "".join((args.operation, ".sh"))
 
         if args.operation == "reprovision_servers":
-            if args.MAAS_URL and args.MAAS_API_KEY:
+            if args.CLOUD_URL and args.CLOUD_PASS:
                 reprovision_servers(
-                    args.MAAS_URL,
-                    args.MAAS_API_KEY,
+                    args.CLOUD_URL,
+                    args.CLOUD_PASS,
                     servers_public_ip,
                     MAAS_VM_DISTRO,
                     WIPE_PHYSICAL_SERVERS,
                 )
             else:
                 raise Exception(
-                    "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                    "ERROR: CLOUD_PASS and/or CLOUD_URL argument not specified.\n"
                     + "If operation is specified as [reprovision_servers] then "
-                    + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                    + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
                 )
         elif args.operation == "bootstrap_networking":
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
@@ -659,18 +659,18 @@ def main():
                 ],
             )
         elif args.operation == "delete_virtual_machines":
-            if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
+            if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
                 delete_virtual_machines(
-                    args.MAAS_URL,
-                    args.MAAS_API_KEY,
+                    args.CLOUD_URL,
+                    args.CLOUD_PASS,
                     args.CLOUD_PROVIDER,
                     OPENSTACK_RELEASE,
                 )
             else:
                 raise Exception(
-                    "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                    "ERROR: CLOUD_PASS and/or CLOUD_URL argument not specified.\n"
                     + "If operation is specified as [delete_virtual_machines] then "
-                    + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                    + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
                 )
         elif args.operation == "copy_files":
             if args.file_path:
@@ -724,7 +724,7 @@ def main():
                 "test_basic_functionality.sh", servers_public_ip[0]
             )
     elif args.operation == "create_virtual_servers":
-        if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
+        if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
             VM_PROFILE = utils.merge_dictionaries(
                 osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
             )
@@ -732,44 +732,44 @@ def main():
             required_keys = ["VM_DEPLOYMENT_CIDR"]
             utils.check_required_keys_not_null(required_keys, VM_PROFILE)
             create_virtual_servers(
-                args.MAAS_URL,
-                args.MAAS_API_KEY,
+                args.CLOUD_URL,
+                args.CLOUD_PASS,
                 VM_PROFILE,
                 ceph_enabled,
                 args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(
-                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                "ERROR: CLOUD_PASS and/or CLOUD_URL argument not specified.\n"
                 + "If operation is specified as [create_virtual_servers] then "
-                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
             )
     elif args.operation == "tag_virtual_servers":
-        if args.MAAS_URL and args.MAAS_API_KEY:
+        if args.CLOUD_URL and args.CLOUD_PASS:
             tag_virtual_servers(
-                args.MAAS_URL,
-                args.MAAS_API_KEY,
+                args.CLOUD_URL,
+                args.CLOUD_PASS,
                 ast.literal_eval(args.VM_PROFILE),
                 args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(
-                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                "ERROR: CLOUD_PASS and/or CLOUD_URL argument not specified.\n"
                 + "If operation is specified as [reprovision_servers] then "
-                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
             )
     elif args.operation == "delete_tags_and_ips":
-        if args.MAAS_URL and args.MAAS_API_KEY and args.CLOUD_PROVIDER:
+        if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
             delete_tags_and_ips(
-                args.MAAS_URL,
-                args.MAAS_API_KEY,
+                args.CLOUD_URL,
+                args.CLOUD_PASS,
                 args.CLOUD_PROVIDER,
             )
         else:
             raise Exception(
-                "ERROR: MAAS_API_KEY and/or MAAS_URL argument not specified.\n"
+                "ERROR: CLOUD_PASS and/or CLOUD_URL argument not specified.\n"
                 + "If operation is specified as [delete_virtual_machines] then "
-                + "the optional arguments [--MAAS_URL] and [--MAAS_API_KEY] have to be set."
+                + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
             )
     elif args.operation == "run_command":
         # If command is specified then only perform it
