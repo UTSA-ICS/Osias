@@ -37,7 +37,6 @@ else
 
     sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${release}/g" trigger-pipeline.yml
-    sed -i "s/<CLOUD_PROVIDER>/${CLOUD_PROVIDER}/g" trigger-pipeline.yml
 
     cp deploy-pipeline.yml deploy-"${release}".yml
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
