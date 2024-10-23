@@ -2,7 +2,6 @@
 
 import argparse
 import ast
-import os
 from time import sleep
 
 import maas_base
@@ -522,7 +521,6 @@ def main():
         CEPH_RELEASE = config.get_variables(
             variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE
         )
-        IPs_NEEDED = osias_variables.VM_Profile["IPs_NEEDED"]
         KOLLA_BASE_DISTRO = osias_variables.KOLLA_BASE_DISTRO[OPENSTACK_RELEASE]
 
         cmd = "".join((args.operation, ".sh"))

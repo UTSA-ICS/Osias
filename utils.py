@@ -171,7 +171,6 @@ def run_cmd(command, test=True, output=True):
 
 def run_cmd_locally(command, test=True, output=True):
     print(f"\nCommand Issued: \n\t{command}\n")
-    stdout = None
     process = subprocess.Popen(command, stdout=subprocess.PIPE)
     for c in iter(lambda: process.stdout.read(1), b""):
         sys.stdout.buffer.write(c)
