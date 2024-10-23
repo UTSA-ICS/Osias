@@ -26,6 +26,7 @@ handle-yaml:
   script:
     - echo "This job only exists to handle the YAML"
     - echo "$MULTINODE"
+    - echo "CLOUD_PROVIDER: $CLOUD_PROVIDER"
   artifacts:
     paths:
       - deploy*.yml
@@ -73,8 +74,6 @@ delete_tags_and_ips:
 
 deploy:<RELEASE_NAME>:
   stage: deploy
-  script:
-    - echo "CLOUD_PROVIDER: ${CLOUD_PROVIDER}"
   trigger:
     include:
       - artifact: deploy-<RELEASE_NAME>.yml
@@ -94,8 +93,6 @@ deploy:<RELEASE_NAME>:
 
 deploy:<PREVIOUS_RELEASE_NAME>:
   stage: deploy
-  script:
-    - echo "CLOUD_PROVIDER: ${CLOUD_PROVIDER}"
   trigger:
     include:
       - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
