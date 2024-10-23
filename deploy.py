@@ -2,6 +2,7 @@
 
 import argparse
 import ast
+import os
 from time import sleep
 
 import maas_base
@@ -383,14 +384,23 @@ def create_virtual_servers(
     provider.create_virtual_servers(ceph_enabled)
 
 
-def delete_tags_and_ips(maas_url, maas_api_key, cloud_provider, openstack_release=None):
+def delete_tags_and_ips(
+    maas_url,
+    maas_api_key,
+    cloud_provider=None,
+    openstack_release=None,
+):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
     # utils.run_cmd("maas login admin {} {}".format(maas_url, maas_api_key))
     # servers = maas_virtual.MaasVirtual(None)
     # return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
-
+    resolved_provider = cloud_provider or os.getenv("CLOUD_PROVIDER", "").lower()
+    if not resolved_provider:
+        raise ValueError(
+            "ERROR: CLOUD_PROVIDER must be set either in the environment or passed explicitly."
+        )
     credentials = {
         "cloud_url": maas_url,
         "cloud_pass": maas_api_key,
@@ -403,14 +413,18 @@ def delete_tags_and_ips(maas_url, maas_api_key, cloud_provider, openstack_releas
 def delete_virtual_machines(
     maas_url,
     maas_api_key,
-    cloud_provider,
-    openstack_release,
+    cloud_provider=None,
+    openstack_release=None,
 ):
     # machine_ids, distro = delete_tags_and_ips(maas_url, maas_api_key, openstack_release)
     #
     # servers = maas_virtual.MaasVirtual(None)
     # servers.delete_virtual_machines(machine_ids, distro)
-
+    resolved_provider = cloud_provider or os.getenv("CLOUD_PROVIDER", "").lower()
+    if not resolved_provider:
+        raise ValueError(
+            "ERROR: CLOUD_PROVIDER must be set either in the environment or passed explicitly."
+        )
     credentials = {
         "cloud_url": maas_url,
         "cloud_pass": maas_api_key,
