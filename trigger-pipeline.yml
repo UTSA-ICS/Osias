@@ -26,6 +26,7 @@ handle-yaml:
   script:
     - echo "This job only exists to handle the YAML"
     - echo "$MULTINODE"
+    - echo "$CLOUD_PROVIDER"
   artifacts:
     paths:
       - deploy*.yml
