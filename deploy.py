@@ -48,7 +48,7 @@ def parse_args():
         help="path of files to be copied from the deployment node",
     )
     parser.add_argument(
-        "--MAAS_URL",
+        "--CLOUD_URL",
         type=str,
         required=False,
         help="The URL of the remote API, e.g. http://example.com/MAAS/ or "
@@ -225,13 +225,13 @@ def deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift):
 
 
 def reprovision_servers(
-    maas_url,
+    cloud_url,
     cloud_pass,
     servers_public_ip,
     distro,
     wipe_physical_servers,
 ):
-    utils.run_cmd("maas login admin {} {}".format(maas_url, cloud_pass))
+    utils.run_cmd("maas login admin {} {}".format(cloud_url, cloud_pass))
     servers = maas_base.MaasBase(distro)
     servers.set_public_ip(servers_public_ip)
     if wipe_physical_servers:
@@ -306,7 +306,7 @@ def verify_network_connectivity(
 #         raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
 
 
-def tag_virtual_servers(maas_url, cloud_pass, vm_profile, cloud_provider):
+def tag_virtual_servers(cloud_url, cloud_pass, vm_profile, cloud_provider):
     """Find virtual machines and tag them with the pipeline ID and openstack branch.
     If VMs aren't available, they will be created.  Additionally, this will find an available
     IP range and create tags associated to them. An IP range will be used where the VIP is the last
@@ -315,11 +315,11 @@ def tag_virtual_servers(maas_url, cloud_pass, vm_profile, cloud_provider):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-    # utils.run_cmd(f"maas login admin {maas_url} {cloud_pass}")
+    # utils.run_cmd(f"maas login admin {cloud_url} {cloud_pass}")
     # servers = maas_virtual.MaasVirtual(None)
 
     credentials = {}
-    credentials["cloud_url"] = maas_url
+    credentials["cloud_url"] = cloud_url
     credentials["cloud_pass"] = cloud_pass
     credentials["cloud_provider"] = cloud_provider
     provider = CloudProvider(vm_profile, credentials)
@@ -345,12 +345,12 @@ def tag_virtual_servers(maas_url, cloud_pass, vm_profile, cloud_provider):
 
 
 def create_virtual_servers(
-    maas_url, cloud_pass, vm_profile, ceph_enabled, cloud_provider
+    cloud_url, cloud_pass, vm_profile, ceph_enabled, cloud_provider
 ):
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-    # utils.run_cmd(f"maas login admin {maas_url} {cloud_pass}")
+    # utils.run_cmd(f"maas login admin {cloud_url} {cloud_pass}")
     # servers = maas_virtual.MaasVirtual(
     #     osias_variables.MAAS_VM_DISTRO[vm_profile["OPENSTACK_RELEASE"]]
     # )
@@ -375,7 +375,7 @@ def create_virtual_servers(
     # f.close()
 
     credentials = {
-        "cloud_url": maas_url,
+        "cloud_url": cloud_url,
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
@@ -384,7 +384,7 @@ def create_virtual_servers(
 
 
 def delete_tags_and_ips(
-    maas_url,
+    cloud_url,
     cloud_pass,
     cloud_provider,
     openstack_release,
@@ -392,11 +392,11 @@ def delete_tags_and_ips(
     # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
     # if not parent_project_pipeline_id:
     #     raise Exception("ERROR: PARENT_PIPELINE_ID is needed.")
-    # utils.run_cmd("maas login admin {} {}".format(maas_url, cloud_pass))
+    # utils.run_cmd("maas login admin {} {}".format(cloud_url, cloud_pass))
     # servers = maas_virtual.MaasVirtual(None)
     # return servers.delete_tags_and_ips(parent_project_pipeline_id, openstack_release)
     credentials = {
-        "cloud_url": maas_url,
+        "cloud_url": cloud_url,
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
@@ -405,17 +405,17 @@ def delete_tags_and_ips(
 
 
 def delete_virtual_machines(
-    maas_url,
+    cloud_url,
     cloud_pass,
     cloud_provider,
     openstack_release,
 ):
-    # machine_ids, distro = delete_tags_and_ips(maas_url, cloud_pass, openstack_release)
+    # machine_ids, distro = delete_tags_and_ips(cloud_url, cloud_pass, openstack_release)
     #
     # servers = maas_virtual.MaasVirtual(None)
     # servers.delete_virtual_machines(machine_ids, distro)
     credentials = {
-        "cloud_url": maas_url,
+        "cloud_url": cloud_url,
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
