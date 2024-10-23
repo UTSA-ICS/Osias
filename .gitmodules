@@ -1,0 +1,3 @@
+[submodule "python_api_wrappers"]
+	path = python_api_wrappers
+	url = git@gitlab.com:utsa-ics/python_api_wrappers.git
