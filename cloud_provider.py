@@ -6,7 +6,7 @@ import yaml
 import maas_virtual
 import osias_variables
 import utils
-from cloud_proxmox import ProxMox
+
 
 class CloudProvider:
     def __init__(self, vm_profile, credentials: dict):
@@ -24,14 +24,9 @@ class CloudProvider:
         if not self.parent_project_pipeline_id:
             raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         if self.cloud == "maas":
-            # deploy.py stuff
             cloud_user = "admin"
             utils.run_cmd(f"maas login {cloud_user} {cloud_url} {cloud_pass}")
             self.provider = maas_virtual.MaasVirtual(operating_system)
-
-        if self.cloud == "proxmox":
-            cloud_user = "OSIAS@pve"
-            self.provider = ProxMox()
 
     def tag_virtual_servers(self):
         """Find virtual machines and tag them with the pipeline ID and openstack branch.
@@ -39,10 +34,6 @@ class CloudProvider:
         IP range and create tags associated to them. An IP range will be used where the VIP is the last
         IP and the pool start IP is the beginning, the pool end IP will be calculated in the multinode
         file generation."""
-        # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-        # if not parent_project_pipeline_id:
-
-        # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
         osias_variables.VM_Profile.update(self.vm_profile.items())
 
         if self.cloud == "maas":
@@ -54,30 +45,24 @@ class CloudProvider:
             VIP_ADDRESS = str(public_IP_pool.pop())
             POOL_END_IP = str(public_IP_pool.pop())
             POOL_START_IP = str(public_IP_pool.pop(0))
-        self.provider.find_virtual_machines_and_tag(
-            self.vm_profile,
-            self.parent_project_pipeline_id,
-            VIP_ADDRESS,
-            POOL_END_IP,
-            POOL_START_IP,
-        )
+            self.provider.find_virtual_machines_and_tag(
+                self.vm_profile,
+                self.parent_project_pipeline_id,
+                VIP_ADDRESS,
+                POOL_END_IP,
+                POOL_START_IP,
+            )
 
     def create_virtual_servers(self, ceph_enabled):
-        # parent_project_pipeline_id = os.getenv("PARENT_PIPELINE_ID", "")
-        # if not parent_project_pipeline_id:
-        # raise Exception("ERROR: <PARENT_PIPELINE_ID> is needed, please set it.")
-        # utils.run_cmd(f"maas login admin {CLOUD_URL} {cloud_pass}")
-        # servers = maas_virtual.MaasVirtual(
-        # osias_variables.MAAS_VM_DISTRO[self.vm_profile["OPENSTACK_RELEASE"]]
-        # )
-        (
-            server_dict,
-            VIP_ADDRESS,
-            POOL_END_IP,
-            POOL_START_IP,
-        ) = self.provider.find_virtual_machines_and_deploy(
-            self.vm_profile, self.parent_project_pipeline_id
-        )
+        if self.cloud == "maas":
+            (
+                server_dict,
+                VIP_ADDRESS,
+                POOL_END_IP,
+                POOL_START_IP,
+            ) = self.provider.find_virtual_machines_and_deploy(
+                self.vm_profile, self.parent_project_pipeline_id
+            )
         print(f"server_dict: {server_dict}")
         if ceph_enabled is None:
             ceph_enabled = False
