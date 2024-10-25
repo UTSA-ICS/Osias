@@ -85,7 +85,7 @@ reprovision_servers:
     - if: '$CI_PIPELINE_SOURCE == "schedule" && ($MULTINODE != "" || $MULTINODE != null)'
     - if: '$CI_PIPELINE_SOURCE == "web" && ($MULTINODE != "" || $MULTINODE != null)'
 
-.bootstrap_networking:
+bootstrap_networking:
   stage: bootstrap_networking
   extends:
     - .base_setup
@@ -100,7 +100,7 @@ verify_connectivity:
   script:
     - python3 -u deploy.py verify_connectivity --config "$MULTINODE"
 
-.bootstrap:openstack:
+bootstrap:openstack:
   stage: bootstrap_openstack
   extends:
     - .base_setup
@@ -113,7 +113,7 @@ verify_connectivity:
         python3 -u deploy.py bootstrap_openstack --config "$MULTINODE" --DOCKER_REGISTRY_PASSWORD "$DOCKER_REGISTRY_PASSWORD"
       fi
 
-.ceph:deploy:
+ceph:deploy:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -127,7 +127,7 @@ verify_connectivity:
   rules:
     - if: '$CEPH == "true"'
 
-.openstack:pull:
+openstack:pull:
   stage: pre_deploy
   extends:
     - .base_setup
@@ -136,7 +136,7 @@ verify_connectivity:
     # Pull openstack kolla images
     - python3 -u deploy.py pre_deploy_openstack --config "$MULTINODE"
 
-.deploy:openstack:
+deploy:openstack:
   stage: deploy
   extends:
     - .base_setup
@@ -146,7 +146,7 @@ verify_connectivity:
     # 2. Run Kolla deploy
     - python3 -u deploy.py deploy_openstack --config "$MULTINODE"
 
-.post_deploy:openstack:
+post_deploy:openstack:
   stage: post_deploy
   extends:
     - .base_setup
@@ -154,14 +154,14 @@ verify_connectivity:
     # Setup the openstack cloud with public network, images, flavors etc.
     - python3 -u deploy.py post_deploy_openstack --config "$MULTINODE"
 
-.test:setup:
+test:setup:
   stage: test_setup
   extends:
     - .base_setup
   script:
     - python3 -u deploy.py test_setup --config "$MULTINODE"
 
-.test:refstack:
+test:refstack:
   stage: test_verifications
   extends:
     - .base_setup
@@ -182,7 +182,7 @@ verify_connectivity:
     when: always
   allow_failure: true
 
-.test:general_functionality:
+test:general_functionality:
   stage: test_verifications
   extends:
     - .base_setup
@@ -190,7 +190,7 @@ verify_connectivity:
     # Run basic tests to ensure that the openstack deploy on target servers is functional from outside of servers
     - python3 -u deploy.py test_functionality --config "$MULTINODE"
 
-.test:stress:
+test:stress:
   stage: test_stress
   extends:
     - .base_setup
@@ -200,7 +200,7 @@ verify_connectivity:
     - if: '$CI_PIPELINE_SOURCE == "master"'
       allow_failure: true
 
-.sleep_on_failure:
+sleep_on_failure:
   stage: sleep_on_failure
   tags:
     - shell
@@ -222,6 +222,6 @@ delete_virtual_machines:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always
     - if: $MULTINODE
-      when: always
+      when: never
     - when: manual
       allow_failure: true
