@@ -38,13 +38,11 @@ shellcheck:
       find . -name .git -type d -prune -o -type f -name \*.sh -print0 |
       xargs -0 -r -n1 shellcheck -e SC1091 -e SC2024 --color
 
-python_black:
+ruff:
   stage: static_analysis
-  image:
-    name: cytopia/black
-    entrypoint: ["/bin/ash", "-c"]
+  image: pipelinecomponents/ruff:latest
   script:
-    - python3 -m black --check --diff --color .
+    - ruff check --output-format=gitlab .
   allow_failure: true
 
 generate_yaml_config:
