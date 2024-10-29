@@ -159,7 +159,7 @@ class MaasBase:
             self._run_maas_command(
                 f"machine deploy {machine} distro_series={self.distro}"
             )
-        machine_info = self._waiting(server_list[:], "Deployed")
+        self._waiting(server_list[:], "Deployed")
 
     def get_machines_info(self):
         return self._run_maas_command("machines read")

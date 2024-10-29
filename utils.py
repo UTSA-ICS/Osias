@@ -187,9 +187,7 @@ def check_ip_active(ip):
 
 
 def check_private_ip_active(public_ip: str, private_ips: list):
-    result = dict()
-    result["active"] = []
-    result["inactive"] = []
+    result = {"active": [], "inactive": []}
     for private_ip in private_ips:
         try:
             run_cmd_on_server(
@@ -197,8 +195,9 @@ def check_private_ip_active(public_ip: str, private_ips: list):
             )
             print(f"INFO: Ping shows {private_ip} is in use (packets received)!")
             result["active"].append(private_ip)
-        except:
+        except Exception as e:
             print(f"INFO: Ping shows {private_ip} is NOT in use (packets lost)!")
+            print(f"DEBUG: Exception occurred: {e}")
             result["inactive"].append(private_ip)
     return result
 
