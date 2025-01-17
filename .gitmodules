@@ -1,4 +1,4 @@
-[submodule "python_api_wrappers"]
-	path = python_api_wrappers
-	url = git@gitlab.com:utsa-ics/python_api_wrappers.git
-	branch = Testbranch
+[submodule "cloud_provider"]
+	path = cloud_provider
+	url = ../../cloud_provider.git
+	branch = main

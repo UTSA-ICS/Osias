@@ -8,7 +8,7 @@ import maas_base
 import osias_variables
 import setup_configs
 import utils
-from cloud_provider import CloudProvider
+from cloud import Cloud
 
 
 def parse_args():
