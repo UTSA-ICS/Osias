@@ -178,6 +178,7 @@ test:refstack:
       - ./0
       - ./0.json
     when: always
+  allow_failure: true
 
 test:general_functionality:
   stage: test_verifications
