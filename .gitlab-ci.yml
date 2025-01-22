@@ -26,7 +26,7 @@ workflow:
 
 stages:
   - static_analysis
-  - tag_virtual_servers
+#  - tag_virtual_servers
   - generate_yaml
   - deploy_pipeline
 
