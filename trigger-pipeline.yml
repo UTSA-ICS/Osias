@@ -14,7 +14,7 @@ workflow:
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
 stages:
-#  - prepare
+  - prepare
   - cleanup
   - deploy
 
