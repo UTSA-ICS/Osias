@@ -6,6 +6,11 @@ import yaml
 import maas_virtual
 import osias_variables
 import utils
+from cloud_provider.cloud_provider import CloudProvider as PythonAPI
+from cloud_provider.cloud_proxmox import ProxMox
+from cloud_provider.vm_profile import generate_vm_specs
+import variables
+
 
 
 class Cloud:
@@ -27,6 +32,17 @@ class Cloud:
             cloud_user = "admin"
             utils.run_cmd(f"maas login {cloud_user} {cloud_url} {cloud_pass}")
             self.provider = maas_virtual.MaasVirtual(operating_system)
+
+        elif self.cloud == "proxmox":
+            cloud_url = os.getenv("PROXMOX_CLOUD_URL")
+            cloud_user = os.getenv("PROXMOX_CLOUD_USER")
+            cloud_pass = os.getenv("PROXMOX_CLOUD_PASS")
+            self.provider = PythonAPI(
+                provider = ProxMox,
+                url = cloud_url,
+                username= cloud_user,
+                password = cloud_pass,
+            )
 
     def tag_virtual_servers(self):
         """Find virtual machines and tag them with the pipeline ID and openstack branch.
@@ -63,6 +79,13 @@ class Cloud:
             ) = self.provider.find_virtual_machines_and_deploy(
                 self.vm_profile, self.parent_project_pipeline_id
             )
+
+        if self.cloud == "proxmox":
+            POOL_START_IP = "10.245.124.237"
+            POOL_END_IP = "10.245.124.248"
+            VIP_ADDRESS = "10.245.124.249"
+            self.vm_profile = self.create_vm_profile()
+            server_dict = self.provider.create_vms(self.vm_profile)
         print(f"server_dict: {server_dict}")
         if ceph_enabled is None:
             ceph_enabled = False
@@ -99,3 +122,39 @@ class Cloud:
         active_ips.append(utils.check_ip_active(vip_internal))
         if True in active_ips:
             raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
+
+    def generate_vm_profile(self):
+        """
+        Generate VM profiles for the given number of VMs using the provided specifications
+        and create the VM specs using generate_vm_specs.
+        """
+        profiles = []
+
+        # Get the number of VMs to generate
+        number_of_vms = int(self.vm_profile.get("Number_of_VM_Servers", 1))
+
+        # Generate VM profiles
+        for i in range(number_of_vms):
+            vm_name = f"{variables.PROXMOX_NAME}_{i + 1}_{self.parent_pipeline_id}"
+            profiles.append(
+                {
+                    "name": vm_name,
+                    "count": 1,
+                    "hd": variables.PROXMOX_HD,
+                    "os": variables.PROXMOX_TEMPLATE_NAME,
+                    "ram": variables.PROXMOX_RAM,
+                    "vCPU": variables.PROXMOX_VCPU,
+                    "network": {"bridge_name": variables.PROXMOX_NETWORK_BRIDGE},
+                }
+            )
+
+        # Create args with the cloud provider
+        class Args:
+            cloud_vendor = self.cloud
+
+        args = Args()
+
+        # Generate VM specs using the generated profiles
+        result = generate_vm_specs(args, profiles=profiles)
+
+        return result

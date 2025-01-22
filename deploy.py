@@ -304,7 +304,7 @@ def tag_virtual_servers(cloud_url, cloud_pass, vm_profile, cloud_provider):
     credentials["cloud_url"] = cloud_url
     credentials["cloud_pass"] = cloud_pass
     credentials["cloud_provider"] = cloud_provider
-    provider = CloudProvider(vm_profile, credentials)
+    provider = Cloud(vm_profile, credentials)
     provider.tag_virtual_servers()
 
 
@@ -316,7 +316,7 @@ def create_virtual_servers(
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
-    provider = CloudProvider(vm_profile, credentials)
+    provider = Cloud(vm_profile, credentials)
     provider.create_virtual_servers(ceph_enabled)
 
 
@@ -331,7 +331,7 @@ def delete_tags_and_ips(
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
-    provider = CloudProvider({}, credentials)
+    provider = Cloud({}, credentials)
     return provider.delete_tags_and_ips(openstack_release)
 
 

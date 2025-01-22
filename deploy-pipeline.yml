@@ -33,6 +33,12 @@ stages:
 
 .base_setup:
   before_script:
+     # Install requirements for submodule
+    - pip3 install -qr cloud_provider/requirements.txt
+     # Initialize and update the submodule to ensure it's available
+    - git submodule update --init --recursive
+    - # Add the cloud_provider submodule to PYTHONPATH
+    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/cloud_provider"
     # Setup and add SSH_PRIVATE_KEY to ssh agent
     - "which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )"
     - eval $(ssh-agent -s)
@@ -56,7 +62,6 @@ create_osias_multinode_file:
     - .base_setup
   image: utsaics/maas:2.8
   script:
-    - pip3 install proxmoxer
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
