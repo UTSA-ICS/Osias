@@ -69,7 +69,7 @@ create_osias_multinode_file:
   image: <CLOUD_PROVIDER_IMAGE>
   script:
     - pip3 install proxmoxer
-    - ssh-keygen -y -f id_rsa > id_rsa.pub
+    - ssh-keygen -y -f "$HOME"/.ssh/id_rsa > "$HOME"/id_rsa.pub
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
