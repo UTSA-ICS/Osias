@@ -135,7 +135,7 @@ class Cloud:
 
         # Generate VM profiles
         for i in range(number_of_vms):
-            vm_name = f"{variables.PROXMOX_NAME}_{i + 1}_{self.parent_pipeline_id}"
+            vm_name = f"{variables.PROXMOX_NAME}_{i + 1}_{self.parent_project_pipeline_id}"
             profiles.append(
                 {
                     "name": vm_name,
