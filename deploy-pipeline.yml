@@ -66,7 +66,7 @@ create_osias_multinode_file:
   stage: reprovision_servers
   extends:
     - .base_setup
-  image: utsaics/maas:2.8
+  image: <CLOUD_PROVIDER_IMAGE>
   script:
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:

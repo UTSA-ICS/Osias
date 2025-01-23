@@ -9,11 +9,22 @@ if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
     ceph_current_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_CURRENT_RELEASE'));ceph=multi['CEPH'];print(ceph.lower())")
     ceph_previous_bool=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_PREVIOUS_RELEASE'));ceph=multi['CEPH'];print(ceph.lower())")
 
+    cloud_provider_previous=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_PREVIOUS_RELEASE'));cloud_provider=multi['DEPLOYMENT_CLOUD'];print(cloud_provider.lower())")
+    cloud_provider_current=$(python3 -c "import os,json; multi=json.loads(os.getenv('VM_PROFILE_CURRENT_RELEASE'));cloud_provider=multi['DEPLOYMENT_CLOUD'];print(cloud_provider.lower())")
+
     sed -i "s/<CEPH_CURRENT_BOOL>/\"${ceph_current_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<CEPH_PREVIOUS_BOOL>/\"${ceph_previous_bool}\"/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" trigger-pipeline.yml
     sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE_CURRENT_RELEASE/g" trigger-pipeline.yml
     sed -i "s/<PREVIOUS_RELEASE_NAME>/${previous_release}/g" trigger-pipeline.yml
+
+    if [[ "$cloud_provider_previous" == "proxmox" ]]; then
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${previous_release}".yml
+    else
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${previous_release}".yml
+    fi
 
     cp deploy-pipeline.yml deploy-"${current_release}".yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" deploy-"${current_release}".yml
@@ -40,6 +51,8 @@ else
 
     cp deploy-pipeline.yml deploy-"${release}".yml
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
+    sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
+    sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${release}".yml
 fi
 
 cat trigger-pipeline.yml
