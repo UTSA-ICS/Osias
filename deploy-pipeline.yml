@@ -33,7 +33,6 @@ stages:
 
 .base_setup:
   before_script:
-    - git submodule update --init --recursive      # Initialize and update the submodule to ensure it's available
     - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/cloud_provider"     # Add the cloud_provider submodule to PYTHONPATH
     - pip3 install -qr cloud_provider/requirements.txt
     # Setup and add SSH_PRIVATE_KEY to ssh agent
