@@ -26,6 +26,14 @@ if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
       sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${previous_release}".yml
     fi
 
+    if [[ "$cloud_provider_current" == "proxmox" ]]; then
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${current_release}".yml
+    else
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${current_release}".yml
+    fi
+
     cp deploy-pipeline.yml deploy-"${current_release}".yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" deploy-"${current_release}".yml
 
