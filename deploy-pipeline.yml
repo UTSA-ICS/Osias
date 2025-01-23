@@ -6,6 +6,10 @@ default:
   tags:
     - docker-runner
 
+variables:
+  GIT_SUBMODULE_DEPTH: 1
+  GIT_SUBMODULE_STRATEGY: recursive
+
 workflow:
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline"'
