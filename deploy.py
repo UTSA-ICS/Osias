@@ -347,7 +347,7 @@ def delete_virtual_machines(
         "cloud_pass": cloud_pass,
         "cloud_provider": cloud_provider,
     }
-    provider = CloudProvider({}, credentials)
+    provider = Cloud({}, credentials)
     provider.delete_virtual_machines(openstack_release)
 
 

@@ -123,7 +123,7 @@ class Cloud:
         if True in active_ips:
             raise Exception(f"\nERROR: There were {active_ips.count(True)} errors.\n")
 
-    def generate_vm_profile(self):
+    def create_vm_profile(self):
         """
         Generate VM profiles for the given number of VMs using the provided specifications
         and create the VM specs using generate_vm_specs.
