@@ -1,4 +1,4 @@
 [submodule "cloud_provider"]
 	path = cloud_provider
-	url = ../../cloud_provider.git
+	url = ../cloud_provider.git
 	branch = main
