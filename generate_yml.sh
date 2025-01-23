@@ -18,27 +18,25 @@ if [[ $DEPLOY_MULTIPLE_RELEASES == "true" ]]; then
     sed -i "s/<RELEASE_VM_PROFILE>/\$VM_PROFILE_CURRENT_RELEASE/g" trigger-pipeline.yml
     sed -i "s/<PREVIOUS_RELEASE_NAME>/${previous_release}/g" trigger-pipeline.yml
 
-    if [[ "$cloud_provider_previous" == "proxmox" ]]; then
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${previous_release}".yml
-    else
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${previous_release}".yml
-    fi
-
-    if [[ "$cloud_provider_current" == "proxmox" ]]; then
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${current_release}".yml
-    else
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
-      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${current_release}".yml
-    fi
 
     cp deploy-pipeline.yml deploy-"${current_release}".yml
     sed -i "s/<RELEASE_NAME>/${current_release}/g" deploy-"${current_release}".yml
 
     cp deploy-pipeline.yml deploy-"${previous_release}".yml
     sed -i "s/<RELEASE_NAME>/${previous_release}/g" deploy-"${previous_release}".yml
+
+    if [[ "$cloud_provider_previous" == "proxmox" ]]; then
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${previous_release}".yml
+    else
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${previous_release}".yml
+    fi
+
+    if [[ "$cloud_provider_current" == "proxmox" ]]; then
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${current_release}".yml
+    else
+      sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${current_release}".yml
+    fi
+
 else
 
     if [[ -n "$MULTINODE" ]]; then
