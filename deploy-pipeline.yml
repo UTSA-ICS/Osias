@@ -85,6 +85,7 @@ reprovision_servers:
   image: utsaics/maas:2.8
   script:
     - pip3 install proxmoxer
+    - ssh-keygen -y -f id_rsa > id_rsa.pub
     - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$MULTINODE == "" || $MULTINODE == null'
