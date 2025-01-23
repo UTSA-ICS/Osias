@@ -1,7 +1,7 @@
 default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
-  image: python:3.11-buster
+  image: python:latest
   #interruptible: true
   tags:
     - docker-runner
@@ -33,7 +33,7 @@ stages:
 
 .base_setup:
   before_script:
-    - export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/cloud_provider"     # Add the cloud_provider submodule to PYTHONPATH
+    - export PYTHONUNBUFFERED=1
     - pip3 install -qr cloud_provider/requirements.txt
     # Setup and add SSH_PRIVATE_KEY to ssh agent
     - "which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )"
@@ -42,6 +42,12 @@ stages:
     - mkdir -p ~/.ssh
     - chmod 700 ~/.ssh
     - pip3 install PyYAML timeout_decorator
+    - |
+      # Initialize and update the submodule to ensure it's available
+      git submodule update --init --recursive
+    - |
+      # Add the cloud_provider submodule to PYTHONPATH
+      export PYTHONPATH="$PYTHONPATH:$CI_PROJECT_DIR/cloud_provider"
     - if [ -z "$MULTINODE" ] && [ -f MULTINODE.env ]; then export MULTINODE="$(cat MULTINODE.env)"; fi
     - echo "$MULTINODE"
     - echo "$PARENT_PIPELINE_ID"
