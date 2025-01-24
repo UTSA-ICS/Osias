@@ -154,6 +154,7 @@ class Cloud:
 
         args = Args()
         # Generate VM specs using the generated profiles
+        print(f"VM Profiles: {profiles}")
         result = generate_vm_specs(args, profiles=profiles)
         print(f"THIS IS THE PROFILE: {result}")
         return result
