@@ -86,6 +86,7 @@ class Cloud:
             VIP_ADDRESS = "10.245.124.249"
             self.vm_profile = self.create_vm_profile()
             server_dict = self.provider.create_vms(self.vm_profile)
+            self.vm_public_ip_list = [details['public_ip'] for details in server_dict.values()]
         print(f"server_dict: {server_dict}")
         if ceph_enabled is None:
             ceph_enabled = False
@@ -109,8 +110,11 @@ class Cloud:
         )
 
     def delete_virtual_machines(self, openstack_release):
-        machine_ids, distro = self.delete_tags_and_ips(openstack_release)
-        self.provider.delete_virtual_machines(machine_ids, distro)
+        if self.cloud == "maas":
+            machine_ids, distro = self.delete_tags_and_ips(openstack_release)
+            self.provider.delete_virtual_machines(machine_ids, distro)
+        elif self.cloud == "proxmox":
+            self.provider.delete_vms(vm_public_ip_list=self.vm_public_ip_list)
 
     def verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
