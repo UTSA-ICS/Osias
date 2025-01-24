@@ -87,7 +87,7 @@ class parser:
         for my_node_type in data:
             data = self.data.get(my_node_type)
             for key, value in data.items():
-                if value["public"]:  # Remove any empty servers
+                if value["public_ip"]:  # Remove any empty servers
                     SERVERS.extend([value])
                     # Remove duplicate servers from the list
         SERVERS = [i for n, i in enumerate(SERVERS) if i not in SERVERS[:n]]
@@ -228,25 +228,25 @@ def create_multinode(input_dictionary, optional_variables):
         for i, value in enumerate(control_items):
             multinode[label].append(i)
             multinode[label][i] = {}
-            multinode[label][i]["public"] = value[1]["public"]
-            multinode[label][i]["private"] = value[1]["internal"]
-            multinode[label][i]["data"] = value[1]["data"]
+            multinode[label][i]["public"] = value[1]["public_ip"]
+            multinode[label][i]["private"] = value[1]["internal_ip"]
+            multinode[label][i]["data"] = value[1]["data_ip"]
     for label in secondary_labels:
         multinode[label] = []
         for i, (k, v) in enumerate(input_dictionary.items()):
             multinode[label].append(i)
             multinode[label][i] = {}
-            multinode[label][i]["public"] = v["public"]
-            multinode[label][i]["private"] = v["internal"]
-            multinode[label][i]["data"] = v["data"]
+            multinode[label][i]["public"] = v["public_ip"]
+            multinode[label][i]["private"] = v["internal_ip"]
+            multinode[label][i]["data"] = v["data_ip"]
     for label in monitor_label:
         multinode[label] = []
         for i, (k, v) in enumerate(monitor_item):
             multinode[label].append(i)
             multinode[label][i] = {}
-            multinode[label][i]["public"] = v["public"]
-            multinode[label][i]["private"] = v["internal"]
-            multinode[label][i]["data"] = v["data"]
+            multinode[label][i]["public"] = v["public_ip"]
+            multinode[label][i]["private"] = v["internal_ip"]
+            multinode[label][i]["data"] = v["data_ip"]
     multinode["variables"] = {}
     optional_variables = dict(
         [
