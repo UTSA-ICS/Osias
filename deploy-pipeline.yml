@@ -227,7 +227,7 @@ sleep_on_failure:
 
 delete_virtual_machines:
   stage: release_cidr
-  image: utsaics/maas:2.8
+  image: <CLOUD_PROVIDER_IMAGE>
   extends:
     - .base_setup
   script:
