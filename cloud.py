@@ -93,21 +93,42 @@ class Cloud:
                 json.dump(server_dict, f, indent=4)
             print(f"VM information written to vm_info.json")
 
+        # Ensure ceph_enabled is handled correctly
         if ceph_enabled is None:
             ceph_enabled = False
+        elif isinstance(ceph_enabled, str):
+            ceph_enabled = ceph_enabled.strip()
+            if "\\" in ceph_enabled:
+                ceph_enabled = ceph_enabled.replace("\\", "\\\\")
+            try:
+                ceph_enabled = ast.literal_eval(ceph_enabled.title())
+            except (SyntaxError, ValueError):
+                raise ValueError(f"Invalid value for ceph_enabled: {ceph_enabled}")
+        print(f"ceph_enabled after processing: {ceph_enabled}")
+
+        # Prepare optional_vars and sanitize data
         optional_vars = self.vm_profile
-        if isinstance(ceph_enabled, str):
-            ceph_enabled = ast.literal_eval(ceph_enabled.title())
         optional_vars["CEPH"] = ceph_enabled
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
         optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-        print(f"optional_vars is: {optional_vars}")
-        multinode = utils.create_multinode(server_dict, yaml.dump(optional_vars))
-        print(f"Generated multinode is: {multinode}")
-        f = open("MULTINODE.env", "w")
-        f.write(f"{multinode}")
-        f.close()
+        optional_vars = {k: str(v).replace("\\", "\\\\") for k, v in optional_vars.items()}
+        print(f"optional_vars after processing: {optional_vars}")
+
+        # Create multinode configuration
+        try:
+            multinode = utils.create_multinode(server_dict, yaml.dump(optional_vars))
+        except Exception as e:
+            raise RuntimeError(f"Error creating multinode: {e}")
+        print(f"Generated multinode: {multinode}")
+
+        # Write multinode to a file using proper serialization
+        try:
+            with open("MULTINODE.env", "w") as f:
+                yaml.dump(multinode, f)
+            print("MULTINODE configuration written to MULTINODE.env")
+        except Exception as e:
+            raise IOError(f"Failed to write MULTINODE.env: {e}")
 
     def delete_tags_and_ips(self, openstack_release=None):
         if not self.parent_project_pipeline_id:
