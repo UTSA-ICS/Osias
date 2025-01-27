@@ -248,13 +248,17 @@ def create_multinode(input_dictionary, optional_variables):
             multinode[label][i]["private"] = v["private_ip"]
             multinode[label][i]["data"] = v["data_ip"]
     multinode["variables"] = {}
-    optional_variables = dict(
-        [
-            (x.split(":")[0].strip(), x.split(":")[1].strip("' "))
-            for x in optional_variables.strip("{}").split(",")
-        ]
-    )
+    # Safely parse the YAML string into a dictionary
+    optional_variables = yaml.safe_load(optional_variables)
     multinode["variables"].update(optional_variables)
+    # multinode["variables"] = {}
+    # optional_variables = dict(
+    #     [
+    #         (x.split(":")[0].strip(), x.split(":")[1].strip("' "))
+    #         for x in optional_variables.strip("{}").split(",")
+    #     ]
+    # )
+    # multinode["variables"].update(optional_variables)
     return multinode
 
 
