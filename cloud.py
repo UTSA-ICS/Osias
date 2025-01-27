@@ -87,6 +87,7 @@ class Cloud:
             POOL_START_IP = "10.245.124.237"
             POOL_END_IP = "10.245.124.248"
             VIP_ADDRESS = "10.245.124.249"
+            DNS_IP = "10.250.53.202"
 
             # Debug: Ensure VM profile creation is correct
             self.vm_profile = self.create_vm_profile()
@@ -118,6 +119,8 @@ class Cloud:
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
         optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
+        if self.cloud == "proxmox":
+            optional_vars["DNS_IP"] = DNS_IP
         print(f"[DEBUG] Optional Vars Before Dump: {optional_vars}")
 
         # Debug: Check the YAML dump of optional_vars
