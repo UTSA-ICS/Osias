@@ -90,11 +90,11 @@ class Cloud:
             DNS_IP = "10.250.53.202"
 
             # Debug: Ensure VM profile creation is correct
-            self.vm_profile = self.create_vm_profile()
-            print(f"[DEBUG] VM Profile: {self.vm_profile}")
+            vm_requirements = self.create_vm_profile()
+            print(f"[DEBUG] VM Profile: {vm_requirements}")
 
             # Debug: Ensure VM creation returns a valid server_dict
-            server_dict = self.provider.create_vms(self.vm_profile)
+            server_dict = self.provider.create_vms(vm_requirements)
             print(f"[DEBUG] Server Dict: {json.dumps(server_dict, indent=4)}")
 
             # Debug: Save server_dict to file for additional inspection
