@@ -92,7 +92,9 @@ class Cloud:
         if ceph_enabled is None:
             ceph_enabled = False
         optional_vars = self.vm_profile
-        optional_vars["CEPH"] = ast.literal_eval(ceph_enabled.title())
+        if isinstance(ceph_enabled, str):
+            ceph_enabled = ast.literal_eval(ceph_enabled.title())
+        optional_vars["CEPH"] = ceph_enabled
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
         optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
