@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+import json
 import os
 import yaml
 
@@ -86,8 +86,10 @@ class Cloud:
             VIP_ADDRESS = "10.245.124.249"
             self.vm_profile = self.create_vm_profile()
             server_dict = self.provider.create_vms(self.vm_profile)
-            self.vm_public_ip_list = [details['public_ip'] for details in server_dict.values()]
-        print(f"server_dict: {server_dict}")
+            with open("vm_info.json", "w") as f:
+                json.dump(server_dict, f, indent=4)
+            print(f"VM information written to vm_info.json")
+
         if ceph_enabled is None:
             ceph_enabled = False
         optional_vars = self.vm_profile
@@ -109,12 +111,14 @@ class Cloud:
             self.parent_project_pipeline_id, openstack_release
         )
 
-    def delete_virtual_machines(self, openstack_release):
+    def delete_virtual_machines(self, openstack_release, vm_info):
         if self.cloud == "maas":
             machine_ids, distro = self.delete_tags_and_ips(openstack_release)
             self.provider.delete_virtual_machines(machine_ids, distro)
         elif self.cloud == "proxmox":
-            self.provider.delete_vms(vm_public_ip_list=self.vm_public_ip_list)
+            ip_list = [vm["public_ip"] for vm in vm_info.values()]
+            ids_to_delete = self._get_vm_ids_by_ips(ip_list)
+            self.provider.delete_vms(ids_to_delete)
 
     def verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
@@ -162,3 +166,26 @@ class Cloud:
         result = generate_vm_specs(args, profiles=profiles)
         print(f"THIS IS THE PROFILE: {result}")
         return result
+
+    def _get_vm_ids_by_ips(self, ip_list):
+        """
+        Helper method to get VM IDs based on a list of IP addresses.
+        :param ip_list: List of IP addresses.
+        :return: List of corresponding VM IDs.
+        :raises ValueError: If any IP address does not map to a VM ID.
+        """
+        vm_ids = []
+
+        for ip in ip_list[:]:
+            vm_id = self.provider.get_vm_id_by_ip(ip)
+            if vm_id:
+                vm_ids.append(vm_id)
+                ip_list.remove(ip)
+
+        # If there are any remaining IPs, raise an exception
+        if ip_list:
+            raise ValueError(
+                f"No VM ID found for the following IP addresses: {ip_list}"
+            )
+
+        return vm_ids

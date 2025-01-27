@@ -82,6 +82,7 @@ create_osias_multinode_file:
   artifacts:
     paths:
       - MULTINODE.env
+      - vm_info.json
 
 reprovision_servers:
   stage: reprovision_servers
@@ -231,8 +232,13 @@ delete_virtual_machines:
   extends:
     - .base_setup
   script:
-    - pip3 install proxmoxer
-    - python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+    - |
+      if [ -f "vm_info.json" ]; then
+        python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER" --VM_INFO vm_info.json
+      else
+        python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
+      fi
+
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always

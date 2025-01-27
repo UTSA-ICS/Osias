@@ -2,6 +2,7 @@
 
 import argparse
 import ast
+import json
 from time import sleep
 
 import maas_base
@@ -88,6 +89,12 @@ def parse_args():
         type=str,
         required=False,
         help="Dictionary of values containing the following which over-write the defaults listed in osias_variables.py",
+    )
+    parser.add_argument(
+        "--VM_INFO",
+        type=str,
+        required=False,
+        help="Path to VM info file (used with --delete_vms)"
     )
     parser.add_argument(
         "operation",
@@ -340,6 +347,7 @@ def delete_virtual_machines(
     cloud_pass,
     cloud_provider,
     openstack_release,
+    vm_info
 ):
 
     credentials = {
@@ -348,7 +356,7 @@ def delete_virtual_machines(
         "cloud_provider": cloud_provider,
     }
     provider = Cloud({}, credentials)
-    provider.delete_virtual_machines(openstack_release)
+    provider.delete_virtual_machines(openstack_release, vm_info)
 
 
 def post_deploy_openstack(servers_public_ip, pool_start_ip, pool_end_ip, dns_ip):
@@ -587,12 +595,17 @@ def main():
                 ],
             )
         elif args.operation == "delete_virtual_machines":
+            VM_INFO = None
+            if args.vm_info:
+                with open(args.vm_info_file, "r") as f:
+                    VM_INFO = json.load(f)
             if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
                 delete_virtual_machines(
                     args.CLOUD_URL,
                     args.CLOUD_PASS,
                     args.CLOUD_PROVIDER,
                     OPENSTACK_RELEASE,
+                    VM_INFO,
                 )
             else:
                 raise Exception(
