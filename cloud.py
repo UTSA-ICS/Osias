@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 import json
+
+import ast
 import os
 import yaml
 
@@ -16,7 +18,7 @@ import variables
 class Cloud:
     def __init__(self, vm_profile, credentials: dict):
         self.vm_profile = vm_profile or {}
-        self.cloud = credentials.get("cloud_provider")
+        self.cloud = credentials.get("cloud_provider").lower()
         self.openstack_release = self.vm_profile.get(
             "OPENSTACK_RELEASE", "default_release"
         )
@@ -71,6 +73,7 @@ class Cloud:
 
     def create_virtual_servers(self, ceph_enabled):
         if self.cloud == "maas":
+            print(f"Working in a {self.cloud} environment.")
             (
                 server_dict,
                 VIP_ADDRESS,
@@ -79,8 +82,8 @@ class Cloud:
             ) = self.provider.find_virtual_machines_and_deploy(
                 self.vm_profile, self.parent_project_pipeline_id
             )
-
-        if self.cloud == "proxmox":
+        elif self.cloud == "proxmox":
+            print(f"Working in a {self.cloud} environment.")
             POOL_START_IP = "10.245.124.237"
             POOL_END_IP = "10.245.124.248"
             VIP_ADDRESS = "10.245.124.249"
@@ -93,10 +96,13 @@ class Cloud:
         if ceph_enabled is None:
             ceph_enabled = False
         optional_vars = self.vm_profile
+        if isinstance(ceph_enabled, str):
+            ceph_enabled = ast.literal_eval(ceph_enabled.title())
         optional_vars["CEPH"] = ceph_enabled
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
         optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
+        print(f"optional_vars is: {optional_vars}")
         multinode = utils.create_multinode(server_dict, yaml.dump(optional_vars))
         print(f"Generated multinode is: {multinode}")
         f = open("MULTINODE.env", "w")
