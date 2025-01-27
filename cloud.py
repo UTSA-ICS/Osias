@@ -87,48 +87,51 @@ class Cloud:
             POOL_START_IP = "10.245.124.237"
             POOL_END_IP = "10.245.124.248"
             VIP_ADDRESS = "10.245.124.249"
+
+            # Debug: Ensure VM profile creation is correct
             self.vm_profile = self.create_vm_profile()
+            print(f"[DEBUG] VM Profile: {self.vm_profile}")
+
+            # Debug: Ensure VM creation returns a valid server_dict
             server_dict = self.provider.create_vms(self.vm_profile)
+            print(f"[DEBUG] Server Dict: {json.dumps(server_dict, indent=4)}")
+
+            # Debug: Save server_dict to file for additional inspection
             with open("vm_info.json", "w") as f:
                 json.dump(server_dict, f, indent=4)
-            print(f"VM information written to vm_info.json")
+            print("[DEBUG] VM information written to vm_info.json")
 
-        # Ensure ceph_enabled is handled correctly
+        # Debug: Check initial value of ceph_enabled
+        print(f"[DEBUG] Original ceph_enabled: {ceph_enabled}")
         if ceph_enabled is None:
             ceph_enabled = False
         elif isinstance(ceph_enabled, str):
-            ceph_enabled = ceph_enabled.strip()
-            if "\\" in ceph_enabled:
-                ceph_enabled = ceph_enabled.replace("\\", "\\\\")
             try:
                 ceph_enabled = ast.literal_eval(ceph_enabled.title())
-            except (SyntaxError, ValueError):
-                raise ValueError(f"Invalid value for ceph_enabled: {ceph_enabled}")
-        print(f"ceph_enabled after processing: {ceph_enabled}")
+                print(f"[DEBUG] Evaluated ceph_enabled: {ceph_enabled}")
+            except Exception as e:
+                print(f"[ERROR] Failed to evaluate ceph_enabled: {e}")
 
-        # Prepare optional_vars and sanitize data
+        # Debug: Validate optional_vars before dumping to YAML
         optional_vars = self.vm_profile
         optional_vars["CEPH"] = ceph_enabled
         optional_vars["POOL_START_IP"] = POOL_START_IP
         optional_vars["POOL_END_IP"] = POOL_END_IP
         optional_vars["VIP_ADDRESS"] = VIP_ADDRESS
-        optional_vars = {k: str(v).replace("\\", "\\\\") for k, v in optional_vars.items()}
-        print(f"optional_vars after processing: {optional_vars}")
+        print(f"[DEBUG] Optional Vars Before Dump: {optional_vars}")
 
-        # Create multinode configuration
-        try:
-            multinode = utils.create_multinode(server_dict, yaml.dump(optional_vars))
-        except Exception as e:
-            raise RuntimeError(f"Error creating multinode: {e}")
-        print(f"Generated multinode: {multinode}")
+        # Debug: Check the YAML dump of optional_vars
+        dumped_vars = yaml.dump(optional_vars)
+        print(f"[DEBUG] YAML Dump of Optional Vars:\n{dumped_vars}")
 
-        # Write multinode to a file using proper serialization
-        try:
-            with open("MULTINODE.env", "w") as f:
-                yaml.dump(multinode, f)
-            print("MULTINODE configuration written to MULTINODE.env")
-        except Exception as e:
-            raise IOError(f"Failed to write MULTINODE.env: {e}")
+        # Debug: Ensure create_multinode is receiving valid inputs
+        multinode = utils.create_multinode(server_dict, dumped_vars)
+        print(f"[DEBUG] Generated Multinode: {json.dumps(multinode, indent=4)}")
+
+        # Debug: Write the multinode output to a file
+        with open("MULTINODE.env", "w") as f:
+            f.write(f"{multinode}")
+        print("[DEBUG] MULTINODE.env file written successfully.")
 
     def delete_tags_and_ips(self, openstack_release=None):
         if not self.parent_project_pipeline_id:
