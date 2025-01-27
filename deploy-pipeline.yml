@@ -88,7 +88,7 @@ reprovision_servers:
   stage: reprovision_servers
   extends:
     - .base_setup
-  image: utsaics/maas:2.8
+  image: python:latest
   script:
     - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
