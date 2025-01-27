@@ -234,6 +234,7 @@ delete_virtual_machines:
   script:
     - |
       if [ -f "vm_info.json" ]; then
+        echo "Found vm_info"
         python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER" --VM_INFO vm_info.json
       else
         python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
