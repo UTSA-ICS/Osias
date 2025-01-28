@@ -57,8 +57,8 @@ else
 
     cp deploy-pipeline.yml deploy-"${release}".yml
     sed -i "s/<RELEASE_NAME>/${release}/g" deploy-"${release}".yml
-    sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" trigger-pipeline.yml
-    sed -i "s/<CLOUD_PROVIDER_IMAGE>/utsaics\/maas:2.8/g" deploy-"${release}".yml
+    sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
+    sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${release}".yml
 fi
 
 cat trigger-pipeline.yml
