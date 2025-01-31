@@ -597,9 +597,9 @@ def main():
             )
         elif args.operation == "delete_virtual_machines":
             VM_INFO = None
-            if args.vm_info:
-                print(f"args.vm_info = {args.vm_info}")
-                with open(args.vm_info, "r") as f:
+            if args.VM_INFO:
+                print(f"args.VM_INFO = {args.VM_INFO}")
+                with open(args.VM_INFO, "r") as f:
                     VM_INFO = json.load(f)
             if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
                 delete_virtual_machines(
