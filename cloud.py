@@ -195,9 +195,8 @@ class Cloud:
 
         args = Args()
         # Generate VM specs using the generated profiles
-        print(f"VM Profiles: {profiles}")
         result = generate_vm_specs(args, profiles=profiles)
-        print(f"THIS IS THE PROFILE: {result}")
+        print(f"THIS IS THE PROFILE IN OSIAS cloud.py: {result}")
         return result
 
     def _get_vm_ids_by_ips(self, ip_list):
