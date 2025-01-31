@@ -150,8 +150,7 @@ class Cloud:
             self.provider.delete_virtual_machines(machine_ids, distro)
         elif self.cloud == "proxmox":
             ip_list = [vm["public_ip"] for vm in vm_info.values()]
-            ids_to_delete = self._get_vm_ids_by_ips(ip_list)
-            self.provider.delete_vms(ids_to_delete)
+            self.provider.delete_vms(vm_public_ip_list=ip_list)
 
     def verify_vm_pool_availability(self, public_IP_pool):
         internal_subnet = ".".join(self.vm_profile["Internal_CIDR"].split(".")[:3])
@@ -198,26 +197,3 @@ class Cloud:
         result = generate_vm_specs(args, profiles=profiles)
         print(f"THIS IS THE PROFILE IN OSIAS cloud.py: {result}")
         return result
-
-    def _get_vm_ids_by_ips(self, ip_list):
-        """
-        Helper method to get VM IDs based on a list of IP addresses.
-        :param ip_list: List of IP addresses.
-        :return: List of corresponding VM IDs.
-        :raises ValueError: If any IP address does not map to a VM ID.
-        """
-        vm_ids = []
-
-        for ip in ip_list[:]:
-            vm_id = self.provider.get_vm_id_by_ip(ip)
-            if vm_id:
-                vm_ids.append(vm_id)
-                ip_list.remove(ip)
-
-        # If there are any remaining IPs, raise an exception
-        if ip_list:
-            raise ValueError(
-                f"No VM ID found for the following IP addresses: {ip_list}"
-            )
-
-        return vm_ids
