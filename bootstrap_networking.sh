@@ -38,7 +38,7 @@ if ! br0_exists; then
           macaddress: $mac_address
 " >>/tmp/${netplan_file}
     # remove dhcp4: true line if present in eth0
-    sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/${netplan_file}
+    sudo sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/${netplan_file}
 
     # Now copy over the modified file in the netplan directory
     sudo mv /tmp/${netplan_file} /etc/netplan/${netplan_file}
