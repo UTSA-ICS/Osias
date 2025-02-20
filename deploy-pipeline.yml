@@ -221,9 +221,11 @@ sleep_on_failure:
   tags:
     - shell
   script:
+    - source ~/.bashrc  # Load profile (if necessary)
+    - echo "SLEEP_FAILURE_TIME=$SLEEP_FAILURE_TIME"  # Debug line
     - for i in `seq $SLEEP_FAILURE_TIME -1 1` ; do echo -n "$i " ; sleep 1 ; done
   rules:
-    - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
+    - if: '($MULTINODE == "" || $MULTINODE == null) && $VM_PROFILE != null'
       when: on_failure
 
 delete_virtual_machines:

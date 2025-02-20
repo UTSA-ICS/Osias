@@ -20,10 +20,11 @@ if ! br0_exists; then
     cat /etc/hosts
     cat /etc/resolv.conf
     # Copy to work with a temp file
-    cp /etc/netplan/${netplan_file} /tmp/${netplan_file}
+    sudo cp /etc/netplan/${netplan_file} /tmp/${netplan_file}
         # Now modify the temp file to add the bridge information
     sudo brctl addbr br0
     sudo ip link set dev br0 up
+    sudo chmod 666 /tmp/${netplan_file}
     echo -ne "  bridges:
       br0:
           addresses:
@@ -39,6 +40,8 @@ if ! br0_exists; then
 
     # Now copy over the modified file in the netplan directory
     sudo mv /tmp/${netplan_file} /etc/netplan/${netplan_file}
+    sudo chmod 600 /etc/netplan/${netplan_file}
+    sudo chown root:root /etc/netplan/${netplan_file}
     # Activate the updated netplan configuration
     sudo netplan generate
     sleep 2
@@ -48,7 +51,7 @@ if ! br0_exists; then
 
     # Check the final result
     ip addr
-    cat /etc/netplan/${netplan_file}
+    sudo cat /etc/netplan/${netplan_file}
 fi
 
 sudo sh -c "cat > /etc/rc.local <<__EOF__
