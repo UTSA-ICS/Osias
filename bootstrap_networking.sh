@@ -61,44 +61,45 @@ if ! br0_exists; then
 
     cat <<EOF | sudo tee -a /tmp/50-cloud-init.yaml
   bridges:
-    br0:
-        addresses:
-            - $eth0_ip
-        routes:
-          - metric: 0
-            to: $eth0_ip0
-            via: $eth0_router
-        interfaces:
-            - $interface_name
-        macaddress: $mac_address
+      br0:
+          addresses:
+              - $eth0_ip
+          routes:
+                - to: 0.0.0.0/0
+                  via: $eth0_router
+          interfaces:
+                - $interface_name
+          macaddress: $mac_address
+          mtu: 1500
+          parameters:
+                forward-delay: 15
+                stp: true
 EOF
-
-    echo "Updated netplan file:"
-    sudo cat /tmp/50-cloud-init.yaml
 
     # Remove dhcp4: true if present in eth0
     echo "Removing dhcp4: true from netplan..."
     sudo sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
 
-    echo "Updated netplan file:"
+    echo "Pre-netplan generate - netplan file:"
     sudo cat /tmp/50-cloud-init.yaml
 
     # Apply netplan changes
-    echo "Applying netplan configuration..."
+    echo "Moving netplan configuration..."
     sudo mv /tmp/50-cloud-init.yaml "$netplan_file"
     sudo chmod 600 "$netplan_file"
     sudo chown root:root "$netplan_file"
 
     sudo netplan generate
+    echo "Final netplan file:"
+    sudo cat "$netplan_file"
+    echo "================================="
     sleep 2
+    echo "Applying netplan configuration..."
     sudo netplan apply
     sleep 5
 
-    echo "Final IP address configuration:"
+    echo "Applied IP address configuration:"
     ip addr show
-
-    echo "Final netplan file:"
-    sudo cat "$netplan_file"
 fi
 
 echo "=== Setting up rc.local ==="
