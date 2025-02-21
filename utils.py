@@ -1,11 +1,11 @@
 #!/usr/bin/python3
 
-import os
 import sys
 import subprocess
 from itertools import islice
 from pathlib import Path
 
+from ping3 import ping
 import yaml
 
 import osias_variables
@@ -177,14 +177,13 @@ def run_cmd_locally(command, test=True, output=True):
 
 
 def check_ip_active(ip):
-    response = os.system("ping -c 1 " + ip + " > /dev/null 2>&1")
-    if response == 0:
-        print(f"Ping shows {ip} is in use (packets received)!")
+    response = ping(ip, timeout=2)  # Sends an ICMP ping request
+    if response is not None:
+        print(f"Ping shows {ip} is in use (round-trip time: {response:.2f} ms)!")
         return True
     else:
-        print(f"Ping shows {ip} is NOT in use (packets lost)!")
+        print(f"Ping shows {ip} is NOT in use (timeout)!")
         return False
-
 
 def check_private_ip_active(public_ip: str, private_ips: list):
     result = {"active": [], "inactive": []}

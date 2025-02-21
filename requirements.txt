@@ -1,2 +1,3 @@
 ansible<ANSIBLE_MAX_VERSION
 https://tarballs.opendev.org/openstack/kolla-ansible/kolla-ansible-stable-OPENSTACK_RELEASE.tar.gz
+ping3
