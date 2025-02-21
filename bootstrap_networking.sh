@@ -61,26 +61,25 @@ if ! br0_exists; then
     echo "Adding bridge configuration to netplan..."
 
     cat <<EOF | sudo tee -a /tmp/50-cloud-init.yaml
-  bridges:
-      br0:
-          addresses:
-              - $eth0_ip
-          routes:
+    bridges:
+        br0:
+            addresses:
+                - $eth0_ip
+            routes:
                 - to: 0.0.0.0/0
                   via: $eth0_router
-          interfaces:
+            interfaces:
                 - $interface_name
-          macaddress: $mac_address
-          mtu: 1500
-          parameters:
+            macaddress: $mac_address
+            mtu: 1500
+            parameters:
                 forward-delay: 15
                 stp: true
-          nameservers:
+            nameservers:
                 addresses:
                     - $DNS_IP
                 search:
                     - maas
-:
 EOF
 
     # Remove dhcp4: true if present in eth0
