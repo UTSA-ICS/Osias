@@ -80,6 +80,9 @@ EOF
     echo "Removing dhcp4: true from netplan..."
     sudo sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
 
+    echo "Updated netplan file:"
+    sudo cat /tmp/50-cloud-init.yaml
+
     # Apply netplan changes
     echo "Applying netplan configuration..."
     sudo mv /tmp/50-cloud-init.yaml "$netplan_file"
