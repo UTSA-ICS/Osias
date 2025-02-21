@@ -49,6 +49,7 @@ SUPPORTED_OPENSTACK_RELEASE = [
     "zed",
     "2023.1",
     "2023.2",
+    "2024.2",
 ]
 NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
 PYTHON_VERSION = {
@@ -60,6 +61,7 @@ PYTHON_VERSION = {
     "zed": "3.8",
     "2023.1": "3.10",
     "2023.2": "3.10",
+    "2024.2": "3.12",
 }
 ANSIBLE_MAX_VERSION = {
     "ussuri": "2.10",
@@ -70,6 +72,7 @@ ANSIBLE_MAX_VERSION = {
     "zed": "6",
     "2023.1": "8",
     "2023.2": "8",
+    "2024.2": "8",
 }
 CEPH_RELEASE = {
     "ussuri": "pacific",
@@ -80,6 +83,7 @@ CEPH_RELEASE = {
     "zed": "quincy",
     "2023.1": "quincy",
     "2023.2": "quincy",
+    "2024.2": "reef"
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
@@ -90,6 +94,7 @@ MAAS_VM_DISTRO = {
     "zed": "jammy hwe_kernel=hwe-22.04-edge",
     "2023.1": "jammy hwe_kernel=hwe-22.04-edge",
     "2023.2": "jammy hwe_kernel=hwe-22.04-edge",
+    "2024.2": "jammy hwe_kernel=hwe-22.04-edge",
 }
 
 KOLLA_BASE_DISTRO = {
@@ -101,6 +106,7 @@ KOLLA_BASE_DISTRO = {
     "zed": "rocky",
     "2023.1": "rocky",
     "2023.2": "rocky",
+    "2024.2": "rocky",
 }
 
 # REFSTACK VARIABLES
@@ -123,6 +129,7 @@ REFSTACK_TEST_VERSION = {
     "zed": "2022.06",
     "2023.1": "2022.11",
     "2023.2": "2022.11",
+    "2024.2": "2022.11",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
@@ -133,6 +140,7 @@ TEMPEST_VERSION = {
     "zed": "33.0.0",
     "2023.1": "34.2.0",
     "2023.2": "36.0.0",
+    "2024.2": "36.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -143,6 +151,7 @@ NOVA_MIN_MICROVERSION = {
     "zed": "2.1",
     "2023.1": "2.1",
     "2023.2": "2.1",
+    "2024.2": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
@@ -153,6 +162,7 @@ NOVA_MAX_MICROVERSION = {
     "zed": "2.93",
     "2023.1": "2.95",
     "2023.2": "2.95",
+    "2024.2": "2.95",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -163,6 +173,7 @@ STORAGE_MIN_MICROVERSION = {
     "zed": "3.0",
     "2023.1": "3.0",
     "2023.2": "3.0",
+    "2024.2": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -173,6 +184,7 @@ STORAGE_MAX_MICROVERSION = {
     "zed": "3.70",
     "2023.1": "3.70",
     "2023.2": "3.70",
+    "2024.2": "3.70",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
@@ -183,6 +195,7 @@ PLACEMENT_MIN_MICROVERSION = {
     "zed": "1.0",
     "2023.1": "1.0",
     "2023.2": "1.0",
+    "2024.2": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
@@ -193,4 +206,5 @@ PLACEMENT_MAX_MICROVERSION = {
     "zed": "1.39",
     "2023.1": "1.39",
     "2023.2": "1.39",
+    "2024.2": "1.39",
 }
