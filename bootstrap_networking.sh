@@ -3,6 +3,7 @@
 set -euxo pipefail
 
 echo "=== Starting Bridge Setup ==="
+DNS_IP="$1"
 
 # Function to check if br0 exists
 br0_exists() { ip addr show br0 &>/dev/null; }
@@ -74,6 +75,12 @@ if ! br0_exists; then
           parameters:
                 forward-delay: 15
                 stp: true
+          nameservers:
+                addresses:
+                    - $DNS_IP
+                search:
+                    - maas
+:
 EOF
 
     # Remove dhcp4: true if present in eth0

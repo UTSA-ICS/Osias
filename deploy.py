@@ -94,7 +94,7 @@ def parse_args():
         "--VM_INFO",
         type=str,
         required=False,
-        help="Path to VM info file (used with --delete_vms)"
+        help="Path to VM info file (used with --delete_vms)",
     )
     parser.add_argument(
         "operation",
@@ -131,8 +131,12 @@ def parse_args():
     return args
 
 
-def bootstrap_networking(servers_public_ip):
-    utils.run_script_on_server("bootstrap_networking.sh", servers_public_ip)
+def bootstrap_networking(servers_public_ip, DNS_IP):
+    utils.run_script_on_server(
+        "bootstrap_networking.sh",
+        servers_public_ip,
+        args=[DNS_IP],
+    )
 
 
 def bootstrap_openstack(
@@ -191,14 +195,10 @@ def bootstrap_openstack(
             args=[servers_private_ip[0], docker_registry_password],
         )
     else:
-        utils.run_script_on_server(
-            "bootstrap_openstack.sh", servers_public_ip[0], args=[servers_private_ip[0]]
-        )
+        utils.run_script_on_server("bootstrap_openstack.sh", servers_public_ip[0], args=[servers_private_ip[0]])
 
     str_servers_private_ip = " ".join(servers_private_ip)
-    utils.run_script_on_server(
-        "setup_certificates.sh", servers_public_ip[0], args=[str_servers_private_ip]
-    )
+    utils.run_script_on_server("setup_certificates.sh", servers_public_ip[0], args=[str_servers_private_ip])
     setup_configs.setup_nova_conf(compute_nodes)
     utils.run_script_on_server("setup_nova_conf.sh", servers_public_ip[0])
     if osias_kolla_imports:
@@ -223,12 +223,8 @@ def bootstrap_ceph(servers_public_ip, ceph_release, DATA_CIDR):
 
 def deploy_ceph(servers_public_ip, storage_nodes_data_ip, enable_swift):
     setup_configs.setup_ceph_node_permisions(storage_nodes_data_ip)
-    utils.run_script_on_server(
-        "configure_ceph_node_permissions.sh", servers_public_ip[0]
-    )
-    utils.run_script_on_server(
-        "deploy_ceph.sh", servers_public_ip[0], args=[str(enable_swift)]
-    )
+    utils.run_script_on_server("configure_ceph_node_permissions.sh", servers_public_ip[0])
+    utils.run_script_on_server("deploy_ceph.sh", servers_public_ip[0], args=[str(enable_swift)])
 
 
 def reprovision_servers(
@@ -246,9 +242,7 @@ def reprovision_servers(
     servers.deploy()
 
 
-def verify_network_connectivity(
-    public_ips: list, private_ips: list, data_ips: list, vip_public: str
-):
+def verify_network_connectivity(public_ips: list, private_ips: list, data_ips: list, vip_public: str):
     # Test all IPs are active
     retry = dict()
     retry["public"] = []
@@ -264,16 +258,12 @@ def verify_network_connectivity(
                 public_ips.remove(ip)
             if result is False:
                 count = count + 1
-                print(
-                    f"INFO: Attempt {count}/10 - Public IP, {ip}, did not respond, sleeping for 5 seconds."
-                )
+                print(f"INFO: Attempt {count}/10 - Public IP, {ip}, did not respond, sleeping for 5 seconds.")
                 sleep(5)
 
     count = 0
     while len(active_private_ips) > 0 and count <= 10:
-        private_ip_results = utils.check_private_ip_active(
-            functional_public_ip, active_private_ips
-        )
+        private_ip_results = utils.check_private_ip_active(functional_public_ip, active_private_ips)
         for ip in private_ip_results["active"]:
             active_private_ips.remove(ip)
         if len(private_ip_results["inactive"]) > 0:
@@ -315,9 +305,7 @@ def tag_virtual_servers(cloud_url, cloud_pass, vm_profile, cloud_provider):
     provider.tag_virtual_servers()
 
 
-def create_virtual_servers(
-    cloud_url, cloud_pass, vm_profile, ceph_enabled, cloud_provider
-):
+def create_virtual_servers(cloud_url, cloud_pass, vm_profile, ceph_enabled, cloud_provider):
     credentials = {
         "cloud_url": cloud_url,
         "cloud_pass": cloud_pass,
@@ -342,13 +330,7 @@ def delete_tags_and_ips(
     return provider.delete_tags_and_ips(openstack_release)
 
 
-def delete_virtual_machines(
-    cloud_url,
-    cloud_pass,
-    cloud_provider,
-    openstack_release,
-    vm_info
-):
+def delete_virtual_machines(cloud_url, cloud_pass, cloud_provider, openstack_release, vm_info):
 
     credentials = {
         "cloud_url": cloud_url,
@@ -383,16 +365,10 @@ def main():
         controller_nodes = config.get_server_ips(node_type="control", ip_type="private")
         network_nodes = config.get_server_ips(node_type="network", ip_type="private")
         if config.bool_check_ips_exist(node_type="storage", ip_type="data"):
-            storage_nodes_data_ip = config.get_server_ips(
-                node_type="storage", ip_type="data"
-            )
+            storage_nodes_data_ip = config.get_server_ips(node_type="storage", ip_type="data")
         else:
-            storage_nodes_data_ip = config.get_server_ips(
-                node_type="storage", ip_type="private"
-            )
-        storage_nodes_private_ip = config.get_server_ips(
-            node_type="storage", ip_type="private"
-        )
+            storage_nodes_data_ip = config.get_server_ips(node_type="storage", ip_type="private")
+        storage_nodes_private_ip = config.get_server_ips(node_type="storage", ip_type="private")
         compute_nodes = config.get_server_ips(node_type="compute", ip_type="private")
         monitoring_nodes = config.get_server_ips(node_type="monitor", ip_type="private")
         servers_public_ip = config.get_all_ips_type("public")
@@ -403,12 +379,8 @@ def main():
             ceph_enabled = ast.literal_eval(ceph_enabled.title())
         if ENABLE_SWIFT:
             ENABLE_SWIFT = ast.literal_eval(ENABLE_SWIFT.title())
-        docker_registry_ip = config.get_variables(
-            variable="DOCKER_REGISTRY_IP", optional=True
-        )
-        docker_registry_username = config.get_variables(
-            variable="DOCKER_REGISTRY_USERNAME", optional=True
-        )
+        docker_registry_ip = config.get_variables(variable="DOCKER_REGISTRY_IP", optional=True)
+        docker_registry_username = config.get_variables(variable="DOCKER_REGISTRY_USERNAME", optional=True)
         OSIAS_KOLLA_IMPORTS = config.get_kolla_configs()
         VIP_ADDRESS = config.get_variables(variable="VIP_ADDRESS")
         DATA_CIDR = config.get_variables(variable="Data_CIDR", optional=True)
@@ -416,9 +388,7 @@ def main():
         POOL_END_IP = config.get_variables(variable="POOL_END_IP")
         DNS_IP = config.get_variables(variable="DNS_IP")
         FQDN = config.get_variables(variable="FQDN", optional=True)
-        WIPE_PHYSICAL_SERVERS = config.get_variables(
-            variable="WIPE_PHYSICAL_SERVERS", optional=True
-        )
+        WIPE_PHYSICAL_SERVERS = config.get_variables(variable="WIPE_PHYSICAL_SERVERS", optional=True)
         if isinstance(WIPE_PHYSICAL_SERVERS, str):
             WIPE_PHYSICAL_SERVERS = ast.literal_eval(WIPE_PHYSICAL_SERVERS.title())
 
@@ -440,24 +410,14 @@ def main():
                 raise Exception(
                     f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
                 )
-        PYTHON_VERSION = config.get_variables(
-            variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE
-        )
-        TEMPEST_VERSION = config.get_variables(
-            variable="TEMPEST_VERSION", openstack_release=OPENSTACK_RELEASE
-        )
+        PYTHON_VERSION = config.get_variables(variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE)
+        TEMPEST_VERSION = config.get_variables(variable="TEMPEST_VERSION", openstack_release=OPENSTACK_RELEASE)
         REFSTACK_TEST_VERSION = config.get_variables(
             variable="REFSTACK_TEST_VERSION", openstack_release=OPENSTACK_RELEASE
         )
-        ANSIBLE_MAX_VERSION = config.get_variables(
-            variable="ANSIBLE_MAX_VERSION", openstack_release=OPENSTACK_RELEASE
-        )
-        MAAS_VM_DISTRO = config.get_variables(
-            variable="MAAS_VM_DISTRO", openstack_release=OPENSTACK_RELEASE
-        )
-        CEPH_RELEASE = config.get_variables(
-            variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE
-        )
+        ANSIBLE_MAX_VERSION = config.get_variables(variable="ANSIBLE_MAX_VERSION", openstack_release=OPENSTACK_RELEASE)
+        MAAS_VM_DISTRO = config.get_variables(variable="MAAS_VM_DISTRO", openstack_release=OPENSTACK_RELEASE)
+        CEPH_RELEASE = config.get_variables(variable="CEPH_RELEASE", openstack_release=OPENSTACK_RELEASE)
         KOLLA_BASE_DISTRO = osias_variables.KOLLA_BASE_DISTRO[OPENSTACK_RELEASE]
 
         cmd = "".join((args.operation, ".sh"))
@@ -479,7 +439,7 @@ def main():
                 )
         elif args.operation == "bootstrap_networking":
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
-            bootstrap_networking(servers_public_ip)
+            bootstrap_networking(servers_public_ip, DNS_IP)
         elif args.operation == "verify_connectivity":
             verify_network_connectivity(
                 servers_public_ip,
@@ -663,14 +623,10 @@ def main():
             )
             utils.run_script_on_server("test_setup.sh", servers_public_ip[0])
             utils.run_script_on_server("test_refstack.sh", servers_public_ip[0])
-            utils.run_script_on_server(
-                "test_basic_functionality.sh", servers_public_ip[0]
-            )
+            utils.run_script_on_server("test_basic_functionality.sh", servers_public_ip[0])
     elif args.operation == "create_virtual_servers":
         if args.CLOUD_URL and args.CLOUD_PASS and args.CLOUD_PROVIDER:
-            VM_PROFILE = utils.merge_dictionaries(
-                osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE)
-            )
+            VM_PROFILE = utils.merge_dictionaries(osias_variables.VM_Profile, ast.literal_eval(args.VM_PROFILE))
             ceph_enabled = VM_PROFILE.get("CEPH")
             required_keys = ["VM_DEPLOYMENT_CIDR"]
             utils.check_required_keys_not_null(required_keys, VM_PROFILE)
