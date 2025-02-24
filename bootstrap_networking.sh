@@ -91,13 +91,9 @@ EOF
     sudo sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
     sudo sed -i '/^\s*eth1:/,/^\s*ethernets:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
 
-    # Add static IP for eth1
+    # Modify eth1 configuration in place
     echo "Setting eth1 to static IP..."
-    cat <<EOF | sudo tee -a /tmp/50-cloud-init.yaml
-        eth1:
-            addresses:
-                - $eth1_ip
-EOF
+    sudo sed -i "/^\s*eth1:/a \            addresses:\n                - $eth1_ip" /tmp/50-cloud-init.yaml
 
     echo "Pre-netplan generate - netplan file:"
     sudo cat /tmp/50-cloud-init.yaml
