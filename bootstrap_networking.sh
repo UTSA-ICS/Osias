@@ -40,6 +40,10 @@ if ! br0_exists; then
     echo "eth0 Subnet: $eth0_ip0"
     echo "eth0 Router: $eth0_router"
 
+    # Get eth1 IP and routing details
+    eth1_ip=$(ip address show dev eth1 | grep 'inet ' | awk '{print $2}')
+    echo "eth1 IP: $eth1_ip"
+
     echo "Checking /etc/hosts:"
     cat /etc/hosts
 
@@ -82,9 +86,18 @@ if ! br0_exists; then
                     - maas
 EOF
 
-    # Remove dhcp4: true if present in eth0
+    # Remove dhcp4: true if present in eth0 and eth1
     echo "Removing dhcp4: true from netplan..."
     sudo sed -i '/^\s*eth0:/,/^\s*eth1:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
+    sudo sed -i '/^\s*eth1:/,/^\s*ethernets:/ {/dhcp4: true/d}' /tmp/50-cloud-init.yaml
+
+    # Add static IP for eth1
+    echo "Setting eth1 to static IP..."
+    cat <<EOF | sudo tee -a /tmp/50-cloud-init.yaml
+        eth1:
+            addresses:
+                - $eth1_ip
+EOF
 
     echo "Pre-netplan generate - netplan file:"
     sudo cat /tmp/50-cloud-init.yaml
