@@ -5,5 +5,5 @@ set -euxo pipefail
 cd /opt/kolla
 source venv/bin/activate
 
-kolla-ansible -i multinode prechecks
-kolla-ansible -i multinode pull
+kolla-ansible prechecks -i multinode
+kolla-ansible pull -i multinode

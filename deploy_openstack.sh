@@ -11,7 +11,7 @@ if [[ "$OPENSTACK_RELEASE" == "ussuri" ]]; then
     # otherwise certain refstack tests will fail.
     # This seems like a bug in ussuri as it is not needed
     # in the subsequent victoria release.
-    kolla-ansible -i -vvvv multinode bootstrap-servers
+    kolla-ansible bootstrap-servers -i multinode -vvv
 fi
 
 echo "Entered globals.yml options:"
@@ -19,8 +19,8 @@ echo "############################"
 grep "^[^#-]" /etc/kolla/globals.yml
 echo "############################"
 
-kolla-ansible -i multinode -vvvv deploy
-kolla-ansible -i multinode -vvvv post-deploy
+kolla-ansible deploy -i multinode -vvv
+kolla-ansible post-deploy -i multinode -vvv
 deactivate nondestructive
 
 # Install the openstack client

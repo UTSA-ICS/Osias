@@ -72,7 +72,7 @@ ANSIBLE_MAX_VERSION = {
     "zed": "6",
     "2023.1": "8",
     "2023.2": "8",
-    "2024.2": "8",
+    "2024.2": "10",
 }
 CEPH_RELEASE = {
     "ussuri": "pacific",
@@ -82,8 +82,8 @@ CEPH_RELEASE = {
     "yoga": "quincy",
     "zed": "quincy",
     "2023.1": "quincy",
-    "2023.2": "quincy",
-    "2024.2": "reef"
+    "2023.2": "reef",
+    "2024.2": "squid"
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
@@ -118,7 +118,7 @@ KOLLA_BASE_DISTRO = {
 UBUNTU_NAMES = ["focal", "jammy"]
 UBUNTU_VERSIONS = ["20.04.4", "22.04"]
 REFSTACK_TEST_IMAGE = (
-    "https://download.cirros-cloud.net/0.6.2/cirros-0.6.2-x86_64-disk.img"
+    "https://download.cirros-cloud.net/0.6.3/cirros-0.6.3-x86_64-disk.img"
 )
 REFSTACK_TEST_VERSION = {
     "ussuri": "2020.11",
@@ -140,7 +140,7 @@ TEMPEST_VERSION = {
     "zed": "33.0.0",
     "2023.1": "34.2.0",
     "2023.2": "36.0.0",
-    "2024.2": "36.0.0",
+    "2024.2": "41.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -162,7 +162,7 @@ NOVA_MAX_MICROVERSION = {
     "zed": "2.93",
     "2023.1": "2.95",
     "2023.2": "2.95",
-    "2024.2": "2.95",
+    "2024.2": "2.96",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -184,7 +184,7 @@ STORAGE_MAX_MICROVERSION = {
     "zed": "3.70",
     "2023.1": "3.70",
     "2023.2": "3.70",
-    "2024.2": "3.70",
+    "2024.2": "3.71",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
