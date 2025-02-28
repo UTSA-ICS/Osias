@@ -38,7 +38,10 @@ stages:
 .base_setup:
   before_script:
     - export PYTHONUNBUFFERED=1
-    - if [[ "$CLOUD_PROVIDER_IMAGE" == "python:latest" ]]; then pip3 install -qr cloud_provider/requirements.txt; fi
+    - |
+      if [ "$CLOUD_PROVIDER_IMAGE" == "python:latest" ]; then
+       pip3 install -qr cloud_provider/requirements.txt
+      fi
     # Setup and add SSH_PRIVATE_KEY to ssh agent
     - "which ssh-agent || ( apt-get update -qqy && apt-get install openssh-client -qqy )"
     - eval $(ssh-agent -s)

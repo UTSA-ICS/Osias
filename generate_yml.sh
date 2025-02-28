@@ -62,7 +62,4 @@ else
 fi
 
 cat trigger-pipeline.yml
-
-export CLOUD_PROVIDER_IMAGE=$(grep 'CLOUD_PROVIDER_IMAGE:' deploy-"${release}".yml | awk -F ': ' '{print $2}')
-export CLOUD_PROVIDER_IMAGE="${CLOUD_PROVIDER_IMAGE//\"/}"  # Remove quotes if any
-echo "CLOUD_PROVIDER_IMAGE=${CLOUD_PROVIDER_IMAGE}" >> $CI_ENVIRONMENT_FILE
+python3 -c "import os; os.environ['CLOUD_PROVIDER_IMAGE'] = '${cloud_provider_image_current}'; print('CLOUD_PROVIDER_IMAGE set to', os.environ['CLOUD_PROVIDER_IMAGE'])"

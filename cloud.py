@@ -3,16 +3,16 @@ import json
 
 import ast
 import os
+CLOUD_PROVIDER_IMAGE = os.getenv("CLOUD_PROVIDER_IMAGE", "")
+if CLOUD_PROVIDER_IMAGE == "python:latest":
+    from cloud_provider.cloud_provider import CloudProvider as PythonAPI
+    from cloud_provider.cloud_proxmox import ProxMox
+    from cloud_provider.vm_profile import generate_vm_specs
 import yaml
 
 import maas_virtual
 import osias_variables
 import utils
-CLOUD_PROVIDER_IMAGE = os.getenv("CLOUD_PROVIDER_IMAGE", "")
-if CLOUD_PROVIDER_IMAGE == "python:latest":
-    from cloud_provider.cloud_provider import CloudProvider as PythonAPI
-    from cloud_provider.cloud_proxmox import ProxMox
-from cloud_provider.vm_profile import generate_vm_specs
 import variables
 
 
