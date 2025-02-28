@@ -219,7 +219,7 @@ test:stress:
 sleep_on_failure:
   stage: sleep_on_failure
   tags:
-    - shell
+    - docker-runner
   script:
     - source ~/.bashrc  # Load profile (if necessary)
     - echo "SLEEP_FAILURE_TIME=$SLEEP_FAILURE_TIME"  # Debug line
