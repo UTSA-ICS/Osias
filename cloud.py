@@ -3,8 +3,8 @@ import json
 
 import ast
 import os
-CLOUD_PROVIDER_IMAGE = os.getenv("CLOUD_PROVIDER_IMAGE", "")
-if CLOUD_PROVIDER_IMAGE == "python:latest":
+CLOUD_PROVIDER = os.getenv("CLOUD_PROVIDER", "")
+if CLOUD_PROVIDER == "proxmox":
     from cloud_provider.cloud_provider import CloudProvider as PythonAPI
     from cloud_provider.cloud_proxmox import ProxMox
     from cloud_provider.vm_profile import generate_vm_specs

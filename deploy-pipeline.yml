@@ -39,7 +39,7 @@ stages:
   before_script:
     - export PYTHONUNBUFFERED=1
     - |
-      if [ "$CLOUD_PROVIDER_IMAGE" == "python:latest" ]; then
+      if [ "$CLOUD_PROVIDER" == "proxmox" ]; then
        pip3 install -qr cloud_provider/requirements.txt
       fi
     # Setup and add SSH_PRIVATE_KEY to ssh agent

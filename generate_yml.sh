@@ -63,5 +63,4 @@ else
     sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" trigger-pipeline.yml
     sed -i "s/<CLOUD_PROVIDER_IMAGE>/python:latest/g" deploy-"${release}".yml
 fi
-python3 -c "import os; os.environ['CLOUD_PROVIDER_IMAGE'] = '${cloud_provider_image_current}'; print('CLOUD_PROVIDER_IMAGE set to', os.environ['CLOUD_PROVIDER_IMAGE'])"
 cat trigger-pipeline.yml
