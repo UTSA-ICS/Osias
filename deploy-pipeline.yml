@@ -38,6 +38,7 @@ stages:
 .base_setup:
   before_script:
     - export PYTHONUNBUFFERED=1
+    - pip3 install -qr requirements.txt
     - |
       if [ "$CLOUD_PROVIDER" == "proxmox" ]; then
         pip3 install -qr cloud_provider/requirements.txt
