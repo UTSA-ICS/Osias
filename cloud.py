@@ -1,14 +1,15 @@
 #!/usr/bin/python3
-import json
 
 import ast
+import json
 import os
+import yaml
+
 CLOUD_PROVIDER = os.getenv("CLOUD_PROVIDER", "")
 if CLOUD_PROVIDER == "proxmox":
     from cloud_provider.cloud_provider import CloudProvider as PythonAPI
     from cloud_provider.cloud_proxmox import ProxMox
     from cloud_provider.vm_profile import generate_vm_specs
-import yaml
 
 import maas_virtual
 import osias_variables

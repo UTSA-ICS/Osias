@@ -1,0 +1,11 @@
+# Profile variables
+export PROFILE_NAME_1="Controller1 Controller2 Controller3"
+export PROFILE_COUNT_1="3"
+export PROFILE_HD_1="60"
+export PROFILE_HD_2="8"
+export PROFILE_HD_3="8"
+export PROFILE_RAM_1="16384"
+export PROFILE_vCPU_1="6"
+export PROFILE_OS_1="24.04"
+export PROFILE_BRIDGE_NAME_1="OSIAS"
+export PROFILE_CIDR_1=""

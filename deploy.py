@@ -102,6 +102,7 @@ def parse_args():
         choices=[
             "reboot_servers",
             "reprovision_servers",
+            "disable_cloudinit",
             "tag_virtual_servers",
             "create_virtual_servers",
             "bootstrap_networking",
@@ -437,6 +438,10 @@ def main():
                     + "If operation is specified as [reprovision_servers] then "
                     + "the optional arguments [--CLOUD_URL] and [--CLOUD_PASS] have to be set."
                 )
+        elif args.operation == "disable_cloudinit":
+            if args.CLOUD_PROVIDER == "proxmox":
+                utils.run_cmd_on_server("sudo touch /etc/cloud/cloud-init.disabled", servers_public_ip)
+                print("Cloud initialization disabled")
         elif args.operation == "bootstrap_networking":
             utils.copy_file_on_server("base_config.sh", servers_public_ip)
             bootstrap_networking(servers_public_ip, DNS_IP)

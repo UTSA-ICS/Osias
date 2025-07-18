@@ -50,8 +50,11 @@ SUPPORTED_OPENSTACK_RELEASE = [
     "2023.1",
     "2023.2",
     "2024.2",
+    "2025.1",
 ]
 NON_QUAY_RELEASE = ["ussuri", "victoria", "wallaby", "xena", "yoga"]
+
+# https://governance.openstack.org/tc/reference/runtimes/
 PYTHON_VERSION = {
     "ussuri": "3.6",
     "victoria": "3.8",
@@ -61,7 +64,8 @@ PYTHON_VERSION = {
     "zed": "3.8",
     "2023.1": "3.10",
     "2023.2": "3.10",
-    "2024.2": "3.12",
+    "2024.2": "3.11",
+    "2025.1": "3.12",
 }
 ANSIBLE_MAX_VERSION = {
     "ussuri": "2.10",
@@ -73,6 +77,7 @@ ANSIBLE_MAX_VERSION = {
     "2023.1": "8",
     "2023.2": "8",
     "2024.2": "10",
+    "2025.1": "12",
 }
 CEPH_RELEASE = {
     "ussuri": "pacific",
@@ -82,8 +87,9 @@ CEPH_RELEASE = {
     "yoga": "quincy",
     "zed": "quincy",
     "2023.1": "quincy",
-    "2023.2": "reef",
-    "2024.2": "squid"
+    "2023.2": "quincy",
+    "2024.2": "reef",
+    "2025.1": "reef",
 }
 MAAS_VM_DISTRO = {
     "ussuri": "bionic hwe_kernel=hwe-18.04",
@@ -95,6 +101,7 @@ MAAS_VM_DISTRO = {
     "2023.1": "jammy hwe_kernel=hwe-22.04-edge",
     "2023.2": "jammy hwe_kernel=hwe-22.04-edge",
     "2024.2": "jammy hwe_kernel=hwe-22.04-edge",
+    "2025.1": "noble hwe_kernel=hwe-24.04-edge",
 }
 
 KOLLA_BASE_DISTRO = {
@@ -107,6 +114,7 @@ KOLLA_BASE_DISTRO = {
     "2023.1": "rocky",
     "2023.2": "rocky",
     "2024.2": "rocky",
+    "2025.1": "rocky",
 }
 
 # REFSTACK VARIABLES
@@ -115,8 +123,8 @@ KOLLA_BASE_DISTRO = {
 # https://docs.openstack.org/placement/latest/placement-api-microversion-history.html
 # https://docs.openstack.org/releasenotes/tempest/unreleased.html
 # https://refstack.openstack.org/#/guidelines
-UBUNTU_NAMES = ["focal", "jammy"]
-UBUNTU_VERSIONS = ["20.04.4", "22.04"]
+UBUNTU_NAMES = ["focal", "jammy", "noble"]
+UBUNTU_VERSIONS = ["20.04.4", "22.04", "24.04"]
 REFSTACK_TEST_IMAGE = (
     "https://download.cirros-cloud.net/0.6.3/cirros-0.6.3-x86_64-disk.img"
 )
@@ -130,6 +138,7 @@ REFSTACK_TEST_VERSION = {
     "2023.1": "2022.11",
     "2023.2": "2022.11",
     "2024.2": "2022.11",
+    "2025.1": "2022.11",
 }
 TEMPEST_VERSION = {
     "ussuri": "29.2.0",
@@ -141,6 +150,7 @@ TEMPEST_VERSION = {
     "2023.1": "34.2.0",
     "2023.2": "36.0.0",
     "2024.2": "41.0.0",
+    "2025.1": "43.0.0",
 }
 NOVA_MIN_MICROVERSION = {
     "ussuri": "2.1",
@@ -152,6 +162,7 @@ NOVA_MIN_MICROVERSION = {
     "2023.1": "2.1",
     "2023.2": "2.1",
     "2024.2": "2.1",
+    "2025.1": "2.1",
 }
 NOVA_MAX_MICROVERSION = {
     "ussuri": "2.87",
@@ -163,6 +174,7 @@ NOVA_MAX_MICROVERSION = {
     "2023.1": "2.95",
     "2023.2": "2.95",
     "2024.2": "2.96",
+    "2025.1": "2.100",
 }
 STORAGE_MIN_MICROVERSION = {
     "ussuri": "3.0",
@@ -174,6 +186,7 @@ STORAGE_MIN_MICROVERSION = {
     "2023.1": "3.0",
     "2023.2": "3.0",
     "2024.2": "3.0",
+    "2025.1": "3.0",
 }
 STORAGE_MAX_MICROVERSION = {
     "ussuri": "3.60",
@@ -185,6 +198,7 @@ STORAGE_MAX_MICROVERSION = {
     "2023.1": "3.70",
     "2023.2": "3.70",
     "2024.2": "3.71",
+    "2025.1": "3.71",
 }
 PLACEMENT_MIN_MICROVERSION = {
     "ussuri": "1.0",
@@ -196,6 +210,7 @@ PLACEMENT_MIN_MICROVERSION = {
     "2023.1": "1.0",
     "2023.2": "1.0",
     "2024.2": "1.0",
+    "2025.1": "1.0",
 }
 PLACEMENT_MAX_MICROVERSION = {
     "ussuri": "1.36",
@@ -207,4 +222,5 @@ PLACEMENT_MAX_MICROVERSION = {
     "2023.1": "1.39",
     "2023.2": "1.39",
     "2024.2": "1.39",
+    "2025.1": "1.39",
 }

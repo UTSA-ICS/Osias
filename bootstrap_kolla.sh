@@ -7,7 +7,7 @@ ANSIBLE_MAX_VERSION=$2
 
 # Dependencies
 sudo apt-get update
-sudo apt-get -qqy install python3-dev libffi-dev gcc libssl-dev python3-pip python3-venv
+sudo apt-get -qqy install git python3-dev libffi-dev gcc libssl-dev libdbus-glib-1-dev python3-pip python3-venv
 
 # basedir and venv
 sudo mkdir -p /opt/kolla

@@ -24,15 +24,16 @@ deployment.
 
 - MAAS version: 2.8.2 - 3.2.9
 
-|      | Kolla   | Python |    OS |      Ansible |    Ceph | Swift |
-|----------|------|-----|--------------|---------|---------|-------|
-| ussuri   | 10.x | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific | No    |
-| victoria | 11.x | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific | No    |
-| wallaby  | 12.x | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific | No    |
-| xena     | 13.x | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
-| yoga     | 14.x | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
-| zed      | 15.x | 3.8 | Ubuntu 22.04 | \< 6.0  | Quincy  | Yes   |
-
+|          | Kolla | Python | OS           | Ansible | Ceph    | Swift |
+|----------|-------|-----|--------------|---------|---------|-------|
+| ussuri   | 10.x  | 3.6 | Ubuntu 18.04 | \< 2.10 | Pacific | No    |
+| victoria | 11.x  | 3.8 | Ubuntu 20.04 | \< 2.10 | Pacific | No    |
+| wallaby  | 12.x  | 3.8 | Ubuntu 20.04 | \< 3.0  | Pacific | No    |
+| xena     | 13.x  | 3.8 | Ubuntu 20.04 | \< 5.0  | Pacific | Yes   |
+| yoga     | 14.x  | 3.8 | Ubuntu 20.04 | \< 6.0  | Quincy  | Yes   |
+| zed      | 15.x  | 3.8 | Ubuntu 22.04 | \< 6.0  | Quincy  | Yes   |
+| 2024.2   | 19.x  | 3.8 | Ubuntu 22.04 | \< 10.0 | Quincy  | Yes   |
+| 2025.1   | 20.x  | 3.8 | Ubuntu 24.04 | \< 12.0 | Reef    | Yes   |
 ## MaaS
 
 Please configure MaaS to:
