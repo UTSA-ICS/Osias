@@ -38,9 +38,9 @@ class Cloud:
             self.provider = maas_virtual.MaasVirtual(operating_system)
 
         elif self.cloud == "proxmox":
-            cloud_url = os.getenv("PROXMOX_CLOUD_URL")
-            cloud_user = os.getenv("PROXMOX_CLOUD_USER")
-            cloud_pass = os.getenv("PROXMOX_CLOUD_PASS")
+            cloud_url = os.getenv("CLOUD_URL")
+            cloud_user = os.getenv("CLOUD_USER")
+            cloud_pass = os.getenv("CLOUD_PASS")
             self.provider = PythonAPI(
                 provider = ProxMox,
                 url = cloud_url,
@@ -86,10 +86,10 @@ class Cloud:
             )
         elif self.cloud == "proxmox":
             print(f"Working in a {self.cloud} environment.")
-            POOL_START_IP = "10.245.124.237"
-            POOL_END_IP = "10.245.124.248"
-            VIP_ADDRESS = "10.245.124.249"
-            DNS_IP = "10.250.53.202"
+            POOL_START_IP = variables.POOL_START_IP
+            POOL_END_IP = variables.POOL_END_IP
+            VIP_ADDRESS = variables.VIP_ADDRESS
+            DNS_IP = variables.DNS_IP
 
             # Debug: Ensure VM profile creation is correct
             vm_requirements = self.create_vm_profile()
@@ -174,17 +174,15 @@ class Cloud:
 
         # Get the number of VMs to generate
         number_of_vms = int(self.vm_profile.get("Number_of_VM_Servers", 1))
-
         # Generate VM profiles
         for i in range(number_of_vms):
-            vm_name = f"{variables.PROXMOX_NAME}-{i + 1}-{self.parent_project_pipeline_id}"
+            vm_name = f"{variables.PROXMOX_NAME}{i}-{self.parent_project_pipeline_id}"
             profiles.append(
                 {
                     "name": vm_name,
-                    "count": 1,
-                    "hd": variables.PROXMOX_HD,
-                    "os": variables.PROXMOX_TEMPLATE_NAME,
-                    "ram": variables.PROXMOX_RAM,
+                    "HD": variables.PROXMOX_HD,
+                    "OS": variables.PROXMOX_TEMPLATE_NAME,
+                    "RAM": variables.PROXMOX_RAM,
                     "vCPU": variables.PROXMOX_VCPU,
                     "network": {"bridge_name": variables.PROXMOX_NETWORK_BRIDGE},
                 }
@@ -195,7 +193,9 @@ class Cloud:
             cloud_vendor = self.cloud
 
         args = Args()
-        # Generate VM specs using the generated profiles
-        result = generate_vm_specs(args, profiles=profiles)
-        print(f"THIS IS THE PROFILE IN OSIAS cloud.py: {result}")
-        return result
+        final_profile = {
+            "cloud_provider": "proxmox",
+            "vms": profiles
+        }
+        print(f"THIS IS THE PROFILE IN OSIAS cloud.py: {final_profile}")
+        return final_profile
