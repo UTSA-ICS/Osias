@@ -406,11 +406,10 @@ def main():
                     + "Pool start/end correlate to the floating IP's that VM's will use."
                 )
         OPENSTACK_RELEASE = config.get_variables(variable="OPENSTACK_RELEASE").lower()
-        if OPENSTACK_RELEASE not in osias_variables.NON_QUAY_RELEASE:
-            if docker_registry_ip is not None:
-                raise Exception(
-                    f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
-                )
+        if docker_registry_ip is not None:
+            raise Exception(
+                f"Openstack version <{OPENSTACK_RELEASE}> is only on quay.io, please remove docker options from multinode variables."
+            )
         PYTHON_VERSION = config.get_variables(variable="PYTHON_VERSION", openstack_release=OPENSTACK_RELEASE)
         TEMPEST_VERSION = config.get_variables(variable="TEMPEST_VERSION", openstack_release=OPENSTACK_RELEASE)
         REFSTACK_TEST_VERSION = config.get_variables(
