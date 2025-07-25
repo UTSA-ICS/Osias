@@ -15,14 +15,14 @@ else
     exit 1
 fi
 
-if python3 -c 'import pkgutil; exit(not pkgutil.find_loader("openstackclient"))'; then
-    echo 'Openstack client found'
+if python3 -c "import openstackclient" 2>/dev/null; then
+    echo "✅ Python module 'openstackclient' is available"
 else
-    echo "Openstack client not found"
-    pip3 install python-openstackclient
+    echo "❌ Python module 'openstackclient' NOT found, installing...."
+    pip3 install python-openstackclient --break-system-packages
 fi
 
-pip3 install importlib-metadata==4.13.0 # Fix AttributeError: 'EntryPoints' object has no attribute 'items' from 5.0.0 upgrade.
+pip3 install importlib-metadata==4.13.0 --break-system-packages  # Fix AttributeError: 'EntryPoints' object has no attribute 'items' from 5.0.0 upgrade.
 
 FIRST_NAME="John"
 LAST_NAME="Doe"
@@ -44,6 +44,22 @@ ADMIN_KEYPAIR_NAME="admin_keypair_${PASSWORD:0:4}"
 FLAVOR="cb1.medium"
 ERROR=0
 SERVER_ERRORS=""
+
+# Default: do not use --insecure
+OS_INSECURE_FLAG=""
+
+# Check for SSL cert verification error
+if ! openstack token issue &>/tmp/openstack_test 2>&1; then
+    if grep -qi "certificate verify failed" /tmp/openstack_test; then
+        echo "⚠️  SSL certificate verification failed — using --insecure for openstack commands."
+        OS_INSECURE_FLAG="--insecure"
+    fi
+fi
+
+# Wrapper for openstack commands
+run_openstack() {
+    openstack $OS_INSECURE_FLAG "$@"
+}
 
 # Declare dictionaries
 declare -A servers
@@ -89,18 +105,18 @@ function retry {
 
 function create_project_and_user() {
     echo "INFO: Creating Group..."
-    openstack project create --description "Project for $NAME" "$PROJECT_NAME"
+    run_openstack project create --description "Project for $NAME" "$PROJECT_NAME"
     echo "INFO: Getting project/group ID..."
-    PROJECT_ID=$(openstack project show -f shell -c id "$PROJECT_NAME" | cut -d"=" -f2 | tr -d '"')
+    PROJECT_ID=$(run_openstack project show -f shell -c id "$PROJECT_NAME" | cut -d"=" -f2 | tr -d '"')
     echo "INFO: Creating user..."
-    openstack user create --project "$PROJECT_NAME" --description "$NAME" --password "$PASSWORD" --email "$USER_EMAIL_ADDRESS" --enable "$USER_NAME"
+    run_openstack user create --project "$PROJECT_NAME" --description "$NAME" --password "$PASSWORD" --email "$USER_EMAIL_ADDRESS" --enable "$USER_NAME"
     echo "INFO: Adding user to project and set project as default project"
-    openstack role add --user "$USER_NAME" --project "$PROJECT_ID" member
-    openstack user set --project "$PROJECT_NAME" "$USER_NAME"
+    run_openstack role add --user "$USER_NAME" --project "$PROJECT_ID" member
+    run_openstack user set --project "$PROJECT_NAME" "$USER_NAME"
 
     echo "INFO: Getting External Network Information..."
-    EXTERNAL_NETWORK_NAME=$(openstack network list --long | grep External | awk '{print $4}')
-    EXTERNAL_NETWORK_ID=$(openstack network show -f shell "$EXTERNAL_NETWORK_NAME" -c id | cut -d "\"" -f 2)
+    EXTERNAL_NETWORK_NAME=$(run_openstack network list --long | grep External | awk '{print $4}')
+    EXTERNAL_NETWORK_ID=$(run_openstack network show -f shell "$EXTERNAL_NETWORK_NAME" -c id | cut -d "\"" -f 2)
 
     if [[ -z "$EXTERNAL_NETWORK_NAME" ]]; then
         echo "ERROR: EXTERNAL_NETWORK_NAME is not defined, cleaning up the project and quitting."
@@ -114,24 +130,24 @@ function create_project_and_user() {
     fi
 
     echo "INFO: Creating Network and subnet..."
-    openstack network create --project "$PROJECT_ID" "$NETWORK_NAME"
-    NETWORK_ID=$(openstack network show -f shell -c id "$NETWORK_NAME" | cut -d"=" -f2 | tr -d '"')
-    openstack subnet create --project "$PROJECT_ID" --dns-nameserver "8.8.8.8" --subnet-range "192.168.0.0/24" --network "$NETWORK_ID" "$SUBNET_NAME"
+    run_openstack network create --project "$PROJECT_ID" "$NETWORK_NAME"
+    NETWORK_ID=$(run_openstack network show -f shell -c id "$NETWORK_NAME" | cut -d"=" -f2 | tr -d '"')
+    run_openstack subnet create --project "$PROJECT_ID" --dns-nameserver "8.8.8.8" --subnet-range "192.168.0.0/24" --network "$NETWORK_ID" "$SUBNET_NAME"
 
     echo "INFO: Creating router and connections ..."
-    openstack router create --project "$PROJECT_ID" "$ROUTER_NAME"
-    ROUTER_ID=$(openstack router show -f shell "$ROUTER_NAME" -c id | cut -d"\"" -f 2)
-    openstack router set --external-gateway "$EXTERNAL_NETWORK_ID" "$ROUTER_ID"
-    openstack router add subnet "$ROUTER_ID" "$SUBNET_NAME"
+    run_openstack router create --project "$PROJECT_ID" "$ROUTER_NAME"
+    ROUTER_ID=$(run_openstack router show -f shell "$ROUTER_NAME" -c id | cut -d"\"" -f 2)
+    run_openstack router set --external-gateway "$EXTERNAL_NETWORK_ID" "$ROUTER_ID"
+    run_openstack router add subnet "$ROUTER_ID" "$SUBNET_NAME"
 
     echo "INFO: UPDATING SECURITY GROUP RULES"
 
-    SECURITY_GROUP_ID=$(openstack security group list | grep "$PROJECT_ID" | awk '{print $2}')
-    ADMIN_SECURITY_GROUP_ID=$(openstack security group list --project admin -c ID -f value)
-    openstack security group rule create --proto icmp --project "$PROJECT_NAME" "$SECURITY_GROUP_ID"
-    openstack security group rule create --proto tcp --project "$PROJECT_NAME" --dst-port 22 "$SECURITY_GROUP_ID"
-    openstack security group rule create --proto tcp --project admin --dst-port 22 "$ADMIN_SECURITY_GROUP_ID" || true
-    openstack security group rule create --proto icmp --project admin "$ADMIN_SECURITY_GROUP_ID" || true
+    SECURITY_GROUP_ID=$(run_openstack security group list | grep "$PROJECT_ID" | awk '{print $2}')
+    ADMIN_SECURITY_GROUP_ID=$(run_openstack security group list --project admin -c ID -f value)
+    run_openstack security group rule create --proto icmp --project "$PROJECT_NAME" "$SECURITY_GROUP_ID"
+    run_openstack security group rule create --proto tcp --project "$PROJECT_NAME" --dst-port 22 "$SECURITY_GROUP_ID"
+    run_openstack security group rule create --proto tcp --project admin --dst-port 22 "$ADMIN_SECURITY_GROUP_ID" || true
+    run_openstack security group rule create --proto icmp --project admin "$ADMIN_SECURITY_GROUP_ID" || true
 
     echo "######################"
     echo "Username: $USER_NAME"
@@ -176,27 +192,27 @@ function ssh_into_vm() {
 function create_vms() {
     echo "INFO: Starting VM creation process."
     echo "INFO: Adjusting necessary quotas"
-    flavor_vcpu=$(openstack flavor show $FLAVOR -f value -c vcpus)
-    flavor_ram=$(openstack flavor show $FLAVOR -f value -c ram)
-    quotas=$(openstack quota show --usage --compute)
+    flavor_vcpu=$(run_openstack flavor show $FLAVOR -f value -c vcpus)
+    flavor_ram=$(run_openstack flavor show $FLAVOR -f value -c ram)
+    quotas=$(run_openstack quota show --usage --compute)
     original_vcpu_quota=$(echo "$quotas" | grep cores | awk '{print $4}')
     original_ram_quota=$(echo "$quotas" | grep ram | awk '{print $4}')
     original_instance_quota=$(echo "$quotas" | grep instances | awk '{print $4}')
-    node_count=$(openstack compute service list -f value -c Host --service nova-compute | wc -l)
+    node_count=$(run_openstack compute service list -f value -c Host --service nova-compute | wc -l)
     new_vcpu_quota=$((flavor_vcpu * node_count + 20))
     new_ram_quota=$((flavor_ram * node_count + 51200))
     new_instance_quota=$((node_count + 10))
-    openstack quota set --cores $new_vcpu_quota --ram $new_ram_quota --instances $new_instance_quota admin
+    run_openstack quota set --cores $new_vcpu_quota --ram $new_ram_quota --instances $new_instance_quota admin
 
     echo "INFO: Getting list of compute nodes, creating keypairs, and creating floating IP..."
-    mapfile -t compute_nodes < <(openstack compute service list -f value -c Host --service nova-compute)
+    mapfile -t compute_nodes < <(run_openstack compute service list -f value -c Host --service nova-compute)
     num_of_nodes=${#compute_nodes[@]}
-    openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
+    run_openstack keypair create --private-key "$ADMIN_KEYPAIR_NAME" "$ADMIN_KEYPAIR_NAME"
     chmod 600 "$ADMIN_KEYPAIR_NAME"
-    mapfile -t IMAGE_LIST < <(openstack image list -c Name -f value | grep Ubuntu)
-    ADMIN_NETWORK_ID=$(openstack network list --internal --project admin -c ID -f value)
-    EXTERNAL_ID=$(openstack network list --external --long -f value -c ID)
-    FLOATING_IP=$(openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
+    mapfile -t IMAGE_LIST < <(run_openstack image list -c Name -f value | grep Ubuntu)
+    ADMIN_NETWORK_ID=$(run_openstack network list --internal --project admin -c ID -f value)
+    EXTERNAL_ID=$(run_openstack network list --external --long -f value -c ID)
+    FLOATING_IP=$(run_openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
     echo "INFO: Created Floating IP of $FLOATING_IP"
     echo "INFO: Creating VM's now on each of the $num_of_nodes compute nodes."
     i=1
@@ -208,7 +224,7 @@ function create_vms() {
         echo "INFO: Deploying VM, $INSTANCE_NAME, on physical server ($i of $num_of_nodes): $compute_node"
         # shellcheck disable=SC2034
         servers["$compute_node"]="$INSTANCE_NAME"
-        vms["$INSTANCE_NAME"]="openstack server create --key-name $ADMIN_KEYPAIR_NAME --network $ADMIN_NETWORK_ID --image ${IMAGE_LIST[-1]} --flavor $FLAVOR --availability-zone nova::$compute_node $INSTANCE_NAME"
+        vms["$INSTANCE_NAME"]="run_openstack server create --key-name $ADMIN_KEYPAIR_NAME --network $ADMIN_NETWORK_ID --image ${IMAGE_LIST[-1]} --flavor $FLAVOR --availability-zone nova::$compute_node $INSTANCE_NAME"
         i=$((i + 1))
     done
     for VM_NAME in "${!vms[@]}"; do
@@ -219,7 +235,7 @@ function create_vms() {
         for VM_NAME in "${!vms[@]}"; do
             echo "INFO: Checking $VM_NAME status...."
             compute_node=$(lookup_key_from_value servers "$VM_NAME")
-            STATUS_STATE=$(openstack server list -c Status --name "$VM_NAME" -f value)
+            STATUS_STATE=$(run_openstack server list -c Status --name "$VM_NAME" -f value)
             STATUS_VALUE=$(check_status "$STATUS_STATE")
             VALUE="${STATUS_VALUE::1}"
             echo "$STATUS_VALUE"
@@ -227,13 +243,13 @@ function create_vms() {
             case $VALUE in
             1)
                 echo "ERROR: VM, $VM_NAME is in a bad state $STATUS_VALUE, deleting..."
-                openstack server delete "$VM_NAME"
+                run_openstack server delete "$VM_NAME"
                 SERVER_ERRORS+="$compute_node "
                 echo "INFO: Recreating $VM_NAME ..."
                 eval "${vms[${VM_NAME}]}"
                 ;;
             2)
-                retry openstack server add floating ip "$VM_NAME" "$FLOATING_IP"
+                retry run_openstack server add floating ip "$VM_NAME" "$FLOATING_IP"
                 TEST=$(ssh_into_vm "$KEYPAIR_NAME" "$FLOATING_IP" "$VM_NAME")
                 echo "$TEST"
                 ssh-keygen -f "/root/.ssh/known_hosts" -R "$FLOATING_IP"
@@ -242,7 +258,7 @@ function create_vms() {
                     compute_node=$(lookup_key_from_value servers "$VM_NAME")
                     echo "INFO: SUCCESS: SSH PASSES ON $compute_node with $VM_NAME!"
                     echo "INFO: Deleting VM: $INSTANCE_NAME ON $compute_node ($i of $num_of_nodes)"
-                    openstack server delete "$VM_NAME"
+                    run_openstack server delete "$VM_NAME"
                     echo "INFO: Delete complete"
                     unset "vms[$VM_NAME]"
                     i=$((i + 1))
@@ -267,36 +283,36 @@ function create_vms() {
         fi
     done
     echo "INFO: Deleting the floating IP: $FLOATING_IP"
-    openstack floating ip delete "$FLOATING_IP"
+    run_openstack floating ip delete "$FLOATING_IP"
     echo "INFO: Revert quota values"
-    openstack quota set --cores "$original_vcpu_quota" --ram "$original_ram_quota" --instances "$original_instance_quota" admin
+    run_openstack quota set --cores "$original_vcpu_quota" --ram "$original_ram_quota" --instances "$original_instance_quota" admin
 }
 
 function delete_project_and_user() {
     echo "INFO: CLEANING UP PROJECT AND USER"
-    openstack keypair delete "$ADMIN_KEYPAIR_NAME"
+    run_openstack keypair delete "$ADMIN_KEYPAIR_NAME"
     echo "INFO: Keypair deleted"
     rm "$ADMIN_KEYPAIR_NAME" || true
-    openstack user delete "$USER_NAME"
+    run_openstack user delete "$USER_NAME"
     echo "INFO: User deleted"
-    openstack project delete "$USER_NAME"
+    run_openstack project delete "$USER_NAME"
     echo "INFO: Project deleted"
-    mapfile -t port_list < <(openstack port list -c ID -f value --network "$USER_NAME"_Network)
+    mapfile -t port_list < <(run_openstack port list -c ID -f value --network "$USER_NAME"_Network)
     for port in "${port_list[@]}"; do
         echo "INFO: Deleting or Removing Port: $port"
-        if openstack port delete "$port"; then
+        if run_openstack port delete "$port"; then
             echo "INFO: Port Deleted: $port"
         else
-            openstack router remove port "$USER_NAME"_Router "$port"
+            run_openstack router remove port "$USER_NAME"_Router "$port"
             echo "INFO: Port Removed: $port."
         fi
     done
     echo "INFO: All Ports deleted"
-    openstack subnet delete "$USER_NAME"_Subnet
+    run_openstack subnet delete "$USER_NAME"_Subnet
     echo "INFO: Subnet deleted"
-    openstack router delete "$USER_NAME"_Router
+    run_openstack router delete "$USER_NAME"_Router
     echo "INFO: Router deleted"
-    openstack network delete "$USER_NAME"_Network
+    run_openstack network delete "$USER_NAME"_Network
     echo "INFO: Network deleted"
     echo "INFO: All project and user aspects have been deleted."
 }
