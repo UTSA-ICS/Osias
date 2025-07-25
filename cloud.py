@@ -5,10 +5,9 @@ import json
 import os
 import yaml
 
-CLOUD_PROVIDER = os.getenv("CLOUD_PROVIDER", "")
+# CLOUD_PROVIDER = os.getenv("CLOUD_PROVIDER", "")
 from cloud_provider.cloud_provider import CloudProvider as PythonAPI
 from cloud_provider.cloud_proxmox import ProxMox
-from cloud_provider.vm_profile import generate_vm_specs
 
 import maas_virtual
 import osias_variables
@@ -188,11 +187,6 @@ class Cloud:
                 }
             )
 
-        # Create args with the cloud provider
-        class Args:
-            cloud_vendor = self.cloud
-
-        args = Args()
         final_profile = {
             "cloud_provider": "proxmox",
             "vms": profiles

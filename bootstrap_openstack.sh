@@ -25,7 +25,6 @@ sudo sed -i "s|NETWORK_INTERFACE|${network_interface}|g" /etc/kolla/globals.yml
 
 kolla-ansible certificates -i multinode -vvv
 
-# Necessary for Yoga onwards.
 kolla-ansible install-deps || true
 
 # This bootstrap is necessary to prep for openstack deployment.
