@@ -213,7 +213,12 @@ function create_vms() {
     ADMIN_NETWORK_ID=$(run_openstack network list --internal --project admin -c ID -f value)
     EXTERNAL_ID=$(run_openstack network list --external --long -f value -c ID)
     FLOATING_IP=$(run_openstack floating ip create "$EXTERNAL_ID" -f value -c floating_ip_address)
-    echo "INFO: Created Floating IP of $FLOATING_IP"
+    if [ "${FLOATING_IP:-}" ]; then
+        echo "INFO: Created Floating IP of $FLOATING_IP"
+    else
+        echo "⚠️  Floating IP is not set."
+        exit 1
+    fi
     echo "INFO: Creating VM's now on each of the $num_of_nodes compute nodes."
     i=1
 

@@ -43,50 +43,39 @@ if ! openstack router list --project "${TENANT_ID}" -c Name -f value | grep -q "
     openstack router add subnet "$USER_NAME"_Router "$USER_NAME"_Subnet
 fi
 
-git clone https://opendev.org/openinfra/refstack-client.git || true
-cd refstack-client || exit
-./setup_env -t "${TEMPEST_VERSION}" -p "${PYTHON_VERSION}" -q
+git clone https://opendev.org/openstack/tempest.git || true
+cd tempest || exit
+git checkout "${TEMPEST_VERSION}"
 
-cp "$HOME"/accounts.yaml "$HOME"/refstack-client/etc/accounts.yaml
-cp "$HOME"/tempest.conf "$HOME"/refstack-client/etc/tempest.conf
+python3 -m venv .venv
+pip install .
+tempest init ~/tempest-run
 
-source .venv/bin/activate
+cd ~/tempest-run
+cp "$HOME"/accounts.yaml "$HOME"/tempest-run/etc/accounts.yaml
+cp "$HOME"/tempest.conf "$HOME"/tempest-run/etc/tempest.conf
 
-#
-# Refstack Tests
-#
-
-# Sample for running a single testcase
-#refstack-client test -c etc/tempest.conf -v -- --regex tempest.api.identity.v3.test_tokens.TokensV3Test.test_create_token
-wget "https://refstack.openstack.org/api/v1/guidelines/${REFSTACK_TEST_VERSION}/tests?target=platform&type=required&alias=true&flag=false" -O /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
-
-# This is for the instance of an all-in-one deploy where there is no nested
-# virtualization is available and so no VMs can be created - hence the VM pool
-# is disabled. So skip the testcases that test for compute servers.
 if [[ "$VM_POOL" == "VM_POOL_DISABLED" ]]; then
     tests=(
-        tempest.api.compute.images.test_images_oneserver.ImagesOneServerTestJSON
-        tempest.api.compute.servers.test_create_server.ServersTestJSON
-        tempest.api.compute.servers.test_create_server.ServersTestManualDisk
-        tempest.api.compute.servers.test_delete_server.DeleteServersTestJSON.test_delete_active_server
-        tempest.api.compute.servers.test_instance_actions.InstanceActionsTestJSON
-        tempest.api.compute.servers.test_list_server_filters.ListServerFiltersTestJSON
-        tempest.api.compute.servers.test_list_servers_negative.ListServersNegativeTestJSON
-        tempest.api.compute.servers.test_multiple_create.MultipleCreateTestJSON.test_multiple_create
-        tempest.api.compute.servers.test_server_actions.ServerActionsTestJSON
-        tempest.api.compute.servers.test_servers.ServersTestJSON.test_create_specify_keypair
-        tempest.api.compute.servers.test_servers.ServersTestJSON.test_create_with_existing_server_name
-        tempest.api.compute.servers.test_servers.ServersTestJSON.test_update_access_server_address
-        tempest.api.compute.servers.test_servers.ServersTestJSON.test_update_server_name
-        tempest.api.compute.servers.test_servers_negative.ServersNegativeTestJSON
+        "$HOME"/tempest/tempest/api/compute/images/test_images_oneserver.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_create_server.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_instance_actions.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_delete_server.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_list_server_filters.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_list_servers_negative.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_multiple_create.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_server_actions.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_servers.py
+        "$HOME"/tempest/tempest/api/compute/servers/test_servers_negative.py
     )
     for test in "${tests[@]}"; do
-        sed -i "/$test/d" /tmp/platform."${REFSTACK_TEST_VERSION}"-test-list.txt
+        mkdir "$HOME"/backup-tests
+        mv "$test" "$HOME"/backup-tests
     done
 fi
 
-# Now run the refstack test using the refstack client. Return true so that the results can be analyzed if a run fails.
-refstack-client test -c etc/tempest.conf -v --test-list "/tmp/platform.${REFSTACK_TEST_VERSION}-test-list.txt" || true
+tempest run --config-file ~/tempest-run/etc/tempest.conf --concurrency 1 --serial || true
+
 
 # Cleanup user & project creation
 openstack user delete "$USER_NAME"
