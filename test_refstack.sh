@@ -8,8 +8,8 @@ source /etc/kolla/admin-openrc.sh
 DNS_IP=$1
 VM_POOL=$2
 TEMPEST_VERSION=$3
-REFSTACK_TEST_VERSION=$4
-PYTHON_VERSION=${5::1}
+# REFSTACK_TEST_VERSION=$4
+# PYTHON_VERSION=${5::1}
 TENANT=openstack
 USER_NAME=swiftop
 
@@ -51,7 +51,7 @@ python3 -m venv .venv
 pip install .
 tempest init ~/tempest-run
 
-cd ~/tempest-run
+cd ~/tempest-run || exit
 cp "$HOME"/accounts.yaml "$HOME"/tempest-run/etc/accounts.yaml
 cp "$HOME"/tempest.conf "$HOME"/tempest-run/etc/tempest.conf
 
