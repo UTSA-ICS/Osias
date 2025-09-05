@@ -1,7 +1,7 @@
 default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
-  image: python:latest
+  image: python:3.13.7
   interruptible: true
   tags:
     - docker-runner
@@ -12,7 +12,7 @@ include:
 
 variables:
   DEPLOY_MULTIPLE_RELEASES:
-    value: "true"
+    value: "false"
     description: Flag for deployment of multiple releases or one release.
   SLEEP_FAILURE_TIME:
     value: "3600"

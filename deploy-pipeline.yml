@@ -1,7 +1,7 @@
 default:
   # Official language image. Look for the different tagged releases at:
   # https://hub.docker.com/r/library/python/tags/
-  image: python:latest
+  image: python:3.13.7
   #interruptible: true
   tags:
     - docker-runner
@@ -69,11 +69,6 @@ create_osias_multinode_file:
     - .base_setup
   image: <CLOUD_PROVIDER_IMAGE>
   script:
-    - pip3 install proxmoxer
-    - echo "$SSH_PRIVATE_KEY" > "$HOME"/.ssh/id_rsa
-    - chmod 600 "$HOME"/.ssh/id_rsa
-    - ssh-keygen -y -f "$HOME"/.ssh/id_rsa > "$HOME"/id_rsa.pub
-    - chmod 644 "$HOME"/id_rsa.pub
     - python3 -u deploy.py create_virtual_servers --VM_PROFILE "$VM_PROFILE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
   rules:
     - if: '$CI_PIPELINE_SOURCE == "parent_pipeline" && ($MULTINODE == "" || $MULTINODE == null)'
@@ -89,7 +84,7 @@ reprovision_servers:
   stage: reprovision_servers
   extends:
     - .base_setup
-  image: python:latest
+  image: python:3.13.7
   script:
     - python3 -u deploy.py reprovision_servers --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
     - python3 -u deploy.py disable_cloudinit --config "$MULTINODE" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
@@ -223,7 +218,6 @@ sleep_on_failure:
   tags:
     - docker-runner
   script:
-    - source ~/.bashrc  # Load profile (if necessary)
     - echo "SLEEP_FAILURE_TIME=$SLEEP_FAILURE_TIME"  # Debug line
     - for i in `seq $SLEEP_FAILURE_TIME -1 1` ; do echo -n "$i " ; sleep 1 ; done
   rules:
