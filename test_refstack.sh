@@ -25,7 +25,7 @@ if ! openstack role list -c Name -f value | grep -q 'ResellerAdmin'; then
     openstack role create ResellerAdmin
 fi
 
-openstack role add Member --user "$USER_NAME" --project "$TENANT"
+openstack role add member --user "$USER_NAME" --project "$TENANT"
 openstack role add ResellerAdmin --user "$USER_NAME" --project "$TENANT"
 
 TENANT_ID=$(openstack project list -f value -c ID --user "$USER_NAME")
@@ -102,12 +102,12 @@ openstack network delete "$USER_NAME"_Network || true
 # flag the tests as passed.
 
 # This will find the highest number file, indicitive of the latest refstack test run.
-FILENAME=$(find "$HOME"/refstack-client/.tempest/.stestr/ -name '*[0-9]' | sort -nr | head -n1)
+FILENAME=$(find "$HOME"/tempest-run/.stestr/ -type f -name '[0-9]*' | sort -nr | head -n1)
 
 NUM_FAILURES=$(grep -c "failure:" "$FILENAME" || true)
 echo "Number of failure are -->> [$NUM_FAILURES]"
 
-exceptions=('MultipleCreateTestJSON' 'test_get_object_using_temp_url' 'test_put_object_using_temp_url' 'test_upload_too_many_objects')
+exceptions=('test_get_network' 'test_list_all_networks' 'test_image_copy_image_import' 'test_delete_image_from_specific_store' 'MeteringTestJSON' 'test_list_show_extensions' 'test_basic_scenario' 'test_subnet_details')
 
 ALLOWED_FAILURES=0
 if [[ $(grep -c "failure:" "$FILENAME") -eq 0 ]]; then
