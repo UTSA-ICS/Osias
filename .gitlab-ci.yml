@@ -16,7 +16,10 @@ variables:
     description: Flag for deployment of multiple releases or one release.
   SLEEP_FAILURE_TIME:
     value: "3600"
-    description: Pipeline sleep time for failure scenarios
+    description: Pipeline sleep time for failure scenarios in seconds.
+  RUN_REFSTACK:
+    value: "false"
+    description: Enable or disable refstack tests.
 
 workflow:
   rules:
