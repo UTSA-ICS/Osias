@@ -187,13 +187,17 @@ test:refstack:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     # Copy over the test output files
-    - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/refstack-client/.tempest/.stestr/0*"
+    - python3 -u deploy.py copy_files --config "$MULTINODE" --file_path "/home/ubuntu/tempest-run/.stestr/0*"
   artifacts:
     paths:
       - ./0
-      - ./0.json
     when: always
   allow_failure: true
+  rules:
+    - if: '($RUN_REFSTACK == "" || $RUN_REFSTACK == null)'
+      when: never
+    - if: '$RUN_REFSTACK == 'true' || '$CI_PIPELINE_SOURCE == "master"'
+      when: always
 
 test:general_functionality:
   stage: test_verifications
@@ -237,7 +241,6 @@ delete_virtual_machines:
       else
         python3 -u deploy.py delete_virtual_machines --config "$MULTINODE" --CLOUD_URL "$CLOUD_URL" --CLOUD_PASS "$CLOUD_PASS" --CLOUD_PROVIDER "$CLOUD_PROVIDER"
       fi
-
   rules:
     - if: '($MULTINODE == "" || $MULTINODE == null)  && $VM_PROFILE != null'
       when: always

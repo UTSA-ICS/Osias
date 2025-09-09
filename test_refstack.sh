@@ -137,7 +137,7 @@ else
     exit 1
 fi
 
-SWIFT=$(grep "swift =" "$HOME"/refstack-client/etc/tempest.conf | awk -F= '{print $NF}')
+SWIFT=$(grep "swift =" "$HOME"/tempest.conf | awk -F= '{print $NF}')
 if [[ "$SWIFT" == *"True"* ]]; then
     echo "###########################################"
     echo "# Enabling production settings for swift  #"
