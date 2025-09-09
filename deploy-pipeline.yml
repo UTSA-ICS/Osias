@@ -194,7 +194,9 @@ test:refstack:
     when: always
   allow_failure: true
   rules:
-    - if: '($CI_PIPELINE_SOURCE == "master" || $CI_PIPELINE_SOURCE == "schedule") && $RUN_REFSTACK == "true"'
+    - if: '($PARENT_CI_PIPELINE_SOURCE == "master" || $PARENT_CI_PIPELINE_SOURCE == "schedule") && $RUN_REFSTACK == "true"'
+      when: always
+
 
 test:general_functionality:
   stage: test_verifications
