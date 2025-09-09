@@ -196,7 +196,7 @@ test:refstack:
   rules:
     - if: '($RUN_REFSTACK == "" || $RUN_REFSTACK == null)'
       when: never
-    - if: '$RUN_REFSTACK == 'true' || '$CI_PIPELINE_SOURCE == "master"'
+    - if: '$RUN_REFSTACK == "true" || $CI_PIPELINE_SOURCE == "master"'
       when: always
 
 test:general_functionality:
