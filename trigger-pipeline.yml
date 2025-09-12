@@ -57,6 +57,9 @@ deploy:<RELEASE_NAME>:
       - artifact: deploy-<RELEASE_NAME>.yml
         job: handle-yaml
     strategy: depend
+    forward:
+      pipeline_variables: true # This forwards manual pipeline variables
+      yaml_variables: true     # This forwards YAML-defined bridge variables (default behavior)
   variables:
     CEPH: <CEPH_CURRENT_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
@@ -64,7 +67,6 @@ deploy:<RELEASE_NAME>:
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
     PARENT_CI_PIPELINE_SOURCE: $PARENT_CI_PIPELINE_SOURCE
     REPROVISION_SERVERS: $REPROVISION_SERVERS
-    RUN_REFSTACK: $RUN_REFSTACK
     VM_PROFILE: <RELEASE_VM_PROFILE>
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
     CLOUD_URL: $CLOUD_URL
@@ -78,6 +80,9 @@ deploy:<PREVIOUS_RELEASE_NAME>:
       - artifact: deploy-<PREVIOUS_RELEASE_NAME>.yml
         job: handle-yaml
     strategy: depend
+    forward:
+      pipeline_variables: true # This forwards manual pipeline variables
+      yaml_variables: true     # This forwards YAML-defined bridge variables (default behavior)
   variables:
     CEPH: <CEPH_PREVIOUS_BOOL>
     DOCKER_REGISTRY_PASSWORD: $DOCKER_REGISTRY_PASSWORD
@@ -85,7 +90,6 @@ deploy:<PREVIOUS_RELEASE_NAME>:
     PARENT_PIPELINE_ID: $PARENT_PIPELINE_ID
     PARENT_CI_PIPELINE_SOURCE: $PARENT_CI_PIPELINE_SOURCE
     REPROVISION_SERVERS: $REPROVISION_SERVERS
-    RUN_REFSTACK: $RUN_REFSTACK
     VM_PROFILE: $VM_PROFILE_PREVIOUS_RELEASE
     SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY
     CLOUD_URL: $CLOUD_URL
